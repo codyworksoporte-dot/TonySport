@@ -12,6 +12,8 @@ const { chromium } = require('@playwright/test');
   for (const route of ['/', '/producto/', '/carrito/', '/configurador/', '/tony-news/']) {
     const response = await page.goto(`${base}${route}`, {waitUntil:'networkidle'});
     if (response?.status() !== 200 || !await page.locator('main h1').count()) failures.push(`Ruta ${route} no abrió correctamente`);
+    const brokenLinks = await page.locator('a[href^="/"]').evaluateAll(links => links.map(link => link.getAttribute('href')).filter(href => href && !href.startsWith('/TonySport/')));
+    if (brokenLinks.length) failures.push(`Enlaces fuera del sitio en ${route}: ${brokenLinks.join(', ')}`);
   }
   await page.goto(`${base}/`, {waitUntil:'networkidle'});
   await page.getByRole('link',{name:/Explora Producto/}).click();
