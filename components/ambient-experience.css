@@ -1,0 +1,27 @@
+/* The joint glow lives in document space, between the scale texture (root
+   background) and the page content: it only shows where the scales are visible
+   and scrolls with them on the compositor, so the seams never drift. */
+body{position:relative;isolation:isolate}
+body>main,.tony-footer{position:relative;z-index:1}
+.tony-scale-glow-layer{position:absolute;inset:0;z-index:-1;overflow:hidden;pointer-events:none;contain:strict}
+.tony-scale-glow{position:absolute;top:0;left:0;width:calc(var(--glow-radius) * 2);height:calc(var(--glow-radius) * 2);overflow:hidden;opacity:0;-webkit-mask-image:radial-gradient(closest-side,#000 0,rgb(0 0 0 / .8) 28%,rgb(0 0 0 / .36) 60%,transparent 100%);mask-image:radial-gradient(closest-side,#000 0,rgb(0 0 0 / .8) 28%,rgb(0 0 0 / .36) 60%,transparent 100%);will-change:transform,opacity}
+.tony-scale-glow--ambient{width:calc(var(--pulse-radius) * 2);height:calc(var(--pulse-radius) * 2)}
+/* Only the joints between scales, one tile larger than the window so it can slide back. */
+.tony-scale-joints{position:absolute;top:0;left:0;width:calc(100% + var(--scale-tile));height:calc(100% + var(--scale-tile));background:url('/assets/escamas-tony-uniones.svg') 0 0/var(--scale-tile) var(--scale-tile) repeat;will-change:transform}
+
+.tony-scratch-stage{position:fixed;inset:0;z-index:1100;overflow:hidden;pointer-events:none;contain:strict}
+.tony-scratch-stage svg{position:absolute;top:0;left:0;width:var(--scratch-size);height:var(--scratch-size);opacity:0;fill:#ff9650;overflow:visible}
+
+/* Discreet by default: a round pause control in the corner that reveals its label on hover or focus. */
+.tony-effects-toggle{position:fixed;z-index:80;bottom:16px;left:16px;height:40px;min-width:40px;max-width:40px;display:inline-flex;align-items:center;gap:8px;padding:0 11px;overflow:hidden;white-space:nowrap;border:1px solid var(--edge-strong);border-radius:999px;background:rgb(12 15 13 / .9);box-shadow:0 6px 20px rgb(0 0 0 / .35);backdrop-filter:blur(10px);font-size:12px;font-weight:600;color:var(--bone);line-height:1.2;transition:max-width 260ms var(--ease),border-color 160ms ease,background 160ms ease}
+.tony-effects-toggle>svg{width:16px;height:16px;color:var(--venom)}
+.tony-effects-toggle>span{opacity:0;transition:opacity 160ms ease}
+.tony-effects-toggle:hover,.tony-effects-toggle:focus-visible{max-width:260px}
+.tony-effects-toggle:hover>span,.tony-effects-toggle:focus-visible>span{opacity:1}
+.tony-effects-toggle[aria-pressed=false]>svg{color:var(--mute)}
+.tony-effects-toggle:disabled{cursor:default;opacity:.72}
+@media(hover:hover) and (pointer:fine){.tony-effects-toggle:hover:not(:disabled){border-color:var(--venom);background:rgb(20 26 22 / .95)}}
+@media(max-width:1099px){.tony-effects-toggle{position:relative;left:auto;bottom:auto;margin:0 24px 24px;max-width:none;width:max-content;height:44px;padding:0 16px 0 13px}.tony-effects-toggle>span{opacity:1}}
+@media(hover:none),(pointer:coarse){.tony-scale-glow:not(.tony-scale-glow--ambient){display:none}}
+@media(prefers-reduced-motion:reduce){.tony-scale-glow-layer,.tony-scratch-stage{display:none!important}.tony-effects-toggle{transition:none}}
+html[data-tony-effects=off] .tony-scale-glow-layer,html[data-tony-effects=off] .tony-scratch-stage,html[data-tony-effects=off] .tony-peek{display:none}

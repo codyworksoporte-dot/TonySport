@@ -1,0 +1,9 @@
+.tony-reveal{position:relative}
+.tony-reveal :is(.tony-reveal-visual,.tony-reveal-word,.tony-reveal-char){color:inherit}
+.tony-reveal .tony-reveal-word{display:inline-block;white-space:nowrap;vertical-align:baseline}
+.tony-reveal .tony-reveal-char{display:inline-block;transform-origin:50% 100%}
+/* The main heading's emphasised word gets a claw stroke drawn under it once the letters settle. */
+@property --claw{syntax:'<number>';inherits:false;initial-value:1}
+.tony-reveal--signature .tony-reveal-accent{background:linear-gradient(90deg,var(--venom),#ff8a3d 88%,transparent) 0 94%/calc(var(--claw) * 100%) .06em no-repeat;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+html[data-tony-effects=off] .tony-reveal-char{opacity:1!important;transform:none!important}
+@media(prefers-reduced-motion:reduce){.tony-reveal .tony-reveal-char{opacity:1!important;transform:none!important}}

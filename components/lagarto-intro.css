@@ -1,0 +1,54 @@
+.lagarto-mark{display:block;width:100%;height:auto;overflow:visible}
+.home-page{position:relative}
+.replay-intro{position:absolute;z-index:4;top:56px;right:5%;display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:8px 12px;color:#d5e2b9;border:1px solid #66835666;border-radius:999px;background:#1739287a;font-size:12px;font-weight:600;letter-spacing:.02em;backdrop-filter:blur(12px)}
+.replay-intro[hidden]{display:none}.replay-intro:disabled{visibility:hidden}.replay-intro svg{width:24px;height:24px}.replay-intro:focus-visible{outline:2px solid #b4ff35;outline-offset:5px}
+.lagarto-intro{position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;max-height:none;margin:0;padding:0;overflow:hidden;border:0;color:#e5efca;background:#13382a;isolation:isolate;overscroll-behavior:contain;animation:intro-exit 520ms var(--ease,cubic-bezier(.23,1,.32,1)) 3680ms both}
+.lagarto-intro::backdrop{background:transparent}
+/* The timeline starts only once the modal owns the screen, never during hydration. */
+.lagarto-intro:not(.lagarto-intro--playing),.lagarto-intro:not(.lagarto-intro--playing) *{animation-play-state:paused!important}
+.intro-atmosphere{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 43%,#47794166 0%,#224d3244 34%,#102a21cc 90%),url('/assets/escamas-tony-base.webp') 0 0/var(--scale-tile);background-blend-mode:screen;opacity:.68}
+.intro-atmosphere::after{content:'';position:absolute;inset:0;background:linear-gradient(105deg,#aee45e06,transparent 35%,#91bc330e 55%,transparent 75%)}
+.intro-light{position:absolute;width:34vw;height:130vh;top:-20vh;background:linear-gradient(90deg,transparent,#c3e7810d,transparent);transform:rotate(32deg);pointer-events:none}.intro-light--one{left:0}.intro-light--two{right:0}
+.intro-mascot-scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px 58px}
+.intro-mascot-scene>.lagarto-mark{position:relative;width:min(580px,83vw);max-height:72dvh;flex:0 1 auto;z-index:2;margin-top:-34px;animation:intro-mascot-settle 900ms var(--ease,cubic-bezier(.23,1,.32,1)) 2700ms both}
+.intro-halo{position:absolute;left:50%;top:46%;width:min(650px,94vw);aspect-ratio:1;border-radius:50%;border:1px solid #b4e26417;transform:translate(-50%,-50%);background:radial-gradient(circle,#8fc9471c,transparent 65%);box-shadow:0 0 0 50px #a2d86503,0 0 0 100px #a2d86502;animation:intro-halo-appear 1500ms var(--ease,cubic-bezier(.23,1,.32,1)) 1000ms both}
+.intro-halo::before,.intro-halo::after{content:'';position:absolute;inset:9%;border:1px solid #b9dc740d;border-radius:50%}.intro-halo::after{inset:20%;border-style:dashed}
+.intro-brand-caption{position:relative;z-index:3;margin-top:-44px;display:flex;flex-direction:column;text-align:center;gap:8px;animation:intro-caption-appear 600ms var(--ease,cubic-bezier(.23,1,.32,1)) 2840ms both}
+.intro-brand-caption span{font-size:10px;font-weight:600;letter-spacing:.32em;color:#b7cc9e}.intro-brand-caption strong{font-family:var(--font-display),Impact,sans-serif;line-height:1;font-size:clamp(25px,3.2vw,39px);font-weight:400;letter-spacing:.045em;color:#eef6d8}
+.intro-curtain{position:absolute;inset:-2%;z-index:4;background:linear-gradient(115deg,#173b29dd,#0b221ad9),url('/assets/escamas-tony-base.webp') 0 0/var(--scale-tile);will-change:transform;animation-duration:1200ms;animation-delay:950ms;animation-timing-function:var(--ease,cubic-bezier(.23,1,.32,1));animation-fill-mode:both}
+.intro-curtain--top{clip-path:polygon(0 0,100% 0,100% 30%,94% 34%,91% 34%,86% 38%,83% 37%,77% 42%,74% 42%,67% 47%,65% 45%,58% 49%,55% 51%,51% 52%,49% 55%,43% 56%,39% 60%,37% 59%,29% 64%,26% 64%,20% 66%,18% 69%,13% 68%,7% 73%,4% 73%,0 76%);animation-name:intro-tear-top}.intro-curtain--bottom{clip-path:polygon(0 74%,4% 71%,7% 72%,13% 67%,18% 68%,20% 65%,26% 63%,29% 62%,37% 58%,39% 59%,43% 55%,49% 54%,51% 51%,55% 50%,58% 48%,65% 44%,67% 46%,74% 41%,77% 40%,83% 36%,86% 37%,91% 33%,94% 32%,100% 28%,100% 100%,0 100%);animation-name:intro-tear-bottom}
+.intro-curtain::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,#99e13a50,#9de23b16 25%,#ff7a3255 60%,#f4ff9666);clip-path:polygon(0 73%,9% 68%,15% 66%,23% 62%,30% 59%,41% 54%,49% 50%,57% 45%,65% 43%,74% 38%,83% 34%,92% 30%,100% 26%,100% 33%,92% 37%,83% 40%,74% 45%,65% 49%,57% 53%,49% 59%,41% 62%,30% 68%,23% 70%,15% 75%,9% 77%,0 81%)}
+.intro-watchful-eyes{position:absolute;z-index:5;width:min(290px,49vw);height:auto;left:50%;top:43%;transform:translate(-50%,-50%);filter:drop-shadow(0 0 13px #fcaa4559);animation:intro-eyes 1200ms var(--ease,cubic-bezier(.23,1,.32,1)) both;pointer-events:none}
+.intro-rip{position:absolute;inset:0;z-index:6;width:100%;height:100%;pointer-events:none;animation:intro-rip-fade 550ms var(--ease,cubic-bezier(.23,1,.32,1)) 1550ms both;filter:drop-shadow(0 0 6px #b7ff3166)}
+.intro-rip-stroke{clip-path:inset(0 100% 0 0);animation:intro-rip-draw 500ms var(--ease,cubic-bezier(.23,1,.32,1)) 440ms both}
+.intro-topline{position:absolute;z-index:7;top:32px;left:4%;right:4%;display:flex;gap:20px;align-items:center;font-size:9px;font-weight:600;letter-spacing:.19em;color:#bbd0a3}.intro-topline>span+span{color:#829e7e}
+.intro-skip{position:absolute;z-index:9;right:4%;bottom:36px;min-height:46px;padding:0 18px;display:flex;align-items:center;gap:25px;font-size:11px;color:#ecf4d5;border:1px solid #bad39261;border-radius:999px;background:#173c2ddd;backdrop-filter:blur(8px)}.intro-skip>span{font-size:19px;color:#b4ff35}.intro-skip:focus-visible{outline:2px solid #b4ff35;outline-offset:5px}
+.intro-progress{position:absolute;z-index:7;left:4%;bottom:58px;width:clamp(75px,12vw,170px);height:1px;overflow:hidden;background:#b6d38c33}.intro-progress>span{display:block;width:100%;height:100%;background:#b4ff35;transform-origin:left;animation:intro-progress 3680ms linear both}
+.lagarto-mark--enter .lagarto-shield{transform-origin:320px 375px;animation:intro-shield 850ms var(--ease,cubic-bezier(.23,1,.32,1)) 1150ms both}
+.lagarto-mark--enter .lagarto-hand--left{transform-origin:169px 345px;animation:intro-hand-left 650ms var(--ease,cubic-bezier(.23,1,.32,1)) 1750ms both}.lagarto-mark--enter .lagarto-hand--right{transform-origin:471px 345px;animation:intro-hand-right 650ms var(--ease,cubic-bezier(.23,1,.32,1)) 1850ms both}
+.lagarto-mark--enter .lagarto-head{transform-origin:320px 276px;animation:intro-head 850ms var(--ease,cubic-bezier(.23,1,.32,1)) 2190ms both}
+@keyframes intro-eyes{0%,8%{opacity:0;transform:translate(-50%,-50%) scaleY(.3)}30%,58%{opacity:1;transform:translate(-50%,-50%) scaleY(1)}100%{opacity:0;transform:translate(-50%,-50%) scaleY(.4)}}
+@keyframes intro-rip-draw{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes intro-rip-fade{from{opacity:1}to{opacity:0}}
+@keyframes intro-tear-top{from{transform:translate(0,0)}to{transform:translate(-6%,-74%) rotate(-5deg)}}
+@keyframes intro-tear-bottom{from{transform:translate(0,0)}to{transform:translate(6%,74%) rotate(-5deg)}}
+@keyframes intro-halo-appear{from{opacity:0;transform:translate(-50%,-50%) scale(.94)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes intro-shield{0%{opacity:0;transform:translateY(45px) scale(.94)}65%{opacity:1;transform:translateY(-7px) scale(1.025)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes intro-hand-left{0%{opacity:0;transform:translate(-82px,23px) rotate(-13deg)}72%{opacity:1;transform:translate(4px,-3px) rotate(2deg)}100%{opacity:1;transform:translate(0,0) rotate(0)}}
+@keyframes intro-hand-right{0%{opacity:0;transform:translate(82px,23px) rotate(13deg)}72%{opacity:1;transform:translate(-4px,-3px) rotate(-2deg)}100%{opacity:1;transform:translate(0,0) rotate(0)}}
+@keyframes intro-head{0%{opacity:0;transform:translateY(79px) scale(.95)}48%{opacity:1}72%{opacity:1;transform:translateY(-8px) scale(1.015)}100%{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes intro-caption-appear{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes intro-mascot-settle{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+@keyframes intro-progress{from{transform:scaleX(.01)}to{transform:scaleX(1)}}
+@keyframes intro-exit{from{opacity:1}to{opacity:0}}
+@media(hover:hover) and (pointer:fine){.replay-intro:hover{background:#245137;color:#c5ff65;border-color:#b4ff3588}.intro-skip:hover{background:#b4ff35;color:#122a1e}.intro-skip:hover>span{color:#122a1e}}
+@media(max-width:700px){.replay-intro{top:12px;right:20px;width:44px;height:44px;padding:0;justify-content:center}.replay-intro>span{display:none}.replay-intro svg{width:23px;height:23px}.intro-topline{top:25px;left:24px;right:24px;font-size:8px;gap:14px}.intro-mascot-scene{padding:30px 8px 65px}.intro-mascot-scene>.lagarto-mark{width:112vw;max-width:550px;max-height:70dvh;margin-top:-15px}.intro-brand-caption{margin-top:-40px}.intro-brand-caption span{font-size:8px;letter-spacing:.2em}.intro-brand-caption strong{font-size:27px}.intro-skip{bottom:28px;right:24px;min-height:46px}.intro-progress{bottom:51px;left:24px;width:85px}.intro-watchful-eyes{width:230px}.intro-rip{width:160%;left:-30%}}
+@media(prefers-reduced-motion:reduce){.replay-intro,.lagarto-intro{display:none!important}.lagarto-mark *{animation:none!important}}
+/* The replay affordance is mounted globally with the intro and aligned to the home hero. */
+body > .replay-intro{top:174px}
+@media(max-width:700px){body > .replay-intro{top:117px}}
+/* Tony rises with his eyes shut and opens them once he has settled over the shield. */
+.lagarto-mark--enter .tf-lid{animation:intro-awaken 3400ms linear both}
+/* Blinks only while on screen (LagartoMark toggles the class), so an idle page stops repainting. */
+.lagarto-mark.is-blinking .tf-lid{animation:tf-blink 6.4s linear 2s infinite}
+@keyframes intro-awaken{0%,84%{transform:scaleY(1)}90%,100%{transform:scaleY(0)}}

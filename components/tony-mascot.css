@@ -1,0 +1,10 @@
+/* --tm-width is the strip Tony occupies at the edge; the head and claws reach past it.
+   At rest both wait behind the edge, the parent's animation brings them out. */
+.tm-layer{position:absolute;inset:0}
+.tm-head{transform-origin:100% 50%;transform:translateX(95%)}
+/* The head turned a quarter so the flat base of the logo head lies along the edge. */
+.tm-face{position:absolute;width:calc(var(--tm-width) * 1.62);left:calc(var(--tm-width) * -.085);top:calc(50% - var(--tm-width) * .2965);rotate:-90deg}
+/* Mirrored claws: the grip line of the drawing sits on the edge, the talons on the page. */
+.tm-hand{position:absolute;width:calc(var(--tm-width) * 1.15);left:calc(100% - var(--tm-width) * 1.15 * .38);transform-origin:100% 50%}
+.tm-hand--top{top:4%;rotate:8deg;transform:translateX(70%) rotate(12deg)}
+.tm-hand--bottom{bottom:4%;rotate:-8deg;transform:translateX(70%) rotate(-12deg)}

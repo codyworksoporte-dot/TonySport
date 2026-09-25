@@ -1,0 +1,55 @@
+/* Section change. Only opacity and transforms move, so the compositor runs every
+   frame even while the new page renders underneath. Once armed (after the page
+   settles) the textures are loaded and every layer is drawn once at 1%, so the
+   first change finds the GPU ready. */
+.route-transition{position:fixed;inset:0;z-index:1000;pointer-events:none;visibility:hidden;contain:strict;--rt-w:min(72vmin,500px)}
+.route-transition.is-armed,.route-transition:not([data-phase=idle]){visibility:visible}
+.rt-panel,.rt-ring,.rt-stage{position:absolute;opacity:0}
+/* A one-off warm-up after arming: drawn at 1% so the GPU has everything ready (RouteTransition.arm). */
+.route-transition.is-warming[data-phase=idle] :is(.rt-panel,.rt-ring,.rt-stage){opacity:.01}
+
+/* The scales with their joints lit, brightest behind Tony: one static layer, no masks. */
+.rt-panel{inset:0;background:#0a0d0b;will-change:opacity}
+.route-transition.is-armed .rt-panel{background:radial-gradient(circle at 50% 47%,rgb(255 106 0 / .13),transparent 34%),radial-gradient(circle at 50% 47%,rgb(10 13 11 / .18) 0,rgb(10 13 11 / .5) 24%,rgb(10 13 11 / .9) 52%),url('/assets/escamas-tony-brasa.webp') 0 0/var(--scale-tile) var(--scale-tile),#0a0d0b}
+
+/* A ring of light spreading from the link that was clicked. */
+.rt-ring{left:calc(var(--from-x,50vw) - 160px);top:calc(var(--from-y,50vh) - 160px);width:320px;height:320px;border-radius:50%;border:2px solid #ff8a3d;background:radial-gradient(closest-side,transparent 72%,rgb(255 106 0 / .22));will-change:transform,opacity}
+
+/* Tony over the shield, as in the logo: the head's flat base rests on the shield's
+   top edge, the claws grip its sides and the full wordmark sits inside. */
+.rt-stage{left:50%;top:47%;width:var(--rt-w);height:calc(var(--rt-w) * .8);margin:calc(var(--rt-w) * -.4) 0 0 calc(var(--rt-w) * -.5);will-change:transform,opacity}
+.rt-emblem{position:absolute;inset:0;transform-origin:50% 60%}
+.rt-shadow{position:absolute;left:4%;right:4%;top:36%;bottom:-10%;border-radius:50%;background:radial-gradient(closest-side,rgb(0 0 0 / .62),rgb(0 0 0 / .3) 55%,transparent)}
+.rt-head{position:absolute;left:11%;top:0;width:78%}
+.rt-plaque{position:absolute;left:5%;width:90%;top:34.2%;height:62.5%;background:#040806;clip-path:polygon(0 0,100% 0,97% 62%,50% 100%,3% 62%)}
+.rt-plaque::before,.rt-plaque::after{content:'';position:absolute;clip-path:polygon(0 0,100% 0,97% 62%,50% 100%,3% 62%)}
+.rt-plaque::before{inset:3px 3px 4px;background:linear-gradient(160deg,#ffa047,#ff6a00 42%,#e2560b)}
+.rt-plaque::after{inset:9px 10px 14px;background:linear-gradient(rgb(16 36 26 / .82),rgb(6 16 11 / .94)),url('/assets/escamas-tony-base.webp') 0 0/150px 150px,#0b1510}
+.rt-plaque>img{position:absolute;z-index:1;left:12%;top:8%;width:76%;height:auto;user-select:none}
+.rt-claw{position:absolute;z-index:2;top:38%;width:25%}
+.rt-claw--left{left:-9%}
+.rt-claw--right{right:-9%}
+
+/* Cover: the scales fade in, the ring spreads, Tony comes up close. */
+.route-transition[data-phase=cover] .rt-panel{animation:rt-fade-in 260ms cubic-bezier(.33,1,.68,1) both}
+.route-transition[data-phase=cover] .rt-ring{animation:rt-ring 560ms cubic-bezier(.16,1,.3,1) both}
+.route-transition[data-phase=cover] .rt-stage{animation:rt-arrive 440ms cubic-bezier(.16,1,.3,1) 40ms both}
+/* If the new section is slow to arrive he waits breathing, never frozen. */
+.route-transition[data-phase=cover] .rt-emblem{animation:rt-hold 1800ms var(--ease-in-out) 480ms infinite}
+/* Wink: the right eye closes and the head leans in; both carry on while the page opens. */
+.route-transition:is([data-phase=wink],[data-phase=reveal]) .rt-emblem{animation:rt-lean 460ms var(--ease-in-out) both}
+.route-transition:is([data-phase=wink],[data-phase=reveal]) .tf-lid--right{animation:tf-wink 420ms var(--ease-in-out) both}
+.route-transition[data-phase=wink] :is(.rt-panel,.rt-stage){opacity:1}
+/* Reveal: Tony passes the camera and the scales fade from the new section. */
+.route-transition[data-phase=reveal] .rt-panel{animation:rt-fade-out 340ms cubic-bezier(.65,0,.35,1) both}
+.route-transition[data-phase=reveal] .rt-stage{animation:rt-leave 320ms cubic-bezier(.5,0,.75,0) both}
+
+@keyframes rt-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes rt-fade-out{from{opacity:1}to{opacity:0}}
+@keyframes rt-ring{from{opacity:.95;transform:scale(.12)}to{opacity:0;transform:scale(2.2)}}
+@keyframes rt-arrive{from{opacity:0;transform:translate3d(0,7%,0) scale(.62)}55%{opacity:1}to{opacity:1;transform:none}}
+@keyframes rt-hold{0%,100%{transform:none}50%{transform:translate3d(0,-1%,0) scale(1.012)}}
+@keyframes rt-lean{0%{transform:none}45%{transform:rotate(-2.5deg) scale(1.025)}100%{transform:none}}
+@keyframes rt-leave{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(0,-3%,0) scale(1.2)}}
+@media(prefers-reduced-motion:reduce){.route-transition{display:none}}
+html[data-tony-effects=off] .route-transition{display:none}

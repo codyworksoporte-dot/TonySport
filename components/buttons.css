@@ -1,0 +1,58 @@
+/*
+ * One button language for the whole site. Corners are cut like the TONY
+ * wordmark, the face carries a faint jersey stripe and a bottom edge that
+ * gives it depth, a sheen crosses it on hover and the arrow leaves and comes
+ * back. Shapes live on pseudo-elements so focus outlines are never clipped.
+ * `html` in the selectors keeps this layer ahead of each family's own rules.
+ */
+html :is(.button.primary,.te-button:not(.te-button-outline),.tony-header-cta,.tony-footer-start),
+html :is(.button.outline,.button.dark,.te-button-outline){--cut:11px;position:relative;isolation:isolate;overflow:visible;border:0;border-radius:0;background:none;box-shadow:none;transition:transform 220ms var(--ease),filter 220ms var(--ease),color 200ms ease}
+html :is(.button.primary,.te-button:not(.te-button-outline),.tony-header-cta,.tony-footer-start)::before,
+html :is(.button.primary,.te-button:not(.te-button-outline),.tony-header-cta,.tony-footer-start)::after,
+html :is(.button.outline,.button.dark,.te-button-outline)::before,
+html :is(.button.outline,.button.dark,.te-button-outline)::after{content:'';position:absolute;inset:0;pointer-events:none;clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut))}
+
+/* Primary: lime, the one action that matters on each screen. */
+html :is(.button.primary,.te-button:not(.te-button-outline),.tony-header-cta,.tony-footer-start){color:#10160e!important;filter:drop-shadow(0 8px 14px rgb(0 0 0 / .34))}
+html :is(.button.primary,.te-button:not(.te-button-outline),.tony-header-cta,.tony-footer-start)::before{z-index:-2;background:linear-gradient(to top,rgb(46 86 12 / .6) 0 3px,transparent 3px),linear-gradient(rgb(255 255 255 / .8) 0 1px,transparent 1px),repeating-linear-gradient(115deg,transparent 0 13px,rgb(0 0 0 / .05) 13px 15px),linear-gradient(115deg,#e8ffa6 0%,#c6ff55 42%,#9bf02e 100%)}
+html :is(.button.primary,.te-button:not(.te-button-outline),.tony-header-cta,.tony-footer-start)::after{z-index:-1;background:linear-gradient(105deg,transparent 38%,rgb(255 255 255 / .62) 50%,transparent 62%) no-repeat 130% 0/260% 100%;transition:background-position 700ms var(--ease)}
+
+/* The icon box: a smaller cut plate whose arrow slips out and back in. */
+html :is(.button.primary .button-icon,.te-button:not(.te-button-outline)>span,.tony-header-cta>span){border-radius:0;background:#141a13;color:#c8ff5a;overflow:hidden;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px);transition:background 220ms ease,color 220ms ease,transform 220ms var(--ease)}
+html .tony-footer-start>svg{border-radius:0;background:#141a13;color:#c8ff5a;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+
+/* Secondary: graphite with a lime hairline; a tint sweeps in on hover. */
+html :is(.button.outline,.button.dark,.te-button-outline){color:var(--bone)!important}
+html :is(.button.outline,.button.dark,.te-button-outline)::before{z-index:-2;background:linear-gradient(115deg,rgb(200 255 110 / .72),rgb(200 255 110 / .2) 55%,rgb(200 255 110 / .5))}
+html :is(.button.outline,.button.dark,.te-button-outline)::after{inset:1px;z-index:-1;clip-path:polygon(calc(var(--cut) - .4px) 0,100% 0,100% calc(100% - var(--cut) + .4px),calc(100% - var(--cut) + .4px) 100%,0 100%,0 calc(var(--cut) - .4px));background:linear-gradient(90deg,rgb(180 255 53 / .16) 0 50%,transparent 50%) 100% 0/200% 100% no-repeat,linear-gradient(135deg,#1b231e,#101512);transition:background-position 420ms var(--ease)}
+html :is(.button.outline,.button.dark,.te-button-outline) :is(svg,span){color:var(--venom)}
+
+/* Text links: a rule draws in under them and the arrow turns toward where it leads. */
+html :is(.text-link,.hero-secondary,.te-text-link,.tony-footer-talk){position:relative;transition:color 200ms ease}
+html :is(.text-link,.hero-secondary,.te-text-link,.tony-footer-talk)::after{content:'';position:absolute;left:0;right:0;bottom:5px;height:1px;background:currentColor;opacity:.45;transform:scaleX(0);transform-origin:left;transition:transform 380ms var(--ease);pointer-events:none}
+html .text-link svg,html .te-text-link>span{transition:transform 260ms var(--ease),background 200ms ease,color 200ms ease,border-color 200ms ease}
+html .hero-secondary span,html .tony-footer-talk svg{display:inline-block;transition:transform 260ms var(--ease)}
+
+/* Header icons: a quiet ring that lights up. */
+html .tony-icon-button{transition:background 180ms ease,border-color 180ms ease,color 180ms ease,transform 160ms var(--ease)}
+html .tony-icon-button:active{transform:scale(.94)}
+
+html :is(.button.primary,.te-button,.tony-header-cta,.tony-footer-start,.button.outline,.button.dark):focus-visible{outline:2px solid #e8ffb0;outline-offset:4px}
+html :is(.button.primary,.te-button,.tony-header-cta,.tony-footer-start,.button.outline,.button.dark):active{transform:translateY(1px) scale(.985);filter:drop-shadow(0 3px 6px rgb(0 0 0 / .3))}
+html :is(.button.primary,.te-button,.tony-header-cta,.tony-footer-start,.button.outline,.button.dark):disabled{filter:grayscale(.6) opacity(.7);transform:none}
+
+@media(hover:hover) and (pointer:fine){
+  html :is(.button.primary,.te-button,.tony-header-cta,.tony-footer-start,.button.outline,.button.dark):hover:not(:disabled){transform:translateY(-2px);filter:drop-shadow(0 12px 20px rgb(0 0 0 / .4))}
+  html :is(.button.primary,.te-button:not(.te-button-outline),.tony-header-cta,.tony-footer-start):hover:not(:disabled)::after{background-position:-30% 0}
+  html :is(.button.outline,.button.dark,.te-button-outline):hover:not(:disabled)::after{background-position:0 0,0 0}
+  html :is(.button.primary:hover .button-icon svg,.tony-header-cta:hover>span svg,.tony-footer-start:hover>svg path,.button.primary:hover>svg path,.button.outline:hover>svg path,.button.dark:hover>svg path){animation:btn-arrow 560ms var(--ease) both}
+  html .button:hover .button-icon{transform:none}
+  html .te-button:hover>span{transform:translate(2px,-2px);background:#0d120c}
+  html :is(.text-link,.hero-secondary,.te-text-link,.tony-footer-talk):hover{color:var(--venom)}
+  html :is(.text-link,.hero-secondary,.te-text-link,.tony-footer-talk):hover::after{transform:scaleX(1)}
+  html .text-link:hover svg,html .te-text-link:hover>span{background:var(--venom);border-color:var(--venom);color:#10160e;transform:rotate(-45deg)}
+  html .hero-secondary:hover span,html .tony-footer-talk:hover svg{transform:translate(3px,-3px)}
+  html .tony-icon-button:hover{background:rgb(180 255 53 / .1);border-color:rgb(180 255 53 / .35);color:var(--venom)}
+}
+@keyframes btn-arrow{0%{transform:none}44%{transform:translate(130%,-130%);opacity:0}45%{transform:translate(-130%,130%);opacity:0}100%{transform:none;opacity:1}}
+@media(prefers-reduced-motion:reduce){html :is(.button,.te-button,.tony-header-cta,.tony-footer-start)::after{transition:none}html :is(.button,.te-button,.tony-header-cta,.tony-footer-start) :is(svg,path){animation:none!important}}

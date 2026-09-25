@@ -1,0 +1,22 @@
+const { chromium } = require('@playwright/test');
+
+(async () => {
+  const browser = await chromium.launch({channel:'msedge',headless:true});
+  const page = await browser.newPage({viewport:{width:1280,height:900},reducedMotion:'reduce'});
+  const base = 'http://127.0.0.1:4173/TonySport';
+  const failures = [];
+  page.on('pageerror', error => failures.push(`JS: ${error.message}`));
+  page.on('response', response => {
+    if (response.url().startsWith('http://127.0.0.1:4173/') && response.status() >= 400) failures.push(`${response.status()}: ${response.url()}`);
+  });
+  for (const route of ['/', '/producto/', '/carrito/', '/configurador/', '/tony-news/']) {
+    const response = await page.goto(`${base}${route}`, {waitUntil:'networkidle'});
+    if (response?.status() !== 200 || !await page.locator('main h1').count()) failures.push(`Ruta ${route} no abrió correctamente`);
+  }
+  await page.goto(`${base}/`, {waitUntil:'networkidle'});
+  await page.getByRole('link',{name:/Explora Producto/}).click();
+  await page.waitForURL(`${base}/producto/`);
+  if (failures.length) throw new Error(failures.join('\n'));
+  console.log('GitHub Pages: Inicio, Producto, Carrito, Configurador y Tony News responden y el enlace de Inicio navega a Producto.');
+  await browser.close();
+})().catch(error => { console.error(error); process.exitCode = 1; });

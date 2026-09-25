@@ -1,0 +1,2 @@
+/* Alpha artwork lets the actual page surface continue behind every logo edge. */
+.brand>.official-logo{object-fit:contain;object-position:center;mix-blend-mode:normal;filter:drop-shadow(0 2px 2px #080a0955);border:0;border-radius:0;background:none;}

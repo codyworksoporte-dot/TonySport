@@ -1,0 +1,15 @@
+[
+  { "name": "San Salvador", "address": "Avenida Bernal, 100 metros abajo del Hospital Militar.", "phone": "7865-2339", "mapUrl": "https://maps.app.goo.gl/uuMdZmDrz8aExsEW7", "zone": "Centro" },
+  { "name": "Santa Tecla", "address": "Plaza Novocentro, local 35, a 2 cuadras del parque Daniel Hernández.", "phone": "7048-9520", "mapUrl": "https://maps.app.goo.gl/F9E21mVsLzLQ4MPy9", "zone": "Centro" },
+  { "name": "Santa Ana", "address": "Avenida Independencia Sur entre 31 y 33 calle Poniente, Plaza Belén, segunda planta; 200 metros abajo de Metrocentro y media cuadra abajo de gasolinera UNO.", "phone": "7619-0612", "mapUrl": "https://maps.app.goo.gl/ymZJvoFke2xXKknC6", "zone": "Occidente" },
+  { "name": "San Miguel", "address": "8.ª calle Poniente 305, local 2, barrio San Felipe, frente a Súper Selectos del centro.", "phone": "7656-5837", "mapUrl": "https://goo.gl/maps/sSw5AVgG7pWfXYTz5", "zone": "Oriente" },
+  { "name": "Usulután", "address": "Carretera Litoral hacia Usulután, frente a Maxi Despensa, segundo nivel, 2 cuadras antes del centro.", "phone": "7008-3267", "mapUrl": "https://goo.gl/maps/NxioMXhHDAE8WPbb7", "zone": "Oriente" },
+  { "name": "Sonsonate", "address": "Bulevar Las Palmeras, reparto Santa Marta, sobre 3.ª calle, local 3, frente a Ferrocentro.", "phone": "6980-0015", "mapUrl": "https://goo.gl/maps/oiz2hwst1P1SynC29", "zone": "Occidente" },
+  { "name": "Zacatecoluca", "address": "Calle Vieja a Zacatecoluca, una cuadra antes del Ministerio de Hacienda.", "phone": "7604-0678", "mapUrl": "https://goo.gl/maps/8AUZzVHquS4wMghU9", "zone": "Paracentral" },
+  { "name": "El Triunfo", "address": "Plaza Downtown, local 1.", "phone": "7048-9452", "mapUrl": "https://maps.app.goo.gl/4zo6Hojc3PyJe9ccA", "zone": "Oriente" },
+  { "name": "Santa Rosa de Lima", "address": "Plaza Santa Rosa, segundo nivel, locales 9 y 10.", "phone": "7048-9275", "mapUrl": "https://maps.app.goo.gl/pQpSNFcy915XJdS47", "zone": "Oriente" },
+  { "name": "Chapeltique", "address": "1.ª avenida Sur, Plaza Centro, segundo nivel, Chapeltique, San Miguel.", "phone": "7950-5764", "mapUrl": "https://maps.app.goo.gl/79g92NUuW8WzLLv6A", "zone": "Oriente" },
+  { "name": "San Vicente", "address": "Plaza San Carlos, primer nivel, frente a Centro Judicial.", "phone": "6075-0354", "mapUrl": "https://maps.app.goo.gl/TdCMJRfihiiDTWro8", "zone": "Paracentral" },
+  { "name": "San Francisco Gotera", "address": "2.ª calle Poniente, Plaza La Merced, segundo nivel, frente a Banco Cuscatlán.", "phone": "7604-8172", "mapUrl": "https://maps.app.goo.gl/XVYwnQ7ntWRDcYEM7", "zone": "Oriente" },
+  { "name": "Chalatenango", "address": "Carretera Troncal del Norte, Plaza El Coyolito.", "phone": "7015-5571", "mapUrl": "https://maps.app.goo.gl/1cxG8giT9EnZEsCQA", "zone": "Centro" }
+]
