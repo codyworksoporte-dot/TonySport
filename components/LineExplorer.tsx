@@ -15,8 +15,21 @@ export default function LineExplorer({full=false}:{full?:boolean}) {
   useEffect(()=>{
     if(!full)return;
     const fromURL=()=>{const id=window.location.hash.slice(1);setInstant(true);setSelected(SPORT_LINES.some(item=>item.id===id)?id:'futbol');};
+    // A same-page Next Link updates history without emitting hashchange.
+    const fromLink=(event:MouseEvent)=>{
+      if(event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+      const anchor=(event.target as Element)?.closest?.('a[href]') as HTMLAnchorElement|null;
+      if(!anchor||anchor.target==='_blank'||anchor.hasAttribute('download'))return;
+      const url=new URL(anchor.href,window.location.href),id=url.hash.slice(1);
+      if(url.origin===window.location.origin&&url.pathname===window.location.pathname&&url.search===window.location.search&&SPORT_LINES.some(item=>item.id===id)){
+        event.preventDefault();
+        if(url.hash!==window.location.hash)window.history.pushState(window.history.state,'',url.href);
+        setInstant(true);setSelected(id);document.getElementById(tabId(id))?.scrollIntoView({block:'start',behavior:'instant'});
+      }
+    };
     fromURL();window.addEventListener('hashchange',fromURL);window.addEventListener('popstate',fromURL);
-    return()=>{window.removeEventListener('hashchange',fromURL);window.removeEventListener('popstate',fromURL);};
+    document.addEventListener('click',fromLink,true);
+    return()=>{window.removeEventListener('hashchange',fromURL);window.removeEventListener('popstate',fromURL);document.removeEventListener('click',fromLink,true);};
   },[full]);
   function choose(id:string,keyboard=false){
     setInstant(keyboard);setSelected(id);

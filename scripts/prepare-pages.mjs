@@ -27,18 +27,23 @@ await visit(fileURLToPath(directory));
 // Next's exported prefetch manifest requests a flat RSC filename, while the
 // Windows export writes the page payload into a folder with the same stem.
 // Keep both paths so client navigation also works on static hosting.
-for (const route of await readdir(fileURLToPath(directory), { withFileTypes: true })) {
-  if (!route.isDirectory() || route.name.startsWith('_')) continue;
-  const routeFolder = join(fileURLToPath(directory), route.name);
-  for (const entry of await readdir(routeFolder, { withFileTypes: true })) {
-    if (!entry.isDirectory() || !entry.name.startsWith('__next.')) continue;
-    const nestedFolder = join(routeFolder, entry.name);
-    for (const payload of await readdir(nestedFolder, { withFileTypes: true })) {
-      if (!payload.isFile() || extname(payload.name) !== '.txt') continue;
-      await copyFile(join(nestedFolder, payload.name), join(routeFolder, `${entry.name}.${payload.name}`));
-    }
+async function copyPayloads(folder, routeFolder, prefix) {
+  for (const entry of await readdir(folder, { withFileTypes: true })) {
+    const source = join(folder, entry.name);
+    const flatName = `${prefix}.${entry.name}`;
+    if (entry.isDirectory()) await copyPayloads(source, routeFolder, flatName);
+    else if (entry.isFile() && extname(entry.name) === '.txt') await copyFile(source, join(routeFolder, flatName));
   }
 }
+async function prepareRoutes(folder) {
+  for (const entry of await readdir(folder, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const child = join(folder, entry.name);
+    if (entry.name.startsWith('__next.')) await copyPayloads(child, folder, entry.name);
+    else if (!entry.name.startsWith('_') && entry.name !== 'assets') await prepareRoutes(child);
+  }
+}
+await prepareRoutes(fileURLToPath(directory));
 const homepage = await readFile(new URL('../out/index.html', import.meta.url), 'utf8');
 const product = await readFile(new URL('../out/producto/index.html', import.meta.url), 'utf8');
 if (!homepage.includes(`${basePath}/_next/`) || !homepage.includes(`${basePath}/assets/`) || !product.includes('PRODUCTO')) {
