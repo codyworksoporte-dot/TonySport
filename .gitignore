@@ -17,3 +17,6 @@ output/
 docs/*.json
 docs/reference/*.png
 docs/reference/*.json
+
+# Material del sitio anterior con claves privadas y registros de pagos: nunca al repositorio.
+lo que faltaba/

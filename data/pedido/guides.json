@@ -1,0 +1,206 @@
+{
+  "source": "https://tonysportselsalvador.com/mockup-prueba/?v=58",
+  "guides": [
+    {
+      "id": "advisor",
+      "title": "Asesora Tony saludando",
+      "image": "/assets/pedido/guides/advisor.webp",
+      "width": 733,
+      "height": 1100,
+      "sourceRole": "Asesora Tony saludando",
+      "sourceSha256": "10bba6ac01f4e82b7cb802ac263dadaebcb25b273ea0d364b84d68ce09473663"
+    },
+    {
+      "id": "welcome",
+      "title": "Tony Sportswear crea tus uniformes o camisas",
+      "image": "/assets/pedido/guides/welcome.webp",
+      "width": 1000,
+      "height": 667,
+      "sourceRole": "Tony Sportswear crea tus uniformes o camisas",
+      "sourceSha256": "897e94977918c6c6f974bef56f2bcab975fc3032b03767ae0ac115b71caf22cc"
+    },
+    {
+      "id": "uniform",
+      "title": "Uniformes Full Sublimados Tony Sportswear $12.99 c/u",
+      "image": "/assets/pedido/guides/uniform.webp",
+      "width": 993,
+      "height": 648,
+      "sourceRole": "Uniformes Full Sublimados Tony Sportswear $12.99 c/u",
+      "sourceSha256": "f79feeaaa6fd38babdca5c2ec8196d63e9c50c8986aec1191bae3cd12b669e26"
+    },
+    {
+      "id": "shirt",
+      "title": "Camisas Full Sublimadas Tony Sportswear $7.99 c/u",
+      "image": "/assets/pedido/guides/shirt.webp",
+      "width": 993,
+      "height": 703,
+      "sourceRole": "Camisas Full Sublimadas Tony Sportswear $7.99 c/u",
+      "sourceSha256": "adb85ef3e489ef75a81d18d679a5ef887707fbcc3d233386b48c1b7848299f1b"
+    },
+    {
+      "id": "mold-standard",
+      "title": "Molde estándar o básico",
+      "image": "/assets/pedido/guides/mold-standard.webp",
+      "width": 1000,
+      "height": 914,
+      "sourceRole": "Molde estándar o básico",
+      "sourceSha256": "f2ad12bb1a56831729c2bd04163104dfbe685b24011f480f4a4857dbfab19d87"
+    },
+    {
+      "id": "mold-raglan",
+      "title": "Molde Raglan",
+      "image": "/assets/pedido/guides/mold-raglan.webp",
+      "width": 1000,
+      "height": 914,
+      "sourceRole": "Molde Raglan",
+      "sourceSha256": "73830e39ba6d7efa921190a5de8732f4be7095db4608b1ca4526fd171ddec3d9"
+    },
+    {
+      "id": "mold-first-division",
+      "title": "Molde Primera División",
+      "image": "/assets/pedido/guides/mold-first-division.webp",
+      "width": 1000,
+      "height": 914,
+      "sourceRole": "Molde Primera División",
+      "sourceSha256": "aa8adba0c1ff52ce3b3739d37c7ea669ac2fe666a01eed32732a1c6bed2d3484"
+    },
+    {
+      "id": "collar-v",
+      "title": "Cuello V decorado",
+      "image": "/assets/pedido/guides/collar-v.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Cuello V decorado",
+      "sourceSha256": "42fa5d09587000a037642393b46eec42d4433b2b38837a325d66f1fcba6d4607"
+    },
+    {
+      "id": "collar-round",
+      "title": "Cuello redondo decorado",
+      "image": "/assets/pedido/guides/collar-round.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Cuello redondo decorado",
+      "sourceSha256": "7d45f896717447f9b7cdf83e6d87aeac2d80d096402dbf09e456ec0c3bed0bc0"
+    },
+    {
+      "id": "collar-chinese",
+      "title": "Cuello chino decorado",
+      "image": "/assets/pedido/guides/collar-chinese.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Cuello chino decorado",
+      "sourceSha256": "33abc996f46d422029eb60699ed02e30350e5ad4578c2889faab0bfe79acf0c6"
+    },
+    {
+      "id": "collar-polo",
+      "title": "Cuello polo decorado",
+      "image": "/assets/pedido/guides/collar-polo.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Cuello polo decorado",
+      "sourceSha256": "eb9f4439adc12d43176ece2632f9d41583902005d203c7310527962537c387f5"
+    },
+    {
+      "id": "brand-sublimated",
+      "title": "Marca deportiva sublimada",
+      "image": "/assets/pedido/guides/brand-sublimated.webp",
+      "width": 1000,
+      "height": 667,
+      "sourceRole": "Marca deportiva sublimada",
+      "sourceSha256": "a3a94acf036bb45c5bb364fab413260cfbfc3194cc5bf0cd6c6c8ee29abfff88"
+    },
+    {
+      "id": "crest-sublimated",
+      "title": "Logo de equipo sublimado",
+      "image": "/assets/pedido/guides/crest-sublimated.webp",
+      "width": 1000,
+      "height": 667,
+      "sourceRole": "Logo de equipo sublimado",
+      "sourceSha256": "f30e86a245ec5d5b984702654149c621ed670591d251c4ea0987f398ce00d7da"
+    },
+    {
+      "id": "brand-3d",
+      "title": "Marca deportiva 3D alto relieve",
+      "image": "/assets/pedido/guides/brand-3d.webp",
+      "width": 1000,
+      "height": 667,
+      "sourceRole": "Marca deportiva 3D alto relieve",
+      "sourceSha256": "85916ff8a81c1f32d2c53c9260c13a623425e73b141ec28549d4608363dc6f08"
+    },
+    {
+      "id": "crest-3d",
+      "title": "Logo de equipo 3D alto relieve",
+      "image": "/assets/pedido/guides/crest-3d.webp",
+      "width": 1000,
+      "height": 667,
+      "sourceRole": "Logo de equipo 3D alto relieve",
+      "sourceSha256": "fcf46e91956ea8832ee700398fbe8ad2096af0ba1c36a2f861f59797ab4488bf"
+    },
+    {
+      "id": "fabric-dry-fit",
+      "title": "Dry Fit",
+      "description": "Frescura y comodidad, antitranspirante, peso semiligero y buena resistencia para uso deportivo.",
+      "image": "/assets/pedido/guides/fabric-dry-fit.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Dry Fit",
+      "sourceSha256": "5431f2dcf5613b4949ea52126c5dba71630ac43210989a8f204d667c950cda4c",
+      "source": "https://tonysportselsalvador.com/mockup-prueba/telas%20tony/dry-fit.jpg"
+    },
+    {
+      "id": "fabric-drycool",
+      "title": "Drycool",
+      "description": "Máxima frescura, ultra transpirable, secado rápido, peso ultraligero e ideal para alto desempeño.",
+      "image": "/assets/pedido/guides/fabric-drycool.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Drycool",
+      "sourceSha256": "a1fbf96c45c947f74440f7d2034dad81d3d9a1eb622ce93f1cf5527ae68acd76",
+      "source": "https://tonysportselsalvador.com/mockup-prueba/telas%20tony/drycool.jpg"
+    },
+    {
+      "id": "fabric-modern-carving",
+      "title": "Modern Carving",
+      "description": "Trama elástica con microagujeros, gran frescura, colores sólidos, supercómoda y excelente distribución de humedad.",
+      "image": "/assets/pedido/guides/fabric-modern-carving.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Modern Carving",
+      "sourceSha256": "8e5f10c1fda2855a3f3579dc624fba9fdfccb5fa27c5f25548f6ce26365b02f3",
+      "source": "https://tonysportselsalvador.com/mockup-prueba/telas%20tony/modern-carving.jpg"
+    },
+    {
+      "id": "fabric-premier",
+      "title": "Premier",
+      "description": "Microfibra de alto rendimiento, textura hexagonal, colores intensos, distribución de humedad y resistencia 100%.",
+      "image": "/assets/pedido/guides/fabric-premier.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Premier",
+      "sourceSha256": "14e1a9da95e7b40063de9110f698ba1eaf8a4b57131f856ca7d8d92eb75cc9da",
+      "source": "https://tonysportselsalvador.com/mockup-prueba/telas%20tony/premier.jpg"
+    },
+    {
+      "id": "fabric-slim-fit",
+      "title": "Slim Fit",
+      "description": "Fresca, cómoda, antitranspirante, peso ligero, adaptable al cuerpo y apta para cualquier deporte.",
+      "image": "/assets/pedido/guides/fabric-slim-fit.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Slim Fit",
+      "sourceSha256": "04b7c931f2bff652639c430f5aa5de3d567bbd232c9d08f29462d36d4a25b434",
+      "source": "https://tonysportselsalvador.com/mockup-prueba/telas%20tony/slim-fit.jpg"
+    },
+    {
+      "id": "fabric-slim-pro",
+      "title": "Slim Pro",
+      "description": "Colores intensos, 100% cómoda, buena circulación de aire, antitranspirante, peso semiligero y resistente.",
+      "image": "/assets/pedido/guides/fabric-slim-pro.webp",
+      "width": 1000,
+      "height": 1000,
+      "sourceRole": "Slim Pro",
+      "sourceSha256": "8ac02825625b08faaf0b238ed0fe27052e11cdfb803e5dca277c38f723eada6e",
+      "source": "https://tonysportselsalvador.com/mockup-prueba/telas%20tony/slim-pro.jpg"
+    }
+  ]
+}

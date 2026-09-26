@@ -1,0 +1,61 @@
+{
+  "source": "https://tonysportselsalvador.com/mockup-prueba/?v=58",
+  "termsVersion": "V279-v329-2026-09-26",
+  "banks": [
+    {
+      "bank": "BAC",
+      "account": "116742123",
+      "label": "BAC",
+      "holder": "NELSON ANTONIO HENRIQUEZ ALFARO"
+    },
+    {
+      "bank": "Banco Agrícola",
+      "account": "3680373991",
+      "label": "BANCO AGRÍCOLA",
+      "holder": "NELSON ANTONIO HENRIQUEZ ALFARO"
+    },
+    {
+      "bank": "Banco Cuscatlán",
+      "account": "304401000012771",
+      "label": "BANCO CUSCATLÁN · CUENTA DE AHORRO",
+      "holder": "NELSON ANTONIO HENRIQUEZ ALFARO"
+    },
+    {
+      "bank": "Banco Promerica",
+      "account": "20000017041656",
+      "label": "BANCO PROMERICA · CUENTA DE AHORRO",
+      "holder": "NELSON ANTONIO HENRIQUEZ ALFARO"
+    }
+  ],
+  "branches": [
+    "Bernal - San Salvador",
+    "Santa Tecla",
+    "Santa Ana",
+    "Sonsonate",
+    "San Vicente",
+    "El Triunfo",
+    "Zacatecoluca",
+    "San Miguel",
+    "Usulután",
+    "San Francisco Gotera",
+    "Chapeltique",
+    "Santa Rosa de Lima",
+    "Chalatenango",
+    "Lourdes"
+  ],
+  "terms": [
+    "1. Aprobación de información. El cliente declara haber revisado y aprobado cantidades, tallas, nombres, números, colores, tipo de tela, cuello, molde, manga, medias y demás características indicadas en el pedido. El cliente acepta toda responsabilidad sobre el diseño, marcas, logos y patrocinadores proporcionados, seleccionados o autorizados para su pedido.",
+    "2. Diseño y ubicación de elementos. El montaje realizado en el editor es una referencia de ubicación. El equipo de diseño de Tony Sportswear podrá realizar ajustes técnicos mínimos de alineación, proporción y legibilidad antes de producción, procurando respetar la intención aprobada por el cliente.",
+    "3. Logos, marcas y patrocinadores. El cliente declara contar con autorización suficiente para utilizar los escudos, logos, marcas, nombres, imágenes y patrocinadores que proporcione, y asume la responsabilidad por el material suministrado por él.",
+    "4. Productos personalizados. Una vez aprobado el arte final y/o iniciada la producción, cambios solicitados posteriormente pueden generar costos adicionales y modificar la fecha estimada de entrega.",
+    "5. Variaciones técnicas. El cliente reconoce que pueden existir diferencias menores de tono, escala, ubicación o apariencia entre una pantalla digital y el producto físico debido a materiales, impresión, confección y configuración de pantalla.",
+    "6. Pagos y producción. El pedido se considera confirmado conforme a las condiciones de pago comunicadas por Tony Sportswear. Los tiempos de producción corren desde que se cumplen los requisitos de pago, aprobación y entrega de información necesaria.",
+    "7. Tallas. Las tallas ingresadas son responsabilidad del cliente. Tony Sportswear confeccionará conforme a la talla y molde seleccionados en el pedido aprobado.",
+    "8. Regalías y promociones. Las regalías se aplican cuando el pedido cumple las condiciones mostradas en el sistema y pueden estar sujetas a disponibilidad y a las reglas de la promoción vigente.",
+    "9. Datos personales. El cliente autoriza el tratamiento de los datos necesarios para gestionar, fabricar, cobrar, entregar y dar seguimiento a su pedido. El DUI y la firma deben almacenarse de forma segura en la versión pública del sistema.",
+    "10. Revisión y responsabilidad del cliente. El cliente confirma que revisó tallas, nombres, números, cantidades y opciones del pedido; aprueba la ubicación de logos y patrocinadores como referencia para diseño; y declara que cuenta con autorización para utilizar los logos, marcas y materiales que ha proporcionado. El cliente es responsable de la información, archivos, selecciones y especificaciones que ingrese, cargue, seleccione o apruebe en esta orden.",
+    "11. Tiempo estimado de entrega. El cliente reconoce que la fecha de entrega indicada es estimada y que el tiempo de entrega puede variar por fallas técnicas, disponibilidad de personal, maquinaria, materiales, fuerza mayor u otros motivos que afecten la producción o entrega del pedido.",
+    "12. Anticipo, inicio de confección y cancelación. Una vez que el cliente aprueba el diseño, confirma los datos del pedido, acepta estos términos y firma la orden, Tony Sportswear queda autorizado para iniciar la adquisición, preparación y utilización de materiales, impresión, sublimación, corte, confección y demás procesos necesarios para fabricar los productos personalizados. Una vez iniciado dicho proceso, el anticipo podrá ser aplicado a materiales, trabajos y costos ya ejecutados o comprometidos, por lo que la cancelación voluntaria del pedido por parte del cliente no generará automáticamente devolución de las cantidades ya utilizadas o comprometidas para su fabricación, sin perjuicio de los derechos irrenunciables que correspondan al consumidor conforme a la legislación aplicable.",
+    "13. Evidencia de aceptación y contrato. Al marcar la aceptación general y firmar, el cliente confirma que leyó y aceptó estos términos, que la información de su pedido es correcta y que autoriza a Tony Sportswear a fabricar el pedido conforme a la información aprobada."
+  ]
+}
