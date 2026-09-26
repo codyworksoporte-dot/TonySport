@@ -1,0 +1,11 @@
+Options -Indexes
+SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+<FilesMatch "^(core|domain|services|ai|prompts)\.php$">
+    Require all denied
+</FilesMatch>
+<Files "config.example.php">
+    Require all denied
+</Files>
+<FilesMatch "\.(json|sqlite|sqlite-wal|sqlite-shm|log|env|md|txt)$">
+    Require all denied
+</FilesMatch>

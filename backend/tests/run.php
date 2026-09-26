@@ -1,0 +1,62 @@
+<?php
+declare(strict_types=1);
+require __DIR__.'/fixtures.php';
+$private=sys_get_temp_dir().'/tony-api-unit-'.bin2hex(random_bytes(6));mkdir($private,0700,true);
+putenv('TONY_PRIVATE_DIR='.$private);putenv('TONY_ENV=test');putenv('TONY_API_MOCK=true');putenv('TONY_APP_SECRET=local-unit-test-secret-not-a-production-secret');
+putenv('TONY_FRONTEND_URL=http://localhost:3000/TonySport');putenv('TONY_PRICES_FILE='.dirname(__DIR__,2).'/data/pedido/prices.json');putenv('TONY_CHECKOUT_FILE='.dirname(__DIR__,2).'/data/pedido/checkout.json');
+putenv('WOMPI_CLIENT_ID=synthetic-test-merchant');putenv('WOMPI_CLIENT_SECRET=synthetic-test-provider-secret');
+require __DIR__.'/../pedido-api/services.php';
+require __DIR__.'/../pedido-api/prompts.php';
+$count=0;
+function check(bool $ok,string $label): void {global$count;$count++;if(!$ok)throw new RuntimeException('FAIL '.$label);echo 'PASS '.$label.PHP_EOL;}
+function rejects(callable $fn,string $reason): void {try{$fn();throw new RuntimeException('Expected rejection: '.$reason);}catch(PedidoError $e){check($e->reason===$reason,$reason);}}
+try{
+    $shirt=pedido_prompt_generate('front','','shirt');check(strpos($shirt,'ONE MATCHING PAIR')===false&&strpos($shirt,'TWO GARMENTS')===false&&strpos($shirt,'NO SHORTS')!==false,'shirt generate never demands shorts');
+    $shirt=pedido_prompt_finalize('back','shirt');check(strpos($shirt,'UNA camisa y UNA')===false&&strpos($shirt,'sin calzoneta')!==false,'shirt finalize removes contradictory garment count');
+    check(strpos(pedido_prompt_finalize('front','uniform'),'UNA camisa y UNA sola calzoneta')!==false,'uniform prompt keeps original garment count');
+    putenv('TONY_ALLOWED_ORIGINS=https://tonysportselsalvador.com,https://www.tonysportselsalvador.com,https://codyworksoporte-dot.github.io,http://127.0.0.1:3000');check(count(pedido_allowed_origins())===4,'exact origin allowlist');
+    putenv('TONY_ALLOWED_ORIGINS=https://*.example.com');rejects(function(){pedido_allowed_origins();},'not_configured');putenv('TONY_ALLOWED_ORIGINS=');
+    $noEmail=test_buyer();$noEmail['email']='';check(pedido_buyer($noEmail)['email']==='','buyer email is optional');
+    $badEmail=$noEmail;$badEmail['email']='invalid';rejects(function()use($badEmail){pedido_buyer($badEmail);},'invalid_email');
+    $order=pedido_order(test_order(),true);$q=pedido_quote($order,'pickup');check($q['totalCents']===7794&&$q['depositCents']===3897,'base quote uses shared price JSON');
+    $q=pedido_quote(pedido_order(test_complex_order(),true),'home');check($q['totalCents']===20343&&$q['depositCents']===10172&&$q['balanceCents']===10171,'complex parity and half-cent rounding');
+    $hidden=test_complex_order();$hidden['design']['layers'][0]['visible']=false;check(pedido_quote(pedido_order($hidden,true),'home')===$q,'hidden elements remain charged');
+    $twelve=test_order(12);$twelve['config']['brand']='Tony';$twelve['config']['crest3d']=true;$twelve['config']['brand3d']=true;$twelve['goalkeepers']=[['id'=>'keeper1','name'=>'Prueba','number'=>'98','size'=>'4XL','color'=>'verde'],['id'=>'keeper2','name'=>'Prueba','number'=>'99','size'=>'3XL','color'=>'azul']];check(pedido_quote(pedido_order($twelve,true))['totalCents']===20787,'one free keeper including size supplement');
+    $twelve['product']='shirt';$twelve['config']['crest3d']=false;check(pedido_quote(pedido_order($twelve,true))['totalCents']===13986,'shirts get neither uniform discount nor free keeper');
+    $bad=test_order();$bad['quantity']=-1;rejects(function()use($bad){pedido_order($bad,true);},'invalid_prendas');
+    $bad=test_order();$bad['totalCents']=1;rejects(function()use($bad){pedido_order($bad,true);},'unexpected_field');
+    $bad=test_order();$bad['players'][0]['size']='HACK';rejects(function()use($bad){pedido_order($bad,true);},'invalid_talla');
+    rejects(function(){pedido_data_image('data:image/png;base64,aGVsbG8=','image');},'invalid_image');
+    rejects(function(){pedido_signature(test_image(true));},'blank_signature');
+    check(pedido_signature(test_image())===test_image(),'nonblank PNG signature');
+    $sessionData=pedido_session_create();$_SERVER['HTTP_AUTHORIZATION']='Bearer '.$sessionData['sessionToken'];$session=pedido_session();check(strlen($session)===64,'opaque guest session');
+    $delivery=test_delivery();$quote=pedido_quote($order,'home');$input=['order'=>$order,'delivery'=>$delivery,'amountCents'=>$quote['depositCents']];
+    $wrong=$input;$wrong['amountCents']--;rejects(function()use($wrong,$session){pedido_create_payment($wrong,$session);},'amount_mismatch');
+    $_SERVER['HTTP_IDEMPOTENCY_KEY']='unit-create-payment-0001';$created=pedido_create_payment($input,$session);$again=pedido_create_payment($input,$session);check($created===$again&&$created['mock']===true,'idempotent mock link has no provider URL');
+    $changedInput=$input;$changedInput['order']['teamName']='OTHER TEST TEAM';rejects(function()use($changedInput,$session){pedido_create_payment($changedInput,$session);},'idempotency_conflict');
+    rejects(function()use($created){pedido_payment_owned($created['reference'],'wrong-session');},'not_found');
+    $p=pedido_payment_owned($created['reference'],$session);
+    $submit=['order'=>$order,'delivery'=>$delivery,'buyer'=>test_buyer(),'payment'=>['method'=>'wompi','bank'=>'','reference'=>$created['reference']],'signature'=>test_image(),'termsAccepted'=>true];
+    $_SERVER['HTTP_IDEMPOTENCY_KEY']='unit-submit-order-00001';rejects(function()use($submit,$session){pedido_submit($submit,$session);},'payment_pending');
+    $p=pedido_mark_paid($p,'test-transaction-0001');$done=pedido_submit($submit,$session);check($done['receipt']['status']==='confirmed'&&$done['receipt']['panelStatus']==='sent','submit accepts only verified associated deposit');
+    check(pedido_submit($submit,$session)===$done,'submit retry returns same receipt');
+    $changed=$submit;$changed['order']['players'][0]['name']='CAMBIADO';rejects(function()use($changed,$session){pedido_submit($changed,$session);},'payment_snapshot_changed');
+    $transfer=$submit;$transfer['payment']=['method'=>'transfer','bank'=>pedido_checkout()['banks'][0]['bank'],'receiptName'=>'prueba.png','receiptData'=>test_image()];$_SERVER['HTTP_IDEMPOTENCY_KEY']='unit-transfer-order-001';$result=pedido_submit($transfer,$session);check($result['receipt']['status']==='transfer_review'&&$result['receipt']['paymentStatus']==='awaiting_review','transfer receipt never auto-confirms payment');
+    $empty=$transfer;$empty['payment']['receiptData']='';rejects(function()use($empty,$session){pedido_submit($empty,$session);},'invalid_comprobante');
+    rejects(function(){pedido_webhook('{}','');},'invalid_signature');
+    rejects(function(){pedido_webhook('{}',str_repeat('0',64));},'invalid_signature');
+    $event=['ResultadoTransaccion'=>'ExitosaAprobada','Aplicativo'=>['Id'=>'synthetic-test-merchant'],'EnlacePago'=>['Id'=>$p['linkId'],'IdentificadorEnlaceComercio'=>$p['reference']],'EsProductiva'=>true,'Monto'=>$p['amountCents']/100,'IdTransaccion'=>'test-transaction-0001'];$raw=json_encode($event);$hash=hash_hmac('sha256',$raw,'synthetic-test-provider-secret');
+    check(pedido_webhook($raw,$hash)['ok']===true,'signed already-verified webhook is idempotent');
+    rejects(function()use($raw,$hash){pedido_webhook($raw.' ',$hash);},'invalid_signature');
+    $event['Aplicativo']['Id']='different-test-merchant';$raw=json_encode($event);$hash=hash_hmac('sha256',$raw,'synthetic-test-provider-secret');rejects(function()use($raw,$hash){pedido_webhook($raw,$hash);},'webhook_mismatch');
+    $link=['idAplicativo'=>'synthetic-test-merchant','nombreEnlace'=>$p['reference'],'idEnlace'=>$p['linkId'],'estaProductivo'=>true,'monto'=>$p['amountCents']/100,'transacciones'=>[['idTransaccion'=>'valid-transaction-001','esAprobada'=>true,'esReal'=>true,'monto'=>$p['amountCents']/100]]];$tx=$link['transacciones'][0];
+    check(pedido_assert_transaction($p,$link,$tx)==='valid-transaction-001','provider identity amount and transaction association');
+    $unlinked=$link;$unlinked['transacciones']=[];rejects(function()use($p,$unlinked,$tx){pedido_assert_transaction($p,$unlinked,$tx);},'transaction_not_linked');
+    $other=$link;$other['nombreEnlace']='another-order';rejects(function()use($p,$other,$tx){pedido_assert_transaction($p,$other,$tx);},'payment_identity_mismatch');
+    $missing=$tx;unset($missing['esReal']);rejects(function()use($p,$link,$missing){pedido_assert_transaction($p,$link,$missing);},'payment_not_verified');
+    $other=$p;$other['reference']=pedido_reference();pedido_put('payment',$other['reference'],$other);rejects(function()use($other){pedido_mark_paid($other,'test-transaction-0001');},'transaction_reused');
+    rejects(function(){pedido_http('https://example.com','GET',[]);},'mock_external_blocked');
+    putenv('TONY_ENV=production');rejects(function(){pedido_mock();},'mock_forbidden');putenv('TONY_ENV=test');
+    for($i=0;$i<2;$i++)pedido_rate('small-test-limit',2,60);rejects(function(){pedido_rate('small-test-limit',2,60);},'rate_limit');
+    echo 'All '.$count.' backend unit checks passed. No external requests.'.PHP_EOL;
+}finally{foreach(glob($private.'/*')as$file)@unlink($file);@rmdir($private);}
