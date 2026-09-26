@@ -1,6 +1,6 @@
 # Plan de integración del configurador oficial de Tony
 
-Revisión: 26 de septiembre de 2026. Estado: fuentes auditadas; implementación pendiente de aprobación del plan solicitado en el documento adjunto.
+Revisión: 26 de septiembre de 2026. Estado: plan aprobado; implementación terminada en `feature/configurador-v279`, pendiente de revisión para publicar. Las secciones siguientes conservan el plan original; ver `ENTREGA-CONFIGURADOR-V279.md` para el resultado y las limitaciones.
 
 ## Fuente y alcance
 

@@ -1,256 +1,148 @@
-import { test, expect, type Page } from '@playwright/test';
-import { readFile } from 'node:fs/promises';
+import {expect,test,type Page} from '@playwright/test';
+import fs from 'node:fs';
+import {completePedido} from './pedido/pricing.fixtures';
+import {continuePedido,expectNoOverflow,mockPedidoApi,openSeededDelivery,openSeededEditor,pngFixture,seedPedido,signPedido,TEST_PAYMENT_URL,TEST_REFERENCE} from './pedido/helpers';
 
-const draftKey = 'tony-team-order-v2';
-const legacyKey = 'tony-uniform-draft-v1';
-const roster = [
-  { name: 'DIEGO', size: 'S', number: '01' },
-  { name: 'GÓMEZ', size: 'M', number: '7' },
-  { name: 'MARTÍNEZ', size: 'L', number: '12' },
-  { name: 'SOFÍA', size: 'XL', number: '23' },
-  { name: 'RODRÍGUEZ', size: '2XL', number: '88' },
-  { name: 'ANDREA', size: '16', number: '99' },
-];
+test.beforeEach(async({page})=>{await page.emulateMedia({reducedMotion:'reduce'});});
 
-test.beforeEach(async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-});
-
-async function openRoster(page: Page, quantity = 6) {
-  await expect(page.getByRole('button', { name: 'Crear lista de jugadores' })).toBeEnabled();
-  await page.locator('#cfg-quantity').fill(String(quantity));
-  await page.getByRole('button', { name: 'Crear lista de jugadores' }).click();
-  await expect(page.locator('.roster-list > li')).toHaveCount(quantity);
+async function pickup(page: Page) {
+  await page.getByRole('button',{name:/^Retiro en tienda/}).click();
+  await page.getByLabel(/^Sucursal para retirar/).selectOption({index:1});
+  await continuePedido(page);await expect(page.getByRole('heading',{name:'Confirma tu anticipo',exact:true})).toBeVisible();
+}
+async function buyerAndSignature(page: Page) {
+  await expect(page.getByRole('heading',{name:'Tu pedido, con tu firma',exact:true})).toBeVisible();
+  await page.getByLabel(/^Nombre completo/).fill('CLIENTE DE PRUEBA');
+  await page.getByLabel(/^DUI \(00000000-0\)/).fill('00000000-0');
+  await page.getByLabel(/^WhatsApp/).fill('70000000');
+  await page.getByLabel('Correo electrónico (opcional)',{exact:true}).fill('prueba@example.invalid');
+  await page.getByRole('checkbox',{name:'Leí y acepto los términos y condiciones del pedido.'}).check();
+  await signPedido(page);
 }
 
-async function fillRoster(page: Page, team = 'Deportivo Oriente') {
-  await page.locator('#cfg-team').fill(team);
-  for (const [index, player] of roster.entries()) {
-    await page.locator(`#player-${index}-name`).fill(player.name);
-    await page.locator(`#player-${index}-size`).selectOption(player.size);
-    await page.locator(`#player-${index}-number`).fill(player.number);
+test('la línea y cada jugador se validan antes de avanzar; cantidad y tallas actualizan el total',async({page})=>{
+  await mockPedidoApi(page);await page.goto('/configurador');await page.getByRole('button',{name:'Empezar la personalización'}).click();
+  await expect(page.getByRole('button',{name:/Uniformes Full Sublimados/})).toContainText('$12.99');
+  await expect(page.getByRole('button',{name:/Camisas Full Sublimadas/})).toContainText('$7.99');
+  await continuePedido(page);await continuePedido(page);
+  await expect(page.getByRole('alert').first()).toContainText('Selecciona Hombre o Mujer.');
+  await page.getByRole('button',{name:/Hombre/}).click();await continuePedido(page);
+  for(const [group,choice] of [['Molde','Estándar'],['Tela','Slim Fit'],['Cuello','V'],['Manga','Corta']])await page.getByRole('group',{name:group,exact:true}).getByRole('button',{name:new RegExp(`^${choice}\\b`)}).click();
+  await continuePedido(page);await continuePedido(page);
+  await expect(page.getByRole('heading',{name:'Cada jugador cuenta',exact:true})).toBeVisible();
+  await expect(page.getByRole('alert').first()).toContainText('Escribe el nombre del equipo');
+  await page.getByLabel(/^Nombre de equipo/).fill('EQUIPO DE PRUEBA');
+  for(let i=1;i<=6;i++) {
+    await page.getByLabel(`Nombre jugador ${i}`,{exact:true}).fill(`JUGADOR ${i}`);
+    await page.getByRole('combobox',{name:new RegExp(`^Talla jugador ${i}\\b`)}).selectOption(i===1?'2XL':'M');
+    await page.getByLabel(`Dorsal jugador ${i}`,{exact:true}).fill(String(i));
   }
-}
-
-async function openStudio(page: Page) {
-  await page.getByRole('button', { name: 'Ir al editor de diseño' }).click();
-  await expect(page.getByRole('region', { name: 'Editor de diseño del equipo' })).toBeVisible();
-}
-
-async function reviewOrder(page: Page) {
-  await page.getByRole('button', { name: 'Revisar mi pedido' }).click();
-  await expect(page.getByRole('table', { name: 'Nómina completa del equipo' })).toBeVisible();
-}
-
-async function expectNoOverflow(page: Page, width: number) {
-  await expect.poll(() => page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth })))
-    .toEqual({ document: width, body: width });
-}
-
-test('quantity comes first and every missing player field blocks progress with focused errors', async ({ page }) => {
-  await page.goto('/configurador');
-  await expect(page.locator('#cfg-team')).toHaveCount(0);
-  const steps = page.getByRole('navigation', { name: 'Pasos del pedido' });
-  await expect(steps.getByRole('button', { name: /Diseño/ })).toBeDisabled();
-  await page.locator('#cfg-quantity').fill('5');
-  await page.getByRole('button', { name: 'Crear lista de jugadores' }).click();
-  await expect(page.locator('#cfg-quantity')).toBeFocused();
-  await expect(page.locator('#cfg-quantity')).toHaveAttribute('aria-invalid', 'true');
-  await expect(page.locator('#order-quantity-error')).toContainText('6 a 999');
-  await expect(page.locator('.roster-list')).toHaveCount(0);
-
-  await openRoster(page);
-  const next = page.getByRole('button', { name: 'Ir al editor de diseño' });
-  await next.click();
-  await expect(page.locator('#cfg-team')).toBeFocused();
-  await page.locator('#cfg-team').fill('Atlético San Miguel');
-  await next.click();
-  await expect(page.locator('#player-0-name')).toBeFocused();
-  await expect(page.locator('#player-0-name-error')).toBeVisible();
-  await page.locator('#player-0-name').fill('ANA');
-  await next.click();
-  await expect(page.locator('#player-0-size')).toBeFocused();
-  await expect(page.locator('#player-0-size-error')).toBeVisible();
-  await page.locator('#player-0-size').selectOption('M');
-  await next.click();
-  await expect(page.locator('#player-0-number')).toBeFocused();
-  await expect(page.locator('#player-0-number-error')).toBeVisible();
-  await page.locator('#player-0-number').fill('10');
-  await next.click();
-  await expect(page.locator('#player-1-name')).toBeFocused();
-  await expect(page).toHaveURL(/#paso-2$/);
-  await expect(page.getByRole('link', { name: 'Abrir WhatsApp para cotizar' })).toHaveCount(0);
+  // 6 × 12.99 + talla 2XL 2.00 + diseño propio 5.00 = 84.94.
+  await expect(page.locator('.pedido-aside .pedido-price-total dd')).toHaveText('$84.94');
+  await continuePedido(page);await expect(page.getByRole('heading',{name:'Tu asesora Tony',exact:true})).toBeVisible();
 });
 
-test('six real players reach the editor, summary, WhatsApp draft and downloadable roster intact', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/configurador');
-  await openRoster(page);
-  await fillRoster(page);
-  await page.locator('#player-5-role').selectOption('goalkeeper');
-  await openStudio(page);
-  await expect(page.getByRole('button', { name: 'Esencial Color limpio' })).toHaveAttribute('aria-pressed', 'true');
-  await page.getByRole('button', { name: 'Franja Movimiento diagonal' }).click();
-  await page.locator('#tds-player').selectOption({ label: '#99 · ANDREA · 16' });
-  await expect(page.getByRole('button', { name: 'Espalda', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.locator('#cfg-notes').fill('Portera en naranja. Confirmar el escudo con el equipo.');
-  await reviewOrder(page);
-  await expect(page.locator('.cfg-summary-heading h3')).toHaveText('Deportivo Oriente');
-  const rows = page.locator('.order-review-roster tbody tr');
-  await expect(rows).toHaveCount(6);
-  for (const [index, player] of roster.entries()) {
-    await expect(rows.nth(index).locator('th')).toHaveText(player.name);
-    await expect(rows.nth(index).locator('td').nth(1)).toHaveText(player.size);
-    await expect(rows.nth(index).locator('td').nth(2)).toHaveText(player.number);
-  }
-  await expect(rows.last()).toContainText('Portero');
-  const quote = page.getByRole('link', { name: 'Abrir WhatsApp para cotizar' });
-  const url = new URL((await quote.getAttribute('href'))!);
-  expect(url.hostname).toBe('wa.me');
-  expect(url.pathname).toBe('/50370155571');
-  const message = url.searchParams.get('text')!;
-  for (const player of roster) expect(message).toContain(`${player.name} | Talla ${player.size} | Dorsal ${player.number}`);
-  for (const detail of ['Cantidad: 6', 'Deportivo Oriente', 'Diseño: Franja', 'Portera en naranja.', 'Portero']) expect(message).toContain(detail);
-  await expect(quote).toHaveAttribute('target', '_blank');
-  await expect(page.getByText('Se abrirá un mensaje listo para revisar. Tú decides cuándo enviarlo.')).toBeVisible();
-  // Inspect the prepared link without opening WhatsApp or sending anything.
-  const downloaded = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Descargar lista para Excel' }).click();
-  const file = await downloaded;
-  expect(file.suggestedFilename()).toBe('tony-lista-jugadores.csv');
-  const csv = await readFile((await file.path())!, 'utf8');
-  for (const player of roster) expect(csv).toContain(`"${player.name}","${player.size}","${player.number}"`);
-  expect(csv.trim().split(/\r?\n/)).toHaveLength(7);
-  expect(errors).toEqual([]);
+test('reducir jugadores requiere confirmación y mantiene los datos de las filas restantes',async({page})=>{
+  await mockPedidoApi(page);await seedPedido(page,completePedido(12));await openSeededEditor(page);
+  await page.getByRole('navigation',{name:'Pasos del pedido'}).getByRole('button',{name:/Jugadores/}).click();
+  await page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true}).fill('6');
+  await page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true}).blur();
+  const dialog=page.getByRole('dialog',{name:'¿Reducir la cantidad del equipo?'});await expect(dialog).toBeVisible();
+  await dialog.getByRole('button',{name:'Conservar jugadores'}).click();await expect(page.getByLabel('Nombre jugador 12',{exact:true})).toBeVisible();
+  await page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true}).fill('6');await page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true}).blur();await page.getByRole('button',{name:'Sí, reducir cantidad'}).click();
+  await expect(page.getByLabel('Nombre jugador 6',{exact:true})).toHaveValue('JUGADOR 6');await expect(page.getByLabel('Nombre jugador 7',{exact:true})).toHaveCount(0);
 });
 
-test('reducing twelve uniforms to six retains hidden records and restores them when quantity grows', async ({ page }) => {
-  await page.goto('/configurador');
-  await openRoster(page, 12);
-  await page.locator('#cfg-team').fill('Club Los Pinos');
-  for (const index of [0, 11]) {
-    await page.locator(`#player-${index}-name`).fill(index === 0 ? 'PRIMER JUGADOR' : 'ÚLTIMO JUGADOR');
-    await page.locator(`#player-${index}-size`).selectOption(index === 0 ? 'S' : '4XL');
-    await page.locator(`#player-${index}-number`).fill(String(index + 1));
-  }
-  await page.getByRole('button', { name: 'Cambiar cantidad' }).click();
-  await openRoster(page, 6);
-  await expect(page.locator('#player-0-name')).toHaveValue('PRIMER JUGADOR');
-  await expect(page.locator('#player-11-name')).toHaveCount(0);
-  await page.reload();
-  await expect(page.locator('.cfg-draft-status')).toHaveText('Borrador recuperado');
-  await expect(page.locator('.roster-list > li')).toHaveCount(6);
-  await page.getByRole('button', { name: 'Cambiar cantidad' }).click();
-  await openRoster(page, 12);
-  await expect(page.locator('#cfg-team')).toHaveValue('Club Los Pinos');
-  await expect(page.locator('#player-11-name')).toHaveValue('ÚLTIMO JUGADOR');
-  await expect(page.locator('#player-11-size')).toHaveValue('4XL');
-  await expect(page.locator('#player-11-number')).toHaveValue('12');
+test('domicilio añade $6 y exige dirección; transferencia exige comprobante, firma y conserva solo referencia',async({page})=>{
+  const api=await mockPedidoApi(page);await seedPedido(page,completePedido());await openSeededDelivery(page);
+  await page.getByRole('button',{name:/^Envío a domicilio/}).click();await continuePedido(page);
+  await expect(page.getByRole('alert').first()).toContainText('Escribe la dirección exacta.');
+  await page.getByLabel(/^Departamento/).selectOption('San Salvador');
+  await page.getByLabel(/^Municipio o distrito/).fill('Distrito de prueba');
+  await page.getByLabel(/^Dirección exacta/).fill('Dirección sintética de prueba');
+  await expect(page.locator('.pedido-aside .pedido-price-total dd')).toHaveText('$83.94');await continuePedido(page);
+  await page.getByRole('button',{name:/^Transferencia bancaria/}).click();await continuePedido(page);
+  await expect(page.getByRole('alert').first()).toContainText('Adjunta una imagen válida del comprobante');
+  await page.getByLabel(/^Banco de la transferencia/).selectOption({index:1});
+  await page.getByLabel(/^Comprobante de transferencia/).setInputFiles({name:'comprobante-prueba.png',mimeType:'image/png',buffer:(await pngFixture(page)).buffer});
+  await expect(page.getByText('Comprobante adjunto. Tony verificará la transferencia.')).toBeVisible();await continuePedido(page);
+  await page.getByRole('button',{name:/CONFIRMAR Y ENVIAR PEDIDO/}).click();await expect(page.getByRole('alert').first()).toContainText('Firma la orden');
+  await buyerAndSignature(page);await page.getByRole('button',{name:/CONFIRMAR Y ENVIAR PEDIDO/}).click();
+  await expect(page.getByRole('heading',{name:'Recibimos tu pedido',exact:true})).toBeVisible();
+  await expect(page.getByText('Tu comprobante está pendiente de revisión.',{exact:false})).toBeVisible();expect(api.submitted).toHaveLength(1);
+  const references=await page.evaluate(()=>JSON.parse(localStorage.getItem('tony:pedido:references:v279')||'[]'));
+  expect(references).toEqual([{id:TEST_REFERENCE,status:'transfer_review'}]);
+  expect(await page.evaluate(()=>JSON.stringify({...localStorage}))).not.toContain('CLIENTE DE PRUEBA');
+  const event=page.waitForEvent('download');await page.getByRole('button',{name:/Orden de producción/}).click();
+  const document=await event;expect(fs.readFileSync(await document.path()).subarray(0,8).toString()).toBe('%PDF-1.4');
 });
 
-test('saved design survives reload and browser history cannot bypass an incomplete roster', async ({ page }) => {
-  await page.goto('/configurador#paso-4');
-  await expect(page).toHaveURL(/#paso-2$/);
-  await expect(page.locator('.roster-list > li')).toHaveCount(12);
-  await page.getByRole('button', { name: 'Cambiar cantidad' }).click();
-  await openRoster(page);
-  await fillRoster(page);
-  await openStudio(page);
-  await page.getByRole('button', { name: 'Franja Movimiento diagonal' }).click();
-  await page.locator('#cfg-notes').fill('Conservar estas indicaciones al regresar.');
-  await page.reload();
-  await expect(page.locator('.cfg-draft-status')).toHaveText('Borrador recuperado');
-  await expect(page.locator('#cfg-notes')).toHaveValue('Conservar estas indicaciones al regresar.');
-  await expect(page.getByRole('button', { name: 'Franja Movimiento diagonal' })).toHaveAttribute('aria-pressed', 'true');
-  await page.goBack();
-  await expect(page.locator('#player-0-name')).toHaveValue('DIEGO');
-  await page.locator('#player-0-name').fill('');
-  await page.goForward();
-  await expect(page).toHaveURL(/#paso-2$/);
-  await expect(page.locator('#player-0-name')).toHaveValue('');
-  await expect(page.getByRole('button', { name: 'Revisar mi pedido' })).toHaveCount(0);
-  await page.locator('#player-0-name').fill('DIEGO RENOVADO');
-  await openStudio(page);
-  await reviewOrder(page);
-  await expect(page.locator('.order-review-roster tbody tr').first()).toContainText('DIEGO RENOVADO');
+test('Wompi simulado rechazado bloquea la firma y no envía ningún pedido',async({page})=>{
+  const api=await mockPedidoApi(page,{paid:false});await seedPedido(page,completePedido());await openSeededDelivery(page);await pickup(page);
+  await page.getByRole('button',{name:/^Wompi/}).click();await page.getByRole('button',{name:'Preparar pago del anticipo',exact:true}).click();
+  await expect(page.getByRole('link',{name:/Abrir pago seguro/})).toHaveAttribute('href',TEST_PAYMENT_URL);
+  await page.getByRole('button',{name:'Verificar mi anticipo',exact:true}).click();await expect(page.getByRole('alert').first()).toContainText('El pago fue rechazado');
+  await continuePedido(page);await expect(page.getByRole('heading',{name:'Confirma tu anticipo',exact:true})).toBeVisible();expect(api.submitted).toEqual([]);
 });
 
-test('broken JSON and invalid draft shapes recover to an editable clean order', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/configurador');
-  await expect(page.getByRole('button', { name: 'Crear lista de jugadores' })).toBeEnabled();
-  for (const saved of ['{broken', JSON.stringify({ version: 2, quantity: '6', players: 'not-a-list', design: {} })]) {
-    await page.evaluate(({ key, value }) => localStorage.setItem(key, value), { key: draftKey, value: saved });
-    await page.reload();
-    await expect(page.locator('#cfg-quantity')).toHaveValue('12');
-    await expect(page.getByRole('button', { name: 'Crear lista de jugadores' })).toBeEnabled();
-    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key)!).design.variant, draftKey)).toBe('clean');
-  }
-  await openRoster(page);
-  await expect(page.locator('#cfg-team')).toHaveValue('');
-  await expect(page.locator('#player-0-name')).toHaveValue('');
-  expect(errors).toEqual([]);
-});
-
-test('blocked local storage is explained and does not stop an accurate quote', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('pageerror', error => errors.push(error.message));
-  await page.addInitScript(() => Object.defineProperty(window, 'localStorage', {
-    get() { throw new Error('Storage disabled by the test browser'); },
-  }));
-  await page.goto('/configurador');
-  await expect(page.locator('.cfg-draft-status')).toHaveText('Sin guardado en este dispositivo');
-  await openRoster(page);
-  await fillRoster(page, 'Equipo sin guardado');
-  await openStudio(page);
-  await reviewOrder(page);
-  await expect(page.locator('.cfg-summary-heading h3')).toHaveText('Equipo sin guardado');
-  const url = new URL((await page.getByRole('link', { name: 'Abrir WhatsApp para cotizar' }).getAttribute('href'))!);
-  expect(url.searchParams.get('text')).toContain('ANDREA | Talla 16 | Dorsal 99');
-  expect(errors).toEqual([]);
-});
-
-test('legacy and home sample dorsals never become actual player records', async ({ page }) => {
-  await page.addInitScript(({ key }) => localStorage.setItem(key, JSON.stringify({
-    team: 'Club anterior', quantity: '6', number: '23', color: '#E63946', style: 'stripe', notes: 'Nota conservada',
-  })), { key: legacyKey });
-  await page.goto('/configurador?name=F%C3%A9nix%20FC&number=77&color=%232264E8&utm_source=home#paso-3');
-  await expect(page).toHaveURL(/#paso-2$/);
-  await expect(page.locator('#cfg-team')).toHaveValue('Fénix FC');
-  await expect(page.locator('.roster-list > li')).toHaveCount(6);
-  for (let index = 0; index < 6; index++) {
-    await expect(page.locator(`#player-${index}-name`)).toHaveValue('');
-    await expect(page.locator(`#player-${index}-size`)).toHaveValue('');
-    await expect(page.locator(`#player-${index}-number`)).toHaveValue('');
-  }
-  const url = new URL(page.url());
-  expect(url.searchParams.get('utm_source')).toBe('home');
-  for (const parameter of ['name', 'number', 'color']) expect(url.searchParams.has(parameter)).toBe(false);
-  await page.locator('#player-0-number').fill('8');
-  await page.locator('#cfg-team').fill('Fénix Renovado');
-  await page.reload();
-  await expect(page.locator('#player-0-number')).toHaveValue('8');
-  await expect(page.locator('#cfg-team')).toHaveValue('Fénix Renovado');
-});
-
-for (const width of [320, 390]) {
-  test(`all four order steps fit a ${width}px phone`, async ({ page }) => {
-    await page.setViewportSize({ width, height: 844 });
-    await page.goto('/configurador');
-    await expect(page.getByRole('button', { name: 'Crear lista de jugadores' })).toBeEnabled();
-    await expectNoOverflow(page, width);
-    await openRoster(page);
-    await fillRoster(page);
-    await expectNoOverflow(page, width);
-    await openStudio(page);
-    await expectNoOverflow(page, width);
-    await page.getByRole('button', { name: 'Prenda', exact: true }).click();
-    await expectNoOverflow(page, width);
-    await reviewOrder(page);
-    await expect(page.locator('.order-review-roster tbody tr')).toHaveCount(6);
-    await expectNoOverflow(page, width);
-    await expect(page.getByRole('link', { name: 'Abrir WhatsApp para cotizar' })).toBeVisible();
+test('Wompi simulado aprobado permite firma, envío único y descargas aunque falle guardar la referencia',async({page})=>{
+  const api=await mockPedidoApi(page,{paid:true});await seedPedido(page,completePedido());await openSeededDelivery(page);await pickup(page);
+  await page.getByRole('button',{name:/^Wompi/}).click();await page.getByRole('button',{name:'Preparar pago del anticipo',exact:true}).click();
+  await page.getByRole('button',{name:'Verificar mi anticipo',exact:true}).click();await expect(page.getByText('Anticipo verificado. Ya puedes continuar.',{exact:true})).toBeVisible();
+  await continuePedido(page);await buyerAndSignature(page);
+  await page.evaluate(()=>{
+    const original=Storage.prototype.setItem;
+    Storage.prototype.setItem=function(key:string,value:string) {
+      if(this===localStorage&&key==='tony:pedido:references:v279')throw new DOMException('Cuota sintética agotada','QuotaExceededError');
+      original.call(this,key,value);
+    };
   });
-}
+  await page.getByRole('button',{name:/CONFIRMAR Y ENVIAR PEDIDO/}).click();
+  await expect(page.getByRole('heading',{name:'Pedido confirmado',exact:true})).toBeVisible();expect(api.submitted).toHaveLength(1);
+  expect(await page.evaluate(()=>sessionStorage.getItem('tony:pedido:pending-payment:v279'))).toBeNull();
+  expect(await page.evaluate(()=>sessionStorage.getItem('tony:pedido:payment-key:v279'))).toBeNull();
+  const documentEvent=page.waitForEvent('download');await page.getByRole('button',{name:/Orden de pago/}).click();const document=await documentEvent;
+  expect(fs.readFileSync(await document.path()).subarray(0,8).toString()).toBe('%PDF-1.4');
+  const imageEvent=page.waitForEvent('download');await page.getByRole('button',{name:/Diseño frontal/}).click();const image=await imageEvent;
+  expect(fs.readFileSync(await image.path()).subarray(0,8).toString('hex')).toBe('89504e470d0a1a0a');
+});
+
+test('firma accesible con teclado puede borrarse y volver a trazarse',async({page})=>{
+  await mockPedidoApi(page,{paid:true});await seedPedido(page,completePedido());await openSeededDelivery(page);await pickup(page);
+  await page.getByRole('button',{name:/^Wompi/}).click();await page.getByRole('button',{name:'Preparar pago del anticipo',exact:true}).click();
+  await page.getByRole('button',{name:'Verificar mi anticipo',exact:true}).click();await expect(page.getByText('Anticipo verificado. Ya puedes continuar.',{exact:true})).toBeVisible();await continuePedido(page);
+  const canvas=page.locator('#pedido-signature-canvas');await canvas.focus();await canvas.press('Space');
+  await canvas.press('Shift+ArrowRight');await canvas.press('Shift+ArrowDown');await canvas.press('Shift+ArrowRight');await canvas.press('Space');
+  await expect(page.getByRole('button',{name:'Borrar firma',exact:true})).toBeEnabled();
+  await page.getByRole('button',{name:'Borrar firma',exact:true}).click();await expect(page.getByRole('button',{name:'Borrar firma',exact:true})).toBeDisabled();
+});
+
+for(const paid of [false,true])test(`regreso de Wompi ${paid?'pagado recupera la firma incluso con IndexedDB inaccesible':'pendiente conserva el enlace existente sin crear otro'}`,async({page})=>{
+  const api=await mockPedidoApi(page,{paid,pending:!paid});await seedPedido(page,completePedido());await openSeededDelivery(page);await pickup(page);
+  await page.getByRole('button',{name:/^Wompi/}).click();await page.getByRole('button',{name:'Preparar pago del anticipo',exact:true}).click();
+  await expect(page.getByRole('link',{name:/Abrir pago seguro/})).toHaveAttribute('href',TEST_PAYMENT_URL);
+  if(paid)await page.addInitScript(()=>{
+    const original=IDBObjectStore.prototype.get;
+    IDBObjectStore.prototype.get=function(key: IDBValidKey|IDBKeyRange) {
+      if(this.name==='drafts'&&key==='current')throw new DOMException('Fallo sintético de lectura del borrador','InvalidStateError');
+      return original.call(this,key);
+    };
+  });
+  await page.reload();
+  await expect(page.getByRole('heading',{name:paid?'Tu pedido, con tu firma':'Confirma tu anticipo',exact:true})).toBeVisible();
+  if(paid) {
+    await expect(page.getByLabel(/^Nombre completo/)).toHaveValue('');
+    await expect(page.getByRole('button',{name:'Borrar firma',exact:true})).toBeDisabled();
+  } else {
+    await expect(page.getByRole('link',{name:/Abrir pago seguro/})).toHaveAttribute('href',TEST_PAYMENT_URL);
+    await expect(page.getByRole('button',{name:'Preparar pago del anticipo',exact:true})).toHaveCount(0);
+  }
+  expect(api.calls.filter(call=>call.endpoint==='wompi-crear-pago.php')).toHaveLength(1);
+  expect(api.calls.filter(call=>call.endpoint==='wompi-verificar.php').length).toBeGreaterThanOrEqual(1);
+  expect(api.submitted).toEqual([]);
+});
+
+for(const width of [320,390,1440])test(`configuración y entrega sin desbordamiento a ${width}px`,async({page})=>{
+  await page.setViewportSize({width,height:900});await mockPedidoApi(page);await seedPedido(page,completePedido());await openSeededDelivery(page);
+  await page.getByRole('button',{name:/^Envío a domicilio/}).click();await expectNoOverflow(page,width);
+});

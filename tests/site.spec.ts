@@ -53,7 +53,7 @@ test('la portada ordena sus secciones y muestra la referencia del futuro tutoria
     await expect(social.locator(`a[href="${destination}"]`)).toHaveAttribute('target','_blank');
   }
   await page.locator('.hero').getByRole('link',{name:'Crea tu uniforme'}).click();
-  await expect(page.locator('#cfg-quantity')).toBeVisible();
+  await expect(page.getByRole('button',{name:'CREAR MI PEDIDO ↗',exact:true})).toBeVisible();
 });
 
 test('sin desbordamiento horizontal en móvil y con movimiento reducido',async({page})=>{

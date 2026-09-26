@@ -27,6 +27,7 @@ jobs:
       - run: npm run build
         env:
           TONY_GITHUB_PAGES: 'true'
+          NEXT_PUBLIC_TONY_API_BASE: ${{ vars.NEXT_PUBLIC_TONY_API_BASE }}
       - run: node scripts/prepare-pages.mjs
       - uses: actions/upload-pages-artifact@v4
         with:

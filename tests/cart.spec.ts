@@ -21,7 +21,7 @@ test.beforeEach(async ({page}) => {
 });
 
 async function openReview(page: Page) {
-  await page.goto('/configurador#paso-3');
+  await page.goto('/configurador/archivo#paso-3');
   const review = page.getByRole('button', {name: 'Revisar mi pedido', exact: true});
   await expect(review).toBeEnabled();
   await review.click();
@@ -195,7 +195,7 @@ test('the lizard deletion effect starts only after confirmation and ends with th
 });
 
 test('uploaded artwork remains in the cart after the editor draft and its files are reset', async ({page}) => {
-  await page.goto('/configurador#paso-3');
+  await page.goto('/configurador/archivo#paso-3');
   await expect(page.locator('svg[data-studio-artwork]')).toBeVisible();
   const data = await page.evaluate(() => {
     const canvas = document.createElement('canvas'); canvas.width = 80; canvas.height = 120;

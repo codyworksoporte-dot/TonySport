@@ -1,6 +1,6 @@
 import {expect, test} from '@playwright/test';
 import {calculatePedido, isCatalogCode, money, PedidoValidationError} from '../../lib/pedido/pricing';
-import {createPedido, readPedido, resizePlayers, validateStep} from '../../lib/pedido/order';
+import {createPedido, readPedido, resizePlayers, validateBuyer, validateDelivery, validateStep} from '../../lib/pedido/order';
 import type {Buyer, Delivery, PedidoDraft} from '../../lib/pedido/types';
 import {completePedido, complexPedido, DEMO_IMAGE, layer} from './pricing.fixtures';
 
@@ -101,4 +101,14 @@ test('catálogo y dinero no admiten códigos inexistentes ni cantidades fraccion
   expect(isCatalogCode('TONY-001')).toBe(true); expect(isCatalogCode('TONY-070')).toBe(true);
   expect(isCatalogCode('TONY-000')).toBe(false); expect(isCatalogCode('TONY-071')).toBe(false); expect(isCatalogCode('TONY-1')).toBe(false);
   expect(money(20343)).toBe('$203.43'); expect(() => money(10.5)).toThrow();
+});
+
+test('los límites de los campos evitan rechazos del servidor al cotizar o enviar', () => {
+  const draft=completePedido();draft.players[0].name='A'.repeat(71);
+  draft.goalkeepers=[{id:'keeper-limit',name:'PORTERO',number:'99',size:'M',color:'A'.repeat(61)}];
+  const errors=validateStep(draft,'players');
+  expect(errors['players.0.name']).toContain('70');expect(errors['goalkeepers.0.color']).toContain('60');
+  const delivery=validateDelivery({kind:'home',branch:'',department:'San Salvador',city:'A'.repeat(101),address:'A'.repeat(301),reference:''});
+  expect(delivery['delivery.city']).toContain('100');expect(delivery['delivery.address']).toContain('300');
+  expect(validateBuyer({name:'CLIENTE',dui:'00000000-0',phone:'70000000',email:`${'a'.repeat(243)}@example.com`})['buyer.email']).toContain('254');
 });

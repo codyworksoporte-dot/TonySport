@@ -1,0 +1,23 @@
+'use client';
+import {Children, cloneElement, isValidElement, useEffect, useId, useRef, type ReactNode, type ReactElement} from 'react';
+import {calculatePedido, money, SIZES} from '@/lib/pedido/pricing';
+import type {Delivery, PedidoDraft, PedidoErrors, PedidoPlayer} from '@/lib/pedido/types';
+export function Field({label, error, children}: {label: string; error?: string; children: ReactNode}) {
+  const errorId = useId();
+  return <div className={`pedido-field${error ? ' has-error' : ''}`}><label className="pedido-field-label"><span>{label}</span>{Children.map(children, child => isValidElement(child) && ['input', 'select', 'textarea'].includes(String(child.type)) ? cloneElement(child as ReactElement<Record<string, unknown>>, {'aria-invalid': !!error, 'aria-describedby': error ? errorId : undefined}) : child)}</label>{error && <small id={errorId} role="alert">{error}</small>}</div>;
+}
+export function Choice({selected, children, onClick, disabled}: {selected: boolean; children: ReactNode; onClick: () => void; disabled?: boolean}) {return <button type="button" className={`pedido-choice${selected ? ' is-selected' : ''}`} aria-pressed={selected} onClick={onClick} disabled={disabled}>{children}<span className="pedido-choice-check" aria-hidden="true">{selected ? '✓' : '+'}</span></button>;}
+export function Modal({title, onClose, children}: {title: string; onClose: () => void; children: ReactNode}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => {const previous = document.activeElement as HTMLElement | null; dialog.current?.showModal(); return () => {previous?.focus();};}, []);
+  return <dialog ref={dialog} className="pedido-modal" aria-labelledby="pedido-dialog-title" onCancel={event => {event.preventDefault(); onClose();}} onClick={event => {if (event.target === event.currentTarget) onClose();}}><div className="pedido-modal-heading"><h2 id="pedido-dialog-title">{title}</h2><button type="button" aria-label="Cerrar ventana" onClick={onClose}>×</button></div>{children}</dialog>;
+}
+export function PriceLines({draft, delivery, full = false}: {draft: PedidoDraft; delivery: Delivery; full?: boolean}) {
+  const p = calculatePedido(draft, delivery.kind);
+  const lines: [string, number][] = [['Prendas de campo', p.baseCents], ['Molde, tela, cuello y manga', p.garmentExtrasCents], ['Tallas especiales', p.sizeExtrasCents], ['Creación del diseño', p.creationDesignCents], [`Escudos (${p.crestDesignCount})`, p.crestDesignCents], [`Marcas (${p.brandDesignCount})`, p.brandDesignCents], [`Patrocinadores (${p.sponsorCount})`, p.sponsorCents], ['Acabados 3D', p.threeDCents], ['Porteros', p.keeperCents], [`Medias (${p.sockQuantity} pares)`, p.socksCents], ['Descuento marca Tony', -p.discountCents], ['Entrega', p.deliveryCents]];
+  return <><dl className="pedido-prices">{full && lines.filter(([, amount]) => amount !== 0).map(([name, amount]) => <div key={name}><dt>{name}</dt><dd>{money(amount)}</dd></div>)}<div className="pedido-price-total"><dt>Total</dt><dd>{money(p.totalCents)}</dd></div><div><dt>Anticipo · 50 %</dt><dd>{money(p.depositCents)}</dd></div><div><dt>Saldo contra entrega</dt><dd>{money(p.balanceCents)}</dd></div></dl>{p.fieldQuantity !== draft.quantity && <p className="pedido-fine">El total se completa al elegir todas las tallas.</p>}{p.freeKeeper && <p className="pedido-gift">Incluye primer portero gratis y gafete de capitán.</p>}{p.totalCents > 15000 && <p className="pedido-gift">Tu pedido incluye una gorra de regalo.</p>}</>;
+}
+export function PlayerRow({player, index, keeper, onChange, errors}: {player: PedidoPlayer; index: number; keeper?: boolean; onChange: (patch: Partial<PedidoPlayer>) => void; errors: PedidoErrors}) {
+  const prefix = `${keeper ? 'goalkeepers' : 'players'}.${index}`;
+  return <div className="pedido-player"><span className="pedido-player-index">{keeper ? 'P' : String(index + 1).padStart(2, '0')}</span><Field label={`Nombre ${keeper ? 'del portero' : `jugador ${index + 1}`}`} error={errors[`${prefix}.name`]}><input value={player.name} maxLength={70} onChange={e => onChange({name: e.target.value})} autoComplete="off"/></Field><Field label={`Talla ${keeper ? 'portero' : `jugador ${index + 1}`}`} error={errors[`${prefix}.size`]}><select value={player.size} onChange={e => onChange({size: e.target.value as PedidoPlayer['size']})}><option value="">Elegir</option>{SIZES.map(size => <option key={size}>{size}</option>)}</select></Field><Field label={`Dorsal ${keeper ? 'portero' : `jugador ${index + 1}`}`} error={errors[`${prefix}.number`]}><input inputMode="numeric" value={player.number} maxLength={3} onChange={e => onChange({number: e.target.value.replace(/\D/g, '')})}/></Field></div>;
+}

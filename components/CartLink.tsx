@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import {useCartCount} from '@/lib/cart';
+import {usePedidoCart} from '@/lib/pedido/storage';
 import './cart-controls.css';
 
 export function CartIcon() {
@@ -10,5 +11,7 @@ export function CartIcon() {
 
 export default function CartLink({className = '', onClick}: {className?: string; onClick?: () => void}) {
   const {count, loading, error} = useCartCount();
-  return <Link href="/carrito" className={`cart-link ${className}`} onClick={onClick} aria-label={loading ? 'Abrir carrito' : error ? 'Abrir carrito; requiere revisión' : `Carrito, ${count} ${count === 1 ? 'diseño' : 'diseños'}`} title="Tu carrito"><CartIcon/><span className="cart-link-count" aria-hidden="true">{error ? '!' : loading ? '·' : count}</span></Link>;
+  const pedido = usePedidoCart();
+  const total = count + pedido.items.length, busy = loading || pedido.loading, failure = error || pedido.error;
+  return <Link href="/carrito" className={`cart-link ${className}`} onClick={onClick} aria-label={busy ? 'Abrir carrito' : failure ? 'Abrir carrito; requiere revisión' : `Carrito, ${total} ${total === 1 ? 'diseño' : 'diseños'}`} title="Tu carrito"><CartIcon/><span className="cart-link-count" aria-hidden="true">{failure ? '!' : busy ? '·' : total}</span></Link>;
 }

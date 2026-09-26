@@ -89,6 +89,9 @@ export function validateDelivery(delivery?: Delivery): PedidoErrors {
     if (!delivery.department.trim()) errors['delivery.department'] = 'Selecciona el departamento.';
     if (!delivery.city.trim()) errors['delivery.city'] = 'Escribe el municipio o distrito.';
     if (!delivery.address.trim()) errors['delivery.address'] = 'Escribe la dirección exacta.';
+    if (delivery.city.length > 100) errors['delivery.city'] = 'Usa hasta 100 caracteres para el municipio o distrito.';
+    if (delivery.address.length > 300) errors['delivery.address'] = 'Usa hasta 300 caracteres para la dirección.';
+    if (delivery.reference.length > 300) errors['delivery.reference'] = 'Usa hasta 300 caracteres para el punto de referencia.';
     if (delivery.latitude != null && !finite(delivery.latitude, -90, 90)) errors['delivery.latitude'] = 'Revisa la ubicación del mapa.';
     if (delivery.longitude != null && !finite(delivery.longitude, -180, 180)) errors['delivery.longitude'] = 'Revisa la ubicación del mapa.';
   }
@@ -101,7 +104,7 @@ export function validateBuyer(buyer?: Buyer): PedidoErrors {
   if (!buyer.name.trim() || buyer.name.trim().length > 100) errors['buyer.name'] = 'Escribe tu nombre completo (hasta 100 caracteres).';
   if (!/^\d{8}-\d$/.test(buyer.dui.trim())) errors['buyer.dui'] = 'Escribe un DUI válido con formato 00000000-0.';
   if (!/^(?:\+?503[ -]?)?[267]\d{3}[ -]?\d{4}$/.test(buyer.phone.trim())) errors['buyer.phone'] = 'Escribe un teléfono válido de El Salvador.';
-  if (buyer.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyer.email.trim())) errors['buyer.email'] = 'Revisa tu correo electrónico.';
+  if (buyer.email.length > 254 || (buyer.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(buyer.email.trim()))) errors['buyer.email'] = 'Revisa tu correo electrónico (hasta 254 caracteres).';
   return errors;
 }
 
@@ -131,12 +134,15 @@ export function validateStep(order: PedidoDraft, step: PedidoStep | number, cont
   if (through >= 3) {
     if (order.quantity < MIN_QUANTITY || order.quantity > MAX_QUANTITY) errors.quantity = `El pedido es de ${MIN_QUANTITY} a ${MAX_QUANTITY} prendas de campo.`;
     if (!order.teamName.trim()) errors.teamName = 'Escribe el nombre del equipo o indica SIN NOMBRE DE EQUIPO.';
+    if (order.teamName.length > 100) errors.teamName = 'Usa hasta 100 caracteres para el nombre del equipo.';
+    if (order.notes.length > 2000) errors.notes = 'Usa hasta 2000 caracteres para las indicaciones.';
     for (const key of ['players', 'goalkeepers'] as const) order[key].forEach((player, index) => {
       if (!SIZES.includes(player.size)) errors[`${key}.${index}.size`] = 'Selecciona una talla.';
       if (!/^\d{1,3}$/.test(player.number)) errors[`${key}.${index}.number`] = 'Escribe un número de hasta tres dígitos.';
       if (!player.name.trim()) errors[`${key}.${index}.name`] = 'Escribe el nombre o indica SIN NOMBRE.';
+      if (player.name.length > 70) errors[`${key}.${index}.name`] = 'Usa hasta 70 caracteres para el nombre de cada jugador.';
     });
-    order.goalkeepers.forEach((keeper, index) => {if (!keeper.color.trim()) errors[`goalkeepers.${index}.color`] = 'Escoge el color del portero.';});
+    order.goalkeepers.forEach((keeper, index) => {if (!keeper.color.trim()) errors[`goalkeepers.${index}.color`] = 'Escoge el color del portero.'; else if (keeper.color.length > 60) errors[`goalkeepers.${index}.color`] = 'Usa hasta 60 caracteres para el color del portero.';});
   }
   if (through >= 5) {
     if (order.design.source === 'catalog' && !isCatalogCode(order.design.catalogCode)) errors['design.catalogCode'] = 'Selecciona un diseño del catálogo Tony.';

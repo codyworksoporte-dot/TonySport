@@ -86,7 +86,7 @@ test('las líneas preparan consultas específicas y la entrada al editor se conc
   }
   await page.goto('/');
   await page.locator('.hero').getByRole('link', { name: 'Crea tu uniforme' }).click();
-  await expect(page.locator('#cfg-quantity')).toBeVisible();
+  await expect(page.getByRole('button', {name: 'CREAR MI PEDIDO ↗', exact: true})).toBeVisible();
 });
 
 test('Producto concentra el explorador que antes estaba en Inicio y conserva los enlaces por línea', async ({ page }) => {
