@@ -10,3 +10,18 @@
 @media(max-width:900px){.pedido-editor-workspace{grid-template-columns:1fr;gap:24px}.pedido-editor-visual{position:static;max-width:520px;width:100%;margin:0 auto}.pedido-editor-tools{border-top:1px solid var(--line);padding-top:24px}.pedido-catalog-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));max-height:440px}.pedido-layer-actions>.pedido-tool-button{flex:1}}
 @media(max-width:430px){.pedido-editor{padding:12px;border-radius:12px}.pedido-catalog{padding:12px}.pedido-catalog-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.pedido-editor-heading{gap:10px}.pedido-editor-heading h3{font-size:28px}.pedido-tool-button{font-size:11px;padding:10px}.pedido-layer-properties,.pedido-frame-controls{padding:13px}.pedido-signature{padding:12px}.pedido-signature-canvas{height:190px}.pedido-editor-toolbar{gap:6px}.pedido-editor-message{padding:12px;font-size:12px}.pedido-editor-note{font-size:11px}.pedido-catalog-preview{padding:14px}.pedido-catalog-preview .pedido-editor-heading{margin-bottom:12px}}
 @media(prefers-reduced-motion:reduce){.pedido-editor-spinner{animation:none}.pedido-catalog-card,.pedido-tool-button,.pedido-primary-button{transition:none}.pedido-catalog-card:hover,.pedido-primary-button:hover{transform:none}}
+/* Pieces the customer adds: one clear button each, no coordinates to type. */
+.pedido-piece-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 18px}
+.pedido-piece-button{display:flex;align-items:center;gap:9px;min-height:48px;padding:8px 12px;text-align:left;border:1px solid #3f5f3a;border-radius:10px;background:linear-gradient(180deg,#183322,#0f2218);box-shadow:inset 0 1px 0 #d7ffae14,0 2px 0 #06100a;color:#eaf0e3;font-size:12.5px;font-weight:700;line-height:1.25}
+.pedido-piece-button>span{display:grid;place-items:center;flex:none;width:26px;height:26px;border-radius:50%;background:#c4ed80;color:#10200f;font-size:14px}
+.pedido-piece-button:disabled{opacity:.45}
+@media(hover:hover){.pedido-piece-button:not(:disabled):hover{border-color:#b7dd79}}
+.pedido-swatches{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.pedido-swatches>button,.pedido-swatch-custom{width:34px;height:34px;border-radius:50%;border:2px solid #0b1510;box-shadow:0 0 0 1px #4d6d45}
+.pedido-swatches>button[aria-pressed=true]{box-shadow:0 0 0 3px #c4ed80}
+.pedido-swatch-custom{position:relative;overflow:hidden;background:conic-gradient(#e5383b,#ffd23f,#b4ff35,#1f6feb,#b44bff,#e5383b)}
+.pedido-swatch-custom input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.pedido-size-row{display:flex;align-items:center;gap:10px;margin:6px 0 4px;font-size:13px;font-weight:700}
+.pedido-size-row>span{min-width:64px}
+.pedido-size-row>button{width:48px;height:44px;border:1px solid #4d6d45;border-radius:10px;background:#10231a;color:#c4ed80;font-size:22px;font-weight:700}
+@media(max-width:480px){.pedido-piece-actions{grid-template-columns:1fr}}

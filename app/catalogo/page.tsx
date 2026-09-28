@@ -1,6 +1,5 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
-import Jersey from '@/components/Jersey';
-import Icon from '@/components/Icon';
-export const metadata:Metadata={title:'El nuevo catálogo está en camino'};
-export default function Catalogo(){return <main id="contenido" className="internal-page"><section className="section-wrap internal-hero catalog-page-hero"><div><div className="internal-breadcrumb"><Link href="/">Inicio</Link><span>/</span><span>Catálogo</span></div><p className="eyebrow orange">EL SIGUIENTE CAPÍTULO DE TONY</p><h1>LO NUEVO<br/>SE ESTÁ<br/><span>PREPARANDO.</span></h1><p className="lead">Estamos construyendo un catálogo desde cero, con diseños y detalles que merezcan llevar nuestro nombre.</p></div><div><Jersey color="#2BFF14"/><span className="concept-seal">PRÓXIMAMENTE</span><span className="illustration-note">Ilustración conceptual · no es un producto a la venta</span></div></section><section className="section-wrap"><p className="eyebrow orange">TU IDEA NO TIENE QUE ESPERAR</p><div className="section-heading"><h2>HABLEMOS DE <span>TU EQUIPO.</span></h2><a href="https://wa.me/50370155571" className="text-link" target="_blank" rel="noopener noreferrer">Consultar con Tony <Icon name="diagonal"/></a></div></section></main>}
+import CatalogGallery from '@/components/CatalogGallery';
+export const metadata:Metadata={title:'Catálogo de diseños'};
+export default function Catalogo(){return <main id="contenido" className="internal-page"><section className="section-wrap internal-hero"><div className="internal-breadcrumb"><Link href="/">Inicio</Link><span>/</span><span>Catálogo</span></div><p className="eyebrow orange">CATÁLOGO OFICIAL TONY</p><h1>ELIGE UN DISEÑO.<br/><span>HAZLO TUYO.</span></h1><p className="lead">Toca cualquier diseño para verlo completo, frontal y dorsal, y úsalo como base de tu pedido.</p></section><CatalogGallery/></main>}

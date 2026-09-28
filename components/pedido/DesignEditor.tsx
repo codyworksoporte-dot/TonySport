@@ -5,6 +5,7 @@ import type { ChangeEvent, PointerEvent } from 'react';
 import type { PedidoDesign, PedidoDraft, PedidoLayer } from '@/lib/pedido/types';
 import { siteAsset } from '@/lib/asset-path';
 import CatalogPicker, { type CatalogDesign } from './CatalogPicker';
+import { fitImage, resetToZone, roleOf, samplePlayer, scaleLayer, textLayer, zoneFor, type Role } from '@/lib/pedido/layout';
 import './editor.css';
 
 type Side = 'front' | 'back';
@@ -51,6 +52,24 @@ export async function renderPedidoDesign(design: PedidoDesign, side: Side): Prom
   }
   return canvas.toDataURL('image/png');
 }
+
+/** White or near-black, whichever reads better over the fabric under that spot. */
+async function contrastColor(src: string | null, zone: { x: number; y: number; width: number; height: number }): Promise<string> {
+  if (!src) return '#ffffff';
+  try {
+    const img = await imageFrom(src); const canvas = document.createElement('canvas'); canvas.width = 80; canvas.height = 100;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }); if (!ctx) return '#ffffff';
+    const scale = Math.min(80 / img.naturalWidth, 100 / img.naturalHeight); const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+    ctx.drawImage(img, (80 - w) / 2, (100 - h) / 2, w, h);
+    const box = ctx.getImageData(Math.round((zone.x - zone.width / 2) * .8), Math.round(zone.y - zone.height / 2), Math.max(1, Math.round(zone.width * .8)), Math.max(1, Math.round(zone.height))).data;
+    let light = 0; for (let i = 0; i < box.length; i += 4) light += .2126 * box[i] + .7152 * box[i + 1] + .0722 * box[i + 2];
+    return light / (box.length / 4) > 150 ? '#151515' : '#ffffff';
+  } catch { return '#ffffff'; }
+}
+const LABELS: Record<Role, string> = { Escudo: 'Escudo', Marca: 'Marca deportiva', Sponsor: 'Patrocinador', Nombre: 'Nombre del jugador', Número: 'Número del jugador', Equipo: 'Nombre del equipo', Texto: 'Texto' };
+const layerLabel = (layer: PedidoLayer) => layer.type === 'Sponsor' ? layer.name : LABELS[roleOf(layer)];
+const imageRatio = (layer: PedidoLayer) => (layer.width * WIDTH) / (layer.height * HEIGHT);
+const SWATCHES = [['#ffffff', 'Blanco'], ['#151515', 'Negro'], ['#b4ff35', 'Verde'], ['#ffd23f', 'Amarillo'], ['#e5383b', 'Rojo'], ['#1f6feb', 'Azul']] as const;
 
 async function readUpload(file: File): Promise<{ data: string; key: string; ratio: number }> {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Elige una imagen JPG, PNG o WEBP.');
@@ -104,12 +123,22 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
     if (record) remember();
     const next = { ...current.current, design: { ...design, approved: false, finalFront: null, finalBack: null } }; current.current = next; onChange(next);
   }
+  /** Puts the player's name and a big number on the back, if they are not there yet. */
+  async function withNameAndNumber(design: PedidoDesign): Promise<PedidoDesign> {
+    if (!design.back || design.layers.some(layer => roleOf(layer) === 'Nombre' || roleOf(layer) === 'Número')) return design;
+    const sample = samplePlayer(current.current);
+    const color = await contrastColor(design.back, zoneFor(design, 'Número'));
+    return { ...design, layers: [...design.layers, textLayer(design, 'Nombre', sample.name, color), textLayer(design, 'Número', sample.number, color)] };
+  }
   function patchLayer(id: string, patch: Partial<PedidoLayer>, record = true) { change({ ...current.current.design, layers: current.current.design.layers.map(item => item.id === id ? { ...item, ...patch } : item) }, record); }
   function undo() { const item = past.current.pop(); if (!item) return; future.current.push(current.current.design); change(item, false); setHistoryVersion(value => value + 1); setSelectedId(''); setMessage('Cambio deshecho.'); }
   function redo() { const item = future.current.pop(); if (!item) return; past.current.push(current.current.design); change(item, false); setHistoryVersion(value => value + 1); setMessage('Cambio restaurado.'); }
-  function selectCatalog(item: CatalogDesign) {
-    operationToken.current++; change({ ...current.current.design, source: 'catalog', catalogCode: item.code, front: item.front, back: item.back });
-    setCatalogOpen(false); setSide('front'); setMessage(`${item.code}: frontal y dorsal cargados.`); setError('');
+  async function selectCatalog(item: CatalogDesign) {
+    const token = ++operationToken.current;
+    const base: PedidoDesign = { ...current.current.design, source: 'catalog', catalogCode: item.code, front: item.front, back: item.back };
+    const design = await withNameAndNumber(base); if (token !== operationToken.current) return;
+    change(design); setCatalogOpen(false); setSide('front'); setError('');
+    setMessage(`${item.code} listo. El nombre y el número ya van atrás; sube tu escudo y tus patrocinadores y se colocan solos.`);
   }
   async function upload(event: ChangeEvent<HTMLInputElement>, isLayer: boolean) {
     const file = event.target.files?.[0]; event.target.value = ''; if (!file) return;
@@ -117,16 +146,27 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
     try {
       const result = await readUpload(file); if (token !== operationToken.current) return;
       if (isLayer) {
-        const role = uploadRole.current; const layer: PedidoLayer = { id: crypto.randomUUID(), side, type: role, name: `${role} ${sideLayers.filter(item => item.type === role).length + 1}`, data: result.data, designKey: result.key, x: 50, y: 35, width: 22, height: clamp(22 * WIDTH / HEIGHT / result.ratio, 5, 35), rotation: 0, color: '#ffffff', fontSize: 42, visible: true };
-        change({ ...current.current.design, layers: [...current.current.design.layers, layer] }); setSelectedId(layer.id); setMessage(`${role} agregado. Arrástralo para colocarlo.`);
+        // Each piece lands in its spot: crest and brand on the chest (one each), sponsors big across the chest, then on the back.
+        const role = uploadRole.current, design = current.current.design;
+        const count = design.layers.filter(item => item.type === role).length;
+        const existing = role !== 'Sponsor' ? design.layers.find(item => item.type === role) : undefined;
+        const zone = zoneFor(design, role, count);
+        const layer: PedidoLayer = { id: existing?.id ?? crypto.randomUUID(), side: zone.side, type: role, name: role === 'Sponsor' ? `Patrocinador ${count + 1}` : role, data: result.data, designKey: result.key, x: zone.x, y: zone.y, ...fitImage(zone, result.ratio), rotation: 0, color: '#ffffff', fontSize: 42, visible: true };
+        change({ ...design, layers: existing ? design.layers.map(item => item.id === existing.id ? layer : item) : [...design.layers, layer] });
+        setSide(zone.side); setSelectedId(layer.id);
+        setMessage(`${LABELS[role]} ${existing ? 'cambiado' : 'colocado'} en ${zone.side === 'front' ? 'el frente' : 'la espalda'}. Si quieres, arrástralo o cambia su tamaño.`);
       } else {
-        change({ ...current.current.design, source: 'own', catalogCode: '', [side]: result.data }); setMessage(`${side === 'front' ? 'Frontal' : 'Dorsal'} cargado. Puedes ajustar el encuadre.`); setCatalogOpen(false);
+        const design = await withNameAndNumber({ ...current.current.design, source: 'own', catalogCode: '', [side]: result.data }); if (token !== operationToken.current) return;
+        change(design); setCatalogOpen(false);
+        setMessage(side === 'front' && !design.back ? 'Frente cargado. Toca Generar mockup con IA para crear la espalda.' : `${side === 'front' ? 'Frente' : 'Espalda'} cargado. El nombre y el número ya van atrás.`);
       }
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'No pudimos cargar esa imagen.'); } finally { if (token === operationToken.current) setBusy(''); }
   }
-  function addText(text = 'TU EQUIPO', name = 'Texto') {
-    const layer: PedidoLayer = { id: crypto.randomUUID(), side, type: 'Texto', name, text, x: 50, y: 48, width: 65, height: 12, rotation: 0, color: '#ffffff', fontSize: 46, visible: true };
-    change({ ...current.current.design, layers: [...current.current.design.layers, layer] }); setSelectedId(layer.id); setMessage('Texto agregado. Puedes escribir y moverlo.');
+  async function addText(role: 'Nombre' | 'Número' | 'Equipo' | 'Texto', text: string) {
+    const design = current.current.design, zone = zoneFor(design, role);
+    const layer = textLayer(design, role, text, await contrastColor(design[zone.side], zone));
+    change({ ...current.current.design, layers: [...current.current.design.layers, layer] }); setSide(zone.side); setSelectedId(layer.id);
+    setMessage(`${LABELS[role]} colocado. Si quieres, arrástralo o cambia su tamaño.`);
   }
   const localPoint = (event: PointerEvent<HTMLElement>) => { const rect = stage.current!.getBoundingClientRect(); return { x: clamp((event.clientX - rect.left) / rect.width * 100, 0, 100), y: clamp((event.clientY - rect.top) / rect.height * 100, 0, 100) }; };
   function removeLayer(id: string) { change({ ...current.current.design, layers: current.current.design.layers.filter(item => item.id !== id) }); setSelectedId(''); setMessage('Elemento eliminado. Puedes recuperarlo con Deshacer.'); }
@@ -146,15 +186,16 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
     const token = ++operationToken.current; setError(''); setBusy(operation === 'mockup' ? 'Preparando tu mockup con IA…' : 'Solicitando borrado de la imagen…');
     try {
       const design = current.current.design;
-      const payload = operation === 'mockup' ? { front: await renderPedidoDesign(design, 'front'), back: design.back ? await renderPedidoDesign(design, 'back') : undefined, catalogCode: design.catalogCode } : { image: await renderPedidoDesign({ ...design, layers: [] }, side), side, region: { x: region!.x / 100, y: region!.y / 100, width: region!.width / 100, height: region!.height / 100 } };
+      const payload = operation === 'mockup' ? { front: await renderPedidoDesign({ ...design, layers: [] }, 'front'), back: design.back ? await renderPedidoDesign({ ...design, layers: [] }, 'back') : undefined, catalogCode: design.catalogCode } : { image: await renderPedidoDesign({ ...design, layers: [] }, side), side, region: { x: region!.x / 100, y: region!.y / 100, width: region!.width / 100, height: region!.height / 100 } };
       const result = await onAI(operation, payload); if (token !== operationToken.current) return;
       if (operation === 'erase') {
         const image = result.image || result[side]; if (!image) throw new Error('El servicio no devolvió la imagen corregida. Tu diseño se mantiene.'); await imageFrom(image);
         change({ ...current.current.design, [side]: image }); setRegion(null); setEraseMode(false); setMessage('Imagen base corregida. Revisa el resultado; puedes deshacerlo.');
       } else {
         if (!result.front || !result.back) throw new Error('Falta una de las vistas del mockup. Tu diseño se mantiene para volver a intentar.'); await Promise.all([imageFrom(result.front), imageFrom(result.back)]);
-        // The generated mockup already contains the composited layers. Keeping them visible would duplicate the artwork.
-        change({ ...current.current.design, front: result.front, back: result.back, layers: current.current.design.layers.map(layer => ({ ...layer, visible: false })) }); setMessage('Mockup recibido. Revisa ambas caras antes de continuar. Las capas incluidas están ocultas y conservan sus servicios asociados.');
+        // The mockup is the garment alone; crest, sponsors, name and number stay as pieces on top, still movable.
+        change(await withNameAndNumber({ ...current.current.design, front: result.front, back: result.back })); setSide('back');
+        setMessage('Mockup listo. El nombre y el número ya van atrás; puedes mover cada pieza con el dedo o el mouse.');
       }
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'El servicio no respondió. Puedes volver a intentarlo; conservamos tu diseño.'); } finally { if (token === operationToken.current) setBusy(''); }
   }
@@ -188,14 +229,24 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
         {framing && <div className="pedido-frame-controls"><h4>Encuadre del {side === 'front' ? 'frontal' : 'dorsal'}</h4>{[{ key: 'zoom', label: 'Zoom', min: .5, max: 3, step: .05 }, { key: 'x', label: 'Horizontal', min: -50, max: 50, step: 1 }, { key: 'y', label: 'Vertical', min: -50, max: 50, step: 1 }].map(control => <label className="pedido-range-field" key={control.key}>{control.label}<input type="range" min={control.min} max={control.max} step={control.step} value={frame[control.key as keyof typeof frame]} onChange={event => setFrame(value => ({ ...value, [control.key]: Number(event.target.value) }))} /></label>)}<button type="button" className="pedido-primary-button" disabled={disabled} onClick={adjustFrame}>Aplicar encuadre</button></div>}
       </div>
       <aside className="pedido-editor-tools" aria-label="Herramientas de personalización">
-        <h4>Agrega tu identidad</h4><div className="pedido-layer-actions">{(['Escudo', 'Marca', 'Sponsor'] as const).map(role => <button type="button" className="pedido-tool-button" key={role} disabled={disabled || !draft.design[side]} onClick={() => { uploadRole.current = role; layerInput.current?.click(); }}>＋ {role}</button>)}<button type="button" className="pedido-tool-button" disabled={disabled || !draft.design[side]} onClick={() => addText()}>＋ Texto</button></div>
+        <h4>Agrega tu identidad</h4>
+        <p className="pedido-editor-note">Sube cada archivo y se coloca solo en su lugar: el escudo en el pecho, los patrocinadores en grande. El nombre y el número van atrás automáticamente.</p>
+        <div className="pedido-piece-actions">
+          {(['Escudo', ...(draft.config.brand === 'Propia' ? ['Marca'] as const : []), 'Sponsor'] as const).map(role => <button type="button" className="pedido-piece-button" key={role} disabled={disabled || !draft.design.front} onClick={() => { uploadRole.current = role; layerInput.current?.click(); }}><span aria-hidden="true">{role === 'Sponsor' ? '＋' : '↑'}</span>{role === 'Escudo' ? (draft.design.layers.some(item => item.type === 'Escudo') ? 'Cambiar escudo' : 'Subir escudo') : role === 'Marca' ? (draft.design.layers.some(item => item.type === 'Marca') ? 'Cambiar marca' : 'Subir marca') : 'Agregar patrocinador'}</button>)}
+          {!draft.design.layers.some(item => roleOf(item) === 'Nombre') && <button type="button" className="pedido-piece-button" disabled={disabled || !draft.design.back} onClick={() => void addText('Nombre', samplePlayer(draft).name)}><span aria-hidden="true">＋</span>Nombre del jugador</button>}
+          {!draft.design.layers.some(item => roleOf(item) === 'Número') && <button type="button" className="pedido-piece-button" disabled={disabled || !draft.design.back} onClick={() => void addText('Número', samplePlayer(draft).number)}><span aria-hidden="true">＋</span>Número del jugador</button>}
+          {!draft.design.layers.some(item => roleOf(item) === 'Equipo') && <button type="button" className="pedido-piece-button" disabled={disabled || !draft.design.back} onClick={() => void addText('Equipo', (draft.teamName || 'TU EQUIPO').toUpperCase())}><span aria-hidden="true">＋</span>Nombre del equipo</button>}
+          <button type="button" className="pedido-piece-button" disabled={disabled || !draft.design.front} onClick={() => void addText('Texto', 'TU FRASE')}><span aria-hidden="true">＋</span>Otro texto</button>
+        </div>
         <input ref={layerInput} type="file" className="sr-only" accept="image/jpeg,image/png,image/webp" tabIndex={-1} aria-label="Subir elemento personalizado" onChange={event => upload(event, true)} />
-        {side === 'back' && <div className="pedido-layer-actions"><button type="button" className="pedido-text-button" disabled={disabled || !draft.design.back} onClick={() => addText(draft.teamName || 'TU EQUIPO', 'Equipo')}>+ Equipo</button><button type="button" className="pedido-text-button" disabled={disabled || !draft.design.back} onClick={() => addText(draft.players[0]?.name || 'NOMBRE', 'Nombre')}>+ Nombre</button><button type="button" className="pedido-text-button" disabled={disabled || !draft.design.back} onClick={() => addText(draft.players[0]?.number || '10', 'Número')}>+ Número</button></div>}
-        <p className="pedido-editor-note">Arrastra cada elemento; las flechas del teclado también lo mueven. Cada cara guarda sus propias capas.</p>
-        <div className="pedido-layer-list"><h4>Capas del {side === 'front' ? 'frontal' : 'dorsal'} <span>{sideLayers.length}</span></h4>{!sideLayers.length && <p className="pedido-editor-empty">Aún no agregaste elementos en esta cara.</p>}{sideLayers.map(layer => <div className={`pedido-layer-row${selectedId === layer.id ? ' is-selected' : ''}`} key={layer.id}><button type="button" disabled={disabled} onClick={() => setSelectedId(layer.id)}><span>{layer.type === 'Texto' ? 'T' : '◈'}</span><span>{layer.name}<small>{layer.visible ? 'Visible' : 'Oculto · conserva su servicio'}</small></span></button><button type="button" disabled={disabled} className="pedido-layer-delete" onClick={() => removeLayer(layer.id)} aria-label={`Eliminar ${layer.name}`}>×</button></div>)}</div>
-        {selected && <div className="pedido-layer-properties"><h4>Editar {selected.name}</h4><label className="pedido-field">Nombre de la capa<input value={selected.name} maxLength={40} disabled={disabled} onChange={event => patchLayer(selected.id, { name: event.target.value })} /></label>{selected.type === 'Texto' && <><label className="pedido-field">Texto<input value={selected.text || ''} maxLength={50} disabled={disabled} onChange={event => patchLayer(selected.id, { text: event.target.value })} /></label><div className="pedido-property-grid"><label className="pedido-field">Color<input type="color" value={selected.color} disabled={disabled} onChange={event => patchLayer(selected.id, { color: event.target.value })} /></label><label className="pedido-field">Letra<input type="number" min="10" max="180" value={selected.fontSize} disabled={disabled} onChange={event => patchLayer(selected.id, { fontSize: clamp(Number(event.target.value), 10, 180) })} /></label></div></>}
-          <div className="pedido-property-grid">{[{ key: 'x', label: 'Posición X', min: 0, max: 100 }, { key: 'y', label: 'Posición Y', min: 0, max: 100 }, { key: 'width', label: 'Ancho', min: 2, max: 100 }, { key: 'height', label: 'Alto', min: 2, max: 100 }, { key: 'rotation', label: 'Giro °', min: -180, max: 180 }].map(control => <label className="pedido-field" key={control.key}>{control.label}<input type="number" min={control.min} max={control.max} step="1" disabled={disabled} value={Math.round(selected[control.key as 'x' | 'y' | 'width' | 'height' | 'rotation'])} onChange={event => patchLayer(selected.id, { [control.key]: clamp(Number(event.target.value), control.min, control.max) })} /></label>)}</div>
-          <div className="pedido-editor-toolbar"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => patchLayer(selected.id, { visible: !selected.visible })}>{selected.visible ? 'Ocultar' : 'Mostrar'}</button><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => { const target: Side = side === 'front' ? 'back' : 'front'; change({ ...current.current.design, layers: [...current.current.design.layers, { ...selected, id: crypto.randomUUID(), side: target }] }); setMessage(`Elemento copiado al ${target === 'front' ? 'frontal' : 'dorsal'}.`); }}>Copiar a otra cara</button><button type="button" className="pedido-tool-button is-danger" disabled={disabled} onClick={() => removeLayer(selected.id)}>Eliminar</button></div>
+        <div className="pedido-layer-list"><h4>En {side === 'front' ? 'el frente' : 'la espalda'} <span>{sideLayers.length}</span></h4>{!sideLayers.length && <p className="pedido-editor-empty">Todavía no hay piezas en {side === 'front' ? 'el frente' : 'la espalda'}.</p>}{sideLayers.map(layer => <div className={`pedido-layer-row${selectedId === layer.id ? ' is-selected' : ''}`} key={layer.id}><button type="button" disabled={disabled} onClick={() => setSelectedId(layer.id)}><span>{layer.type === 'Texto' ? 'T' : '◈'}</span><span>{layerLabel(layer)}<small>{layer.type === 'Texto' ? layer.text : layer.visible ? 'Toca para ajustar' : 'Oculto'}</small></span></button><button type="button" disabled={disabled} className="pedido-layer-delete" onClick={() => removeLayer(layer.id)} aria-label={`Quitar ${layerLabel(layer)}`}>×</button></div>)}</div>
+        {selected && <div className="pedido-layer-properties"><h4>{layerLabel(selected)}</h4>
+          {(roleOf(selected) === 'Nombre' || roleOf(selected) === 'Número') ? <p className="pedido-editor-note">Es un ejemplo: cada camiseta llevará el {roleOf(selected) === 'Nombre' ? 'nombre' : 'número'} de su jugador, tal como lo escribiste en Jugadores.</p>
+            : selected.type === 'Texto' && <label className="pedido-field">Texto<input value={selected.text || ''} maxLength={50} disabled={disabled} onChange={event => patchLayer(selected.id, { text: event.target.value })} /></label>}
+          {selected.type === 'Texto' && <div className="pedido-swatches" role="group" aria-label="Color del texto">{SWATCHES.map(([color, label]) => <button type="button" key={color} aria-label={label} aria-pressed={selected.color.toLowerCase() === color} disabled={disabled} style={{ background: color }} onClick={() => patchLayer(selected.id, { color })} />)}<label className="pedido-swatch-custom" aria-label="Otro color"><input type="color" value={selected.color} disabled={disabled} onChange={event => patchLayer(selected.id, { color: event.target.value })} /></label></div>}
+          <div className="pedido-size-row" role="group" aria-label="Tamaño"><span>Tamaño</span><button type="button" disabled={disabled} onClick={() => patchLayer(selected.id, scaleLayer(selected, 1 / 1.15))} aria-label="Más pequeño">−</button><button type="button" disabled={disabled} onClick={() => patchLayer(selected.id, scaleLayer(selected, 1.15))} aria-label="Más grande">＋</button></div>
+          <p className="pedido-editor-note">Para moverlo, arrástralo sobre la camiseta.</p>
+          <div className="pedido-editor-toolbar"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => { const patch = resetToZone(current.current.design, selected, imageRatio(selected)); patchLayer(selected.id, patch); if (patch.side) setSide(patch.side); setMessage('De vuelta a su lugar.'); }}>↺ Volver a su lugar</button><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => { const target: Side = side === 'front' ? 'back' : 'front'; change({ ...current.current.design, layers: [...current.current.design.layers, { ...selected, id: crypto.randomUUID(), side: target }] }); setMessage(`También en ${target === 'front' ? 'el frente' : 'la espalda'}.`); }}>Poner también {side === 'front' ? 'atrás' : 'adelante'}</button><button type="button" className="pedido-tool-button is-danger" disabled={disabled} onClick={() => removeLayer(selected.id)}>Quitar</button></div>
         </div>}
         <details className="pedido-image-tools"><summary>Elementos impresos e IA</summary><p className="pedido-editor-note">Los escudos, nombres y números que ya están impresos en una lámina no son capas independientes. Para quitarlos, selecciona su área y solicita el borrado de la imagen base. Las capas agregadas arriba se eliminan directamente.</p><button type="button" className="pedido-tool-button" disabled={disabled || !draft.design[side]} aria-pressed={eraseMode} onClick={() => { setEraseMode(value => !value); setFraming(false); setRegion(null); setSelectedId(''); }}>{eraseMode ? 'Cancelar selección' : 'Seleccionar área para borrar'}</button>{eraseMode && <><p className="pedido-editor-note">Arrastra sobre la imagen para delimitar el área. Revisa la selección antes de solicitar el cambio.</p><button type="button" className="pedido-primary-button" disabled={disabled || !region || region.width < 1 || region.height < 1} onClick={() => askAI('erase')}>Borrar área con IA</button></>}<button type="button" className="pedido-tool-button" disabled={disabled || !draft.design.front} onClick={() => askAI('mockup')}>Generar mockup con IA</button><p className="pedido-editor-note">Estas herramientas requieren conexión con el servicio de Tony. Siempre podrás revisar el resultado y deshacerlo.</p></details>
       </aside>

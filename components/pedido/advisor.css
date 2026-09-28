@@ -1,0 +1,55 @@
+/* Tony's advisor: an inline card under each step's heading, never floating over the form. */
+.pedido-advisor-card{display:grid;grid-template-columns:74px minmax(0,1fr);gap:18px;align-items:start;margin:0 0 26px;padding:16px 18px 16px 14px;border:1px solid #3f5f3a;border-radius:14px;background:linear-gradient(135deg,#17301f,#0f2117);box-shadow:inset 0 1px 0 #d7ffae14}
+.pedido-advisor-card>img,.pedido-advisor-recall>img{width:74px;height:111px;object-fit:cover;object-position:50% 12%;border-radius:10px;background:#0b1a11}
+.pedido-advisor-name{margin:2px 0 6px;font-size:10px;font-weight:700;letter-spacing:.16em;color:var(--pedido-green,#c4ed80)}
+.pedido-advisor-message{margin:0;font-size:14px;line-height:1.65;color:var(--pedido-ink,#eaf0e3)}
+.pedido-advisor-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}
+.pedido-advisor-actions button{display:inline-flex;align-items:center;gap:7px;min-height:40px;padding:0 15px 0 12px;border:1px solid #3f5f3a;border-radius:10px;background:linear-gradient(180deg,#183322,#0f2218);box-shadow:inset 0 1px 0 #d7ffae14,0 2px 0 #06100a;color:var(--pedido-ink,#eaf0e3);font-size:12px;font-weight:700;letter-spacing:.01em;transition:border-color 160ms ease,background 160ms ease,transform 120ms ease}
+.pedido-advisor-actions button svg{flex:none;color:var(--pedido-green,#c4ed80)}
+.pedido-advisor-actions button:active{transform:translateY(1px)}
+.pedido-advisor-actions .pedido-advisor-voice[aria-pressed=true]{border-color:#b7dd79;background:linear-gradient(180deg,#c9f27f,#9fdc4d);color:#10200f;box-shadow:inset 0 1px 0 #f3ffd9,0 2px 0 #4f7a22}
+.pedido-advisor-actions .pedido-advisor-voice[aria-pressed=true] svg{color:#10200f}
+.pedido-advisor-actions .pedido-advisor-hide{margin-left:auto;border-color:transparent;background:none;box-shadow:none;color:var(--pedido-muted,#adbcae);font-weight:600}
+.pedido-advisor-actions .pedido-advisor-hide svg{color:currentColor;width:13px;height:13px}
+@media(hover:hover){.pedido-advisor-actions button:hover{border-color:#b7dd79}.pedido-advisor-actions .pedido-advisor-hide:hover{color:var(--pedido-ink,#eaf0e3)}}
+.pedido-advisor-note{margin:10px 0 0;font-size:11.5px;color:var(--pedido-muted,#adbcae)}
+/* A warning: something earlier has to be chosen first. */
+.pedido-advisor-card.is-warning{border-color:#f0b35a;background:linear-gradient(135deg,#3a2a12,#1c1a10)}
+.pedido-advisor-card.is-warning .pedido-advisor-name{color:#ffc978}
+.pedido-advisor-dock.is-warning{border-color:#f0b35a}
+.pedido-advisor-card.is-warning .pedido-advisor-message,.pedido-advisor-dock.is-warning>p{font-weight:700}
+/* Parts that open once the previous choice is made. */
+fieldset.is-locked>.pedido-options,fieldset.is-locked>.pedido-finishes,fieldset.is-locked>label{opacity:.42;filter:saturate(.35)}
+.pedido-locked-note{margin:4px 0 8px;font-size:12px;font-weight:600;color:#ffc978}
+.pedido-advisor-recall{display:inline-flex;align-items:center;gap:10px;margin:0 0 22px;padding:5px 16px 5px 5px;min-height:46px;border:1px solid #3f5f3a;border-radius:999px;background:#10231a;color:var(--pedido-green,#c4ed80);font-size:12px;font-weight:600}
+.pedido-advisor-recall>img{width:36px;height:36px;border-radius:50%}
+@media(max-width:480px){.pedido-advisor-card{grid-template-columns:52px minmax(0,1fr);gap:12px;padding:13px 12px 13px 11px;margin-bottom:20px}.pedido-advisor-card>img{width:52px;height:78px}.pedido-advisor-message{font-size:13px;line-height:1.6}.pedido-advisor-actions button{font-size:11px;padding:0 11px 0 9px;min-height:38px}.pedido-advisor-actions .pedido-advisor-hide{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.pedido-advisor-actions button{transition:none}}
+/* A small wave beside her name while she speaks (transform only). */
+.pedido-advisor-wave{display:inline-flex;gap:2px;align-items:flex-end;height:10px;margin-left:8px;vertical-align:-1px;opacity:0;transition:opacity 200ms ease}
+.pedido-advisor-wave i{display:block;width:2px;height:10px;border-radius:2px;background:currentColor;transform-origin:50% 100%;transform:scaleY(.35)}
+.is-speaking .pedido-advisor-wave{opacity:1}
+.is-speaking .pedido-advisor-wave i{animation:pedido-wave 900ms ease-in-out infinite}
+.is-speaking .pedido-advisor-wave i:nth-child(2){animation-delay:150ms}
+.is-speaking .pedido-advisor-wave i:nth-child(3){animation-delay:300ms}
+@keyframes pedido-wave{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+.pedido-advisor-card.is-speaking>img{box-shadow:0 0 0 2px #b7dd79}
+
+/* The part of the form she is talking about. */
+[data-advisor]{scroll-margin-top:120px;border-radius:14px;transition:box-shadow 260ms ease,background-color 260ms ease}
+[data-advisor].is-advised{box-shadow:0 0 0 2px #b7dd79aa,0 0 0 8px #b7dd7914;background-color:#b7dd7908}
+fieldset[data-advisor]{padding:14px;margin-left:-14px;margin-right:-14px}
+
+/* Bubble that keeps her at hand once the card has scrolled away. */
+.pedido-advisor-dock{position:fixed;z-index:60;right:24px;bottom:24px;width:min(420px,calc(100% - 48px));display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 12px;align-items:center;padding:12px 14px;border:1px solid #4d6d45;border-radius:16px;background:rgb(13 29 20 / .97);box-shadow:0 18px 40px #0008;opacity:0;visibility:hidden;transform:translate3d(0,12px,0);transition:opacity 220ms ease,transform 220ms var(--ease),visibility 0s linear 220ms}
+.pedido-advisor-dock.is-shown{opacity:1;visibility:visible;transform:none;transition-delay:0s}
+.pedido-advisor-dock>img{grid-row:span 2;width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:50% 10%}
+.pedido-advisor-dock.is-speaking>img{box-shadow:0 0 0 2px #b7dd79}
+.pedido-advisor-dock>p{margin:0;font-size:12.5px;line-height:1.5;color:var(--pedido-ink,#eaf0e3);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.pedido-advisor-dock>button{justify-self:start;display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 11px;border:1px solid #4d6d45;border-radius:9px;background:#0c1b12;color:var(--pedido-green,#c4ed80);font-size:11px;font-weight:700}
+.pedido-page:has(.pedido-advisor-dock.is-shown){padding-bottom:170px}
+@media(max-width:600px){.pedido-advisor-dock{left:10px;right:10px;bottom:10px;width:auto;padding:10px 12px}.pedido-advisor-dock>p{font-size:12px;-webkit-line-clamp:3}}
+@media(prefers-reduced-motion:reduce){.is-speaking .pedido-advisor-wave i{animation:none;transform:scaleY(.7)}.pedido-advisor-dock,[data-advisor]{transition:none}}
+/* Section titles sit inside the outlined area instead of on its border. */
+fieldset[data-advisor]>legend{float:left;width:100%;padding:0;margin:0 0 6px}
+fieldset[data-advisor]>legend+*{clear:both}

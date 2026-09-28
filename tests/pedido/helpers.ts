@@ -68,11 +68,11 @@ export async function openSeededEditor(page: Page) {
   await page.goto('/configurador');
   await expect(page.getByText('Recuperamos tu diseño. Revisa los pasos para continuar.')).toBeVisible();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
-  for(const heading of ['Escoge tu producto','Selecciona tu línea','Hecho a tu manera','Cada jugador cuenta']) {
+  for(const heading of ['Escoge tu producto','¿Para quién es?','Hecho a tu manera','Cada jugador cuenta']) {
     await expect(page.getByRole('heading',{name:heading,exact:true})).toBeVisible();
     await continuePedido(page);
   }
-  await page.getByRole('button',{name:/NO QUIERO ASESOR/}).click();
+  await expect(page.getByRole('heading',{name:'Completa tu equipo',exact:true})).toBeVisible();
   await continuePedido(page);
   await expect(page.getByRole('region',{name:'Editor de tu uniforme'})).toBeVisible();
 }

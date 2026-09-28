@@ -8,3 +8,15 @@
 @media(prefers-reduced-motion:reduce){.pedido-page *{transition:none!important;scroll-behavior:auto!important}}html[data-tony-effects='off'] .pedido-page *{transition:none!important;animation:none!important}
 .pedido-field-label{display:flex;flex-direction:column;gap:8px;min-width:0}.pedido-player .pedido-field-label>span{font-size:10px}
 @media(prefers-reduced-motion:reduce){.pedido-page .pedido-choice:hover{transform:none}}html[data-tony-effects="off"] .pedido-page .pedido-choice:hover{transform:none}
+/* Option photos (V279 guides): the customer sees each mold, fabric, collar and finish before choosing. */
+.pedido-choice .pedido-choice-img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:8px;background:#0b1a11}
+.pedido-config-groups .pedido-choice:has(.pedido-choice-img){padding:10px 10px 16px}
+.pedido-config-groups .pedido-choice:has(.pedido-choice-img) .pedido-choice-check{top:16px;right:16px;background:#102719}
+.pedido-finishes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.pedido-finish{margin:0;display:flex;flex-direction:column;align-items:stretch;gap:10px;padding:10px;border:1px solid var(--pedido-line);border-radius:12px;background:#0f2117}
+.pedido-finish>img{display:block;width:100%;height:auto;aspect-ratio:1.5;object-fit:cover;border-radius:8px}
+.pedido-finish>span{display:flex;gap:8px;align-items:flex-start}
+@media(max-width:480px){.pedido-config-groups .pedido-choice:has(.pedido-choice-img){padding:8px 8px 13px}.pedido-config-groups .pedido-choice:has(.pedido-choice-img) .pedido-choice-check{top:13px;right:13px}.pedido-finish{font-size:11px;padding:8px}}
+/* "Saber más" and similar secondary actions: a clear, tappable chip instead of a bare link. */
+.pedido-text-button{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 13px;margin:4px 0 2px;border:1px solid #3f5f3a;border-radius:999px;background:#10231a;color:var(--pedido-green);font-size:12px;font-weight:600;text-decoration:none;transition:border-color 160ms ease,background 160ms ease}
+@media(hover:hover){.pedido-text-button:hover{border-color:#b7dd79;background:#173222}}

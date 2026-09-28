@@ -37,7 +37,7 @@ function readPlayer(value: unknown): PedidoPlayer | null {
 }
 function readLayer(value: unknown): PedidoLayer | null {
   if (!record(value) || !text(value.id, 100) || !value.id || !text(value.name) || !['front', 'back'].includes(String(value.side)) || !['Escudo', 'Marca', 'Sponsor', 'Texto'].includes(String(value.type)) || typeof value.visible !== 'boolean') return null;
-  if (!finite(value.x, 0, 100) || !finite(value.y, 0, 100) || !finite(value.width, 2, 100) || !finite(value.height, 2, 100) || !finite(value.rotation, -180, 180) || !finite(value.fontSize, 10, 180) || typeof value.color !== 'string' || !/^#[a-f\d]{6}$/i.test(value.color)) return null;
+  if (!finite(value.x, 0, 100) || !finite(value.y, 0, 100) || !finite(value.width, 2, 100) || !finite(value.height, 2, 100) || !finite(value.rotation, -180, 180) || !finite(value.fontSize, 10, 300) || typeof value.color !== 'string' || !/^#[a-f\d]{6}$/i.test(value.color)) return null;
   if (value.designKey !== undefined && !text(value.designKey, 512)) return null;
   if (value.data !== undefined && value.data !== '' && !isPedidoImage(value.data)) return null;
   if (value.text !== undefined && !text(value.text, 1000)) return null;
