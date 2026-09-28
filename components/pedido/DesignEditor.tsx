@@ -103,20 +103,46 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
   const [region, setRegion] = useState<Region | null>(null);
   const [frame, setFrame] = useState({ zoom: 1, x: 0, y: 0 });
   const [framing, setFraming] = useState(false);
+  const [mobilePanel, setMobilePanel] = useState<'add' | 'adjust' | 'image'>('add');
   const current = useRef(draft); current.current = draft;
   const past = useRef<PedidoDesign[]>([]), future = useRef<PedidoDesign[]>([]);
   const uploadRole = useRef<PedidoLayer['type']>('Escudo');
   const fileInput = useRef<HTMLInputElement>(null);
   const layerInput = useRef<HTMLInputElement>(null);
   const stage = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ id: string; x: number; y: number; startX: number; startY: number } | null>(null);
+  const drag = useRef<{ id: string; pointerId: number; x: number; y: number; startX: number; startY: number; nextX: number; nextY: number; rect: DOMRect; element: HTMLButtonElement } | null>(null);
+  const dragFrame = useRef(0);
   const regionStart = useRef<{ x: number; y: number } | null>(null);
   const operationToken = useRef(0);
   const selected = draft.design.layers.find(item => item.id === selectedId && item.side === side);
   const sideLayers = draft.design.layers.filter(item => item.side === side);
   const disabled = Boolean(busy);
   useEffect(() => { past.current = []; future.current = []; setHistoryVersion(value => value + 1); operationToken.current++; return () => { operationToken.current++; }; }, [draft.id]);
-  useEffect(() => { setSelectedId(''); setRegion(null); setFrame({ zoom: 1, x: 0, y: 0 }); setFraming(false); setEraseMode(false); }, [side]);
+  useEffect(() => { setSelectedId(id => current.current.design.layers.some(item => item.id === id && item.side === side) ? id : ''); setRegion(null); setFrame({ zoom: 1, x: 0, y: 0 }); setFraming(false); setEraseMode(false); }, [side]);
+  useEffect(() => () => cancelAnimationFrame(dragFrame.current), []);
+
+  function selectLayer(id: string) {setSelectedId(id); setMobilePanel('adjust');}
+  // During a gesture only the selected element moves. Persist once on release:
+  // pricing, the advisor and the full order must not re-render for every pointer event.
+  function moveLayer(event: PointerEvent<HTMLButtonElement>) {
+    const movement = drag.current;
+    if (!movement || movement.pointerId !== event.pointerId) return;
+    movement.nextX = clamp(movement.startX + (event.clientX - movement.x) / movement.rect.width * 100, 0, 100);
+    movement.nextY = clamp(movement.startY + (event.clientY - movement.y) / movement.rect.height * 100, 0, 100);
+    if (!dragFrame.current) dragFrame.current = requestAnimationFrame(() => {
+      dragFrame.current = 0;
+      if (drag.current !== movement) return;
+      movement.element.style.left = `${movement.nextX}%`;
+      movement.element.style.top = `${movement.nextY}%`;
+    });
+  }
+  function finishDrag(event: PointerEvent<HTMLButtonElement>) {
+    const movement = drag.current;
+    if (!movement || movement.pointerId !== event.pointerId) return;
+    cancelAnimationFrame(dragFrame.current); dragFrame.current = 0; drag.current = null;
+    if (movement.nextX !== movement.startX || movement.nextY !== movement.startY) patchLayer(movement.id, {x: movement.nextX, y: movement.nextY});
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  }
 
   function remember() { past.current = [...past.current.slice(-19), current.current.design]; future.current = []; setHistoryVersion(value => value + 1); }
   function change(design: PedidoDesign, record = true) {
@@ -153,7 +179,7 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
         const zone = zoneFor(design, role, count);
         const layer: PedidoLayer = { id: existing?.id ?? crypto.randomUUID(), side: zone.side, type: role, name: role === 'Sponsor' ? `Patrocinador ${count + 1}` : role, data: result.data, designKey: result.key, x: zone.x, y: zone.y, ...fitImage(zone, result.ratio), rotation: 0, color: '#ffffff', fontSize: 42, visible: true };
         change({ ...design, layers: existing ? design.layers.map(item => item.id === existing.id ? layer : item) : [...design.layers, layer] });
-        setSide(zone.side); setSelectedId(layer.id);
+        setSide(zone.side); selectLayer(layer.id);
         setMessage(`${LABELS[role]} ${existing ? 'cambiado' : 'colocado'} en ${zone.side === 'front' ? 'el frente' : 'la espalda'}. Si quieres, arrástralo o cambia su tamaño.`);
       } else {
         const design = await withNameAndNumber({ ...current.current.design, source: 'own', catalogCode: '', [side]: result.data }); if (token !== operationToken.current) return;
@@ -165,7 +191,7 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
   async function addText(role: 'Nombre' | 'Número' | 'Equipo' | 'Texto', text: string) {
     const design = current.current.design, zone = zoneFor(design, role);
     const layer = textLayer(design, role, text, await contrastColor(design[zone.side], zone));
-    change({ ...current.current.design, layers: [...current.current.design.layers, layer] }); setSide(zone.side); setSelectedId(layer.id);
+    change({ ...current.current.design, layers: [...current.current.design.layers, layer] }); setSide(zone.side); selectLayer(layer.id);
     setMessage(`${LABELS[role]} colocado. Si quieres, arrástralo o cambia su tamaño.`);
   }
   const localPoint = (event: PointerEvent<HTMLElement>) => { const rect = stage.current!.getBoundingClientRect(); return { x: clamp((event.clientX - rect.left) / rect.width * 100, 0, 100), y: clamp((event.clientY - rect.top) / rect.height * 100, 0, 100) }; };
@@ -206,16 +232,19 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
     <div className="pedido-editor-heading"><div><span className="pedido-editor-kicker">Tu identidad, a tu manera</span><h3>Diseña las dos caras.</h3></div><span className="pedido-design-code">{draft.design.catalogCode || 'Diseño propio'}</span></div>
     <div className="pedido-editor-toolbar"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => setCatalogOpen(value => !value)}>▦ {catalogOpen ? 'Ocultar catálogo' : 'Explorar 70 diseños'}</button><button type="button" className="pedido-tool-button" disabled={disabled || !past.current.length} onClick={undo}>↶ Deshacer</button><button type="button" className="pedido-tool-button" disabled={disabled || !future.current.length} onClick={redo}>↷ Rehacer</button></div>
     {catalogOpen && <CatalogPicker value={draft.design.catalogCode} disabled={disabled} onSelect={selectCatalog} onClose={() => setCatalogOpen(false)} />}
-    <div className="pedido-editor-workspace" aria-busy={disabled}>
+    <div className="pedido-editor-workspace" aria-busy={disabled} data-mobile-panel={mobilePanel}>
+      <div className="pedido-mobile-editor-tabs" role="group" aria-label="Herramientas del editor">
+        {([['add', 'Agregar'], ['adjust', 'Ajustar'], ['image', 'Imagen']] as const).map(([value, label]) => <button type="button" key={value} aria-pressed={mobilePanel === value} onClick={() => {setMobilePanel(value); if (value !== 'image') {setFraming(false); setEraseMode(false);}}}>{label}</button>)}
+      </div>
       <div className="pedido-editor-visual">
         <div className="pedido-side-tabs" role="group" aria-label="Cara del uniforme">{(['front', 'back'] as const).map(value => <button type="button" key={value} aria-pressed={side === value} disabled={disabled} onClick={() => setSide(value)}>{value === 'front' ? 'Frontal' : 'Dorsal'} <small>{draft.design[value] ? '✓' : 'Por cargar'}</small></button>)}</div>
         <div ref={stage} className={`pedido-design-stage${eraseMode ? ' is-erasing' : ''}`} aria-label={`Lienzo ${side === 'front' ? 'frontal' : 'dorsal'}`} onPointerDown={event => {
           if (!eraseMode || disabled || !draft.design[side]) return; event.currentTarget.setPointerCapture(event.pointerId); const point = localPoint(event); regionStart.current = point; setRegion({ ...point, width: 0, height: 0 });
         }} onPointerMove={event => { if (!regionStart.current) return; const p = localPoint(event), start = regionStart.current; setRegion({ x: Math.min(start.x, p.x), y: Math.min(start.y, p.y), width: Math.abs(p.x - start.x), height: Math.abs(p.y - start.y) }); }} onPointerUp={event => { regionStart.current = null; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { regionStart.current = null; }}>
           {draft.design[side] ? <img className="pedido-design-base" src={resolveImage(draft.design[side]!)} alt={`Base ${side === 'front' ? 'frontal' : 'dorsal'} ${draft.design.catalogCode}`} draggable={false} style={framing ? { transform: `translate(${frame.x}%, ${frame.y}%) scale(${frame.zoom})` } : undefined} /> : <div className="pedido-design-placeholder"><span aria-hidden="true">＋</span><strong>{side === 'front' ? 'Empecemos por el frontal.' : 'Completa el dorsal.'}</strong><p>Selecciona un diseño oficial o sube tu imagen.</p></div>}
-          {sideLayers.filter(item => item.visible).map(layer => <button type="button" key={layer.id} aria-label={`Mover ${layer.name}. Flechas para posicionar; Suprimir para eliminar.`} aria-pressed={selectedId === layer.id} disabled={disabled || eraseMode || framing} className={`pedido-design-layer${selectedId === layer.id ? ' is-selected' : ''}`} style={{ left: `${layer.x}%`, top: `${layer.y}%`, width: `${layer.width}%`, height: `${layer.height}%`, transform: `translate(-50%, -50%) rotate(${layer.rotation}deg)`, color: layer.color }} onClick={() => setSelectedId(layer.id)} onPointerDown={event => {
-            if (event.button !== 0) return; event.stopPropagation(); setSelectedId(layer.id); remember(); const p = localPoint(event); drag.current = { id: layer.id, x: p.x, y: p.y, startX: layer.x, startY: layer.y }; event.currentTarget.setPointerCapture(event.pointerId);
-          }} onPointerMove={event => { const movement = drag.current; if (!movement || movement.id !== layer.id) return; const p = localPoint(event); patchLayer(layer.id, { x: clamp(movement.startX + p.x - movement.x, 0, 100), y: clamp(movement.startY + p.y - movement.y, 0, 100) }, false); }} onPointerUp={event => { drag.current = null; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { drag.current = null; }} onKeyDown={event => {
+          {sideLayers.filter(item => item.visible).map(layer => <button type="button" key={layer.id} aria-label={`Mover ${layer.name}. Flechas para posicionar; Suprimir para eliminar.`} aria-pressed={selectedId === layer.id} disabled={disabled || eraseMode || framing} className={`pedido-design-layer${selectedId === layer.id ? ' is-selected' : ''}`} style={{ left: `${layer.x}%`, top: `${layer.y}%`, width: `${layer.width}%`, height: `${layer.height}%`, transform: `translate(-50%, -50%) rotate(${layer.rotation}deg)`, color: layer.color }} onClick={() => selectLayer(layer.id)} onPointerDown={event => {
+            if (event.button !== 0 || drag.current) return; event.stopPropagation(); selectLayer(layer.id); drag.current = {id: layer.id, pointerId: event.pointerId, x: event.clientX, y: event.clientY, startX: layer.x, startY: layer.y, nextX: layer.x, nextY: layer.y, rect: stage.current!.getBoundingClientRect(), element: event.currentTarget}; event.currentTarget.setPointerCapture(event.pointerId);
+          }} onPointerMove={moveLayer} onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag} onKeyDown={event => {
             const step = event.shiftKey ? 5 : 1; const offset: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
             if (offset[event.key]) { event.preventDefault(); const [x, y] = offset[event.key]; patchLayer(layer.id, { x: clamp(layer.x + x, 0, 100), y: clamp(layer.y + y, 0, 100) }); }
             if (event.key === 'Delete' || event.key === 'Backspace') { event.preventDefault(); removeLayer(layer.id); }
@@ -223,14 +252,14 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
           {eraseMode && region && <div className="pedido-erase-region" style={{ left: `${region.x}%`, top: `${region.y}%`, width: `${region.width}%`, height: `${region.height}%` }} />}
           {disabled && <div className="pedido-editor-busy" role="status"><span className="pedido-editor-spinner" />{busy}</div>}
         </div>
-        <div className="pedido-editor-toolbar"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => fileInput.current?.click()}>↑ Subir {side === 'front' ? 'frontal' : 'dorsal'}</button><button type="button" className="pedido-tool-button" aria-pressed={framing} disabled={disabled || !draft.design[side]} onClick={() => { setFraming(value => !value); setEraseMode(false); }}>⤢ Encuadrar</button><button type="button" className="pedido-tool-button" disabled={disabled || !draft.design[side]} onClick={download}>↓ PNG</button></div>
+        <div className="pedido-editor-toolbar pedido-base-tools"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => fileInput.current?.click()}>↑ Subir {side === 'front' ? 'frontal' : 'dorsal'}</button><button type="button" className="pedido-tool-button" aria-pressed={framing} disabled={disabled || !draft.design[side]} onClick={() => { setFraming(value => !value); setEraseMode(false); }}>⤢ Encuadrar</button><button type="button" className="pedido-tool-button" disabled={disabled || !draft.design[side]} onClick={download}>↓ PNG</button></div>
         <input ref={fileInput} className="sr-only" type="file" accept="image/jpeg,image/png,image/webp" tabIndex={-1} aria-label="Cargar imagen del uniforme" onChange={event => upload(event, false)} />
-        <p className="pedido-editor-note">JPG, PNG o WEBP · hasta 4 MB por imagen. Vista orientativa para revisar tu diseño.</p>
+        <p className="pedido-editor-note pedido-base-note">JPG, PNG o WEBP · hasta 4 MB por imagen. Vista orientativa para revisar tu diseño.</p>
         {framing && <div className="pedido-frame-controls"><h4>Encuadre del {side === 'front' ? 'frontal' : 'dorsal'}</h4>{[{ key: 'zoom', label: 'Zoom', min: .5, max: 3, step: .05 }, { key: 'x', label: 'Horizontal', min: -50, max: 50, step: 1 }, { key: 'y', label: 'Vertical', min: -50, max: 50, step: 1 }].map(control => <label className="pedido-range-field" key={control.key}>{control.label}<input type="range" min={control.min} max={control.max} step={control.step} value={frame[control.key as keyof typeof frame]} onChange={event => setFrame(value => ({ ...value, [control.key]: Number(event.target.value) }))} /></label>)}<button type="button" className="pedido-primary-button" disabled={disabled} onClick={adjustFrame}>Aplicar encuadre</button></div>}
       </div>
       <aside className="pedido-editor-tools" aria-label="Herramientas de personalización">
-        <h4>Agrega tu identidad</h4>
-        <p className="pedido-editor-note">Sube cada archivo y se coloca solo en su lugar: el escudo en el pecho, los patrocinadores en grande. El nombre y el número van atrás automáticamente.</p>
+        <h4 className="pedido-add-title">Agrega tu identidad</h4>
+        <p className="pedido-editor-note pedido-add-note">Sube cada archivo y se coloca solo en su lugar: el escudo en el pecho, los patrocinadores en grande. El nombre y el número van atrás automáticamente.</p>
         <div className="pedido-piece-actions">
           {(['Escudo', ...(draft.config.brand === 'Propia' ? ['Marca'] as const : []), 'Sponsor'] as const).map(role => <button type="button" className="pedido-piece-button" key={role} disabled={disabled || !draft.design.front} onClick={() => { uploadRole.current = role; layerInput.current?.click(); }}><span aria-hidden="true">{role === 'Sponsor' ? '＋' : '↑'}</span>{role === 'Escudo' ? (draft.design.layers.some(item => item.type === 'Escudo') ? 'Cambiar escudo' : 'Subir escudo') : role === 'Marca' ? (draft.design.layers.some(item => item.type === 'Marca') ? 'Cambiar marca' : 'Subir marca') : 'Agregar patrocinador'}</button>)}
           {!draft.design.layers.some(item => roleOf(item) === 'Nombre') && <button type="button" className="pedido-piece-button" disabled={disabled || !draft.design.back} onClick={() => void addText('Nombre', samplePlayer(draft).name)}><span aria-hidden="true">＋</span>Nombre del jugador</button>}
@@ -239,7 +268,7 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
           <button type="button" className="pedido-piece-button" disabled={disabled || !draft.design.front} onClick={() => void addText('Texto', 'TU FRASE')}><span aria-hidden="true">＋</span>Otro texto</button>
         </div>
         <input ref={layerInput} type="file" className="sr-only" accept="image/jpeg,image/png,image/webp" tabIndex={-1} aria-label="Subir elemento personalizado" onChange={event => upload(event, true)} />
-        <div className="pedido-layer-list"><h4>En {side === 'front' ? 'el frente' : 'la espalda'} <span>{sideLayers.length}</span></h4>{!sideLayers.length && <p className="pedido-editor-empty">Todavía no hay piezas en {side === 'front' ? 'el frente' : 'la espalda'}.</p>}{sideLayers.map(layer => <div className={`pedido-layer-row${selectedId === layer.id ? ' is-selected' : ''}`} key={layer.id}><button type="button" disabled={disabled} onClick={() => setSelectedId(layer.id)}><span>{layer.type === 'Texto' ? 'T' : '◈'}</span><span>{layerLabel(layer)}<small>{layer.type === 'Texto' ? layer.text : layer.visible ? 'Toca para ajustar' : 'Oculto'}</small></span></button><button type="button" disabled={disabled} className="pedido-layer-delete" onClick={() => removeLayer(layer.id)} aria-label={`Quitar ${layerLabel(layer)}`}>×</button></div>)}</div>
+        <div className="pedido-layer-list"><h4>En {side === 'front' ? 'el frente' : 'la espalda'} <span>{sideLayers.length}</span></h4>{!sideLayers.length && <p className="pedido-editor-empty">Todavía no hay piezas en {side === 'front' ? 'el frente' : 'la espalda'}.</p>}{sideLayers.map(layer => <div className={`pedido-layer-row${selectedId === layer.id ? ' is-selected' : ''}`} key={layer.id}><button type="button" disabled={disabled} onClick={() => selectLayer(layer.id)}><span>{layer.type === 'Texto' ? 'T' : '◈'}</span><span>{layerLabel(layer)}<small>{layer.type === 'Texto' ? layer.text : layer.visible ? 'Toca para ajustar' : 'Oculto'}</small></span></button><button type="button" disabled={disabled} className="pedido-layer-delete" onClick={() => removeLayer(layer.id)} aria-label={`Quitar ${layerLabel(layer)}`}>×</button></div>)}</div>
         {selected && <div className="pedido-layer-properties"><h4>{layerLabel(selected)}</h4>
           {(roleOf(selected) === 'Nombre' || roleOf(selected) === 'Número') ? <p className="pedido-editor-note">Es un ejemplo: cada camiseta llevará el {roleOf(selected) === 'Nombre' ? 'nombre' : 'número'} de su jugador, tal como lo escribiste en Jugadores.</p>
             : selected.type === 'Texto' && <label className="pedido-field">Texto<input value={selected.text || ''} maxLength={50} disabled={disabled} onChange={event => patchLayer(selected.id, { text: event.target.value })} /></label>}

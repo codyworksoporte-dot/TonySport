@@ -68,19 +68,21 @@ export default function PedidoAdvisor({cue, step}: {cue: AdvisorCue; step: numbe
   useEffect(() => {
     if (!preference.visible || !preference.voice || !canSpeak || said.current === cue.key) return;
     const newStep = lastStep.current !== step;
+    let first: (() => void) | undefined;
+    let activationTimer = 0;
     const timer = window.setTimeout(() => {
       const current = latest.current;
       if (said.current === current.key) return;
       if (activated()) {said.current = current.key; speak(current.text); return;}
       // Before any click the browser keeps the page silent: speak on the first touch or key,
       // once that touch has done its work (it may have opened the next step).
-      const first = () => {
-        window.removeEventListener('pointerdown', first, true); window.removeEventListener('keydown', first, true);
-        window.setTimeout(() => {if (said.current !== latest.current.key) {said.current = latest.current.key; speak(latest.current.text);}}, 200);
+      first = () => {
+        window.removeEventListener('pointerdown', first!, true); window.removeEventListener('keydown', first!, true);
+        activationTimer = window.setTimeout(() => {if (said.current !== latest.current.key) {said.current = latest.current.key; speak(latest.current.text);}}, 200);
       };
       window.addEventListener('pointerdown', first, true); window.addEventListener('keydown', first, true);
     }, cue.warning ? 120 : newStep ? 350 : 900);
-    return () => clearTimeout(timer);
+    return () => {clearTimeout(timer); clearTimeout(activationTimer); if (first) {window.removeEventListener('pointerdown', first, true); window.removeEventListener('keydown', first, true);}};
     // speak() only reads refs and stable setters.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cue.key, step, preference.visible, preference.voice, canSpeak]);
@@ -96,7 +98,7 @@ export default function PedidoAdvisor({cue, step}: {cue: AdvisorCue; step: numbe
     // Only a choice made inside the same step moves the page; a new step starts at its title.
     const moved = previous.step === step && (cue.warning || (previous.target !== undefined && previous.target !== cue.target));
     let timer = 0;
-    if (element && moved) timer = window.setTimeout(() => {
+    if (element && moved && !matchMedia('(max-width: 900px)').matches) timer = window.setTimeout(() => {
       const box = element.getBoundingClientRect();
       if (box.top < 90 || box.top > innerHeight * .7) element.scrollIntoView({block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
     }, 450);

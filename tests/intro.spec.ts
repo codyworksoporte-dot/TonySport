@@ -46,11 +46,12 @@ test('la entrada del lagarto se reproduce una vez por sesión y se puede repetir
   await expect(page.getByRole('searchbox')).toBeVisible();
 });
 
-test('saltar la intro permite usar la página inmediatamente en móvil',async({page})=>{
+test('móvil permite usar la página inmediatamente sin esperar la intro',async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.goto('/',{waitUntil:'domcontentloaded'});
-  await page.getByRole('button',{name:'Saltar intro',exact:true}).click();
+  await expect(page.getByRole('button',{name:'Saltar intro',exact:true})).toBeHidden();
+  await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.documentElement,'::before').content)).toBe('none');
   await page.getByRole('button',{name:'Abrir menú',exact:true}).click();
   await expect(page.getByRole('dialog',{name:'Menú de Tony Sportswear'}).getByRole('navigation',{name:'Navegación principal',exact:true})).toBeVisible();
   await expect(page.locator('body')).not.toHaveCSS('overflow','hidden');

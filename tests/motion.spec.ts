@@ -181,14 +181,24 @@ test('al cambiar de apartado Tony se acerca, guiña y deja pasar sin bloquear cl
   await expect.poll(phases, { timeout: 10000 }).toBe('cover wink reveal idle');
   await expect(page.locator('html')).not.toHaveAttribute('data-route-cover', /.*/);
   // The heading of the section arriving waits under the scales and rises as they open.
+  // Observe at animation start. Separate Playwright round trips can outlast the
+  // short cover/wink and incorrectly inspect a heading that is already revealed.
+  await page.evaluate(() => {
+    const starts: boolean[] = [];
+    (window as unknown as {__headingStarts: boolean[]}).__headingStarts = starts;
+    const animate = Element.prototype.animate;
+    Element.prototype.animate = function(keyframes, options) {
+      if (this.closest('main h1')) starts.push(document.documentElement.dataset.routeCover === 'true');
+      return animate.call(this, keyframes, options);
+    };
+  });
   const back = (await page.locator('.tony-nav').getByRole('link', { name: 'Inicio', exact: true }).boundingBox())!;
   await page.mouse.click(back.x + back.width / 2, back.y + back.height / 2);
   await expect(page).toHaveURL(/\/$/);
-  await expect(overlay).toHaveAttribute('data-phase', /cover|wink/);
-  expect(await page.locator('main h1').first().evaluate(heading => heading.getAnimations({ subtree: true }).length)).toBe(0);
-  await expect.poll(() => page.locator('main h1').first().evaluate(heading => heading.getAnimations({ subtree: true }).length)).toBeGreaterThan(0);
-  expect(await phases()).toMatch(/cover wink reveal idle cover wink reveal/);
   await expect.poll(phases, { timeout: 10000 }).toBe('cover wink reveal idle cover wink reveal idle');
+  const starts = await page.evaluate(() => (window as unknown as {__headingStarts: boolean[]}).__headingStarts);
+  expect(starts.length).toBeGreaterThan(0);
+  expect(starts.every(covered => !covered)).toBe(true);
   // The logo opens the intro instead of the section wink.
   await page.locator('.tony-header-inner .brand').click();
   await expect(page.locator('.lagarto-intro[open]')).toBeVisible();

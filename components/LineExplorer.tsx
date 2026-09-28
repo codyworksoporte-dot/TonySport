@@ -51,7 +51,7 @@ export default function LineExplorer({full=false}:{full?:boolean}) {
         <div className="lx-visual-top"><span>ESTUDIO DE IDENTIDAD</span><span>TONY / {String(index+1).padStart(2,'0')}</span></div>
         <span className="lx-giant-number" aria-hidden="true">{String(index+1).padStart(2,'0')}</span>
         <div className="lx-terrain" aria-hidden="true"><svg viewBox="0 0 640 500"><path d="M30 60h580v380H30zM320 60v380"/><circle cx="320" cy="250" r="75"/><path d="M30 145h110v210H30m580-210H500v210h110M80 60v380m480-380v380"/></svg></div>
-        <div className="lx-art-stack">{SPORT_LINES.map(item=><div className={`lx-art${item.id===selected?' is-active':''}`} aria-hidden={item.id!==selected} key={item.id}><LineArtwork line={item}/></div>)}</div>
+        <div className="lx-art-stack">{SPORT_LINES.map(item=><div className={`lx-art${item.id===selected?' is-active':''}`} aria-hidden={item.id!==selected} key={item.id}>{item.id===selected&&<LineArtwork line={item}/>} </div>)}</div>
         <div className="lx-swatch-label"><i style={{background:line.color}}/><i style={{background:line.accent}}/><span>TUS COLORES CAMBIAN EL JUEGO.</span></div>
         <span className="lx-concept">Ilustración de línea · el diseño se define contigo</span>
       </div>

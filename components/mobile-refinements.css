@@ -1,0 +1,73 @@
+/* Touch ergonomics. Desktop geometry, content, prices and purchase logic stay
+   with their existing components. These rules only adjust small viewports. */
+.tony-menu-label,.pedido-mobile-save{display:none}
+@media(max-width:900px){
+  html{scroll-padding-top:80px}
+  .site-header.tony-header{background:#0c110e;backdrop-filter:none}
+  .tony-header .tony-header-inner{height:64px;padding-inline:16px}
+  .tony-header .tony-icon-button,.tony-header .cart-link{min-width:44px;min-height:44px}
+  .tony-header .tony-menu-toggle{width:52px;display:flex;flex-direction:column;justify-content:center;gap:2px}
+  .tony-menu-label{display:block;font:600 10px var(--font-body),sans-serif}
+  .tony-mobile{background:#152119;backdrop-filter:none}
+  .tony-mobile::backdrop,.tony-search::backdrop{backdrop-filter:none}
+  .tony-mobile-inner{padding:0 20px max(24px,env(safe-area-inset-bottom));display:flex;flex-direction:column}
+  .tony-mobile-top{position:sticky;top:0;z-index:2;background:#152119;min-height:78px;margin:0 -4px 14px;padding-top:env(safe-area-inset-top);border-bottom:1px solid #71845e55;order:0}
+  .tony-mobile-top .tony-icon-button{width:48px;height:48px}
+  .tony-mobile-search{order:1;min-height:48px;margin-bottom:12px}
+  .tony-mobile-support{order:2;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 0 10px}
+  .tony-mobile-support>a{justify-content:center;min-height:44px;border:1px solid #61794b;border-radius:5px;color:#deedcc;background:#243524;font-size:13px}
+  .tony-mobile-inner>.tony-mega-kicker{order:3;margin-top:12px}
+  .tony-mobile-nav{order:4;margin-top:4px}
+  .tony-mobile-nav>a,.tony-mobile-group>button{min-height:56px;font-size:27px;padding:12px 0}
+  .tony-mobile-sub{padding-left:0;gap:0 16px}
+  .tony-mobile-sub>a{min-height:48px;font-size:13px}
+  .tony-mobile-signature{order:5;margin-top:24px}
+  .tony-search{top:max(12px,env(safe-area-inset-top));max-height:calc(100dvh - 24px);background:#152119;backdrop-filter:none}
+  .tony-search-hint{display:none}
+  .tony-mobile-nav .tony-mobile-create{order:-1;font-size:24px}
+  .pedido-page{padding-top:18px}
+  .pedido-page .pedido-breadcrumb{margin-bottom:18px}
+  .pedido-page .pedido-topline{padding-bottom:12px}
+  .pedido-page .pedido-layout{margin-top:22px;gap:24px}
+  .pedido-page .pedido-heading h1,[data-advisor]{scroll-margin-top:82px}
+  .pedido-page .pedido-progress{position:relative;scroll-snap-type:x proximity;margin-right:0;padding:12px 0 4px;gap:4px}
+  .pedido-page .pedido-progress button{min-height:44px;font-size:12px;scroll-snap-align:center;padding:9px 10px}
+  .pedido-page .pedido-progress button:disabled{opacity:.65}
+  .pedido-page :is(.pedido-field input:not([type=color]),.pedido-field select,.pedido-field textarea){font-size:16px}
+  .pedido-page .pedido-advisor-dock{display:none}
+  .pedido-page:has(.pedido-advisor-dock.is-shown){padding-bottom:60px}
+  .pedido-page .pedido-advisor-card{grid-template-columns:40px minmax(0,1fr);padding:12px;gap:10px;margin-bottom:20px}
+  .pedido-page .pedido-advisor-card>img{width:40px;height:60px}
+  .pedido-page .pedido-advisor-actions{gap:5px;margin-top:8px}
+  .pedido-page .pedido-advisor-actions button{min-height:44px;font-size:11px}
+  .pedido-page .pedido-advisor-note{font-size:11px}
+  .pedido-page .pedido-welcome-art{grid-row:auto;max-width:360px;margin:auto}
+  .pedido-page .pedido-welcome{gap:22px}
+  .pedido-page .pedido-welcome .button{width:100%;margin-top:12px}
+  .pedido-page .pedido-welcome .pedido-lead{font-size:24px}
+  .pedido-page .pedido-step-footer{display:grid;grid-template-columns:1fr 1.5fr;gap:10px;padding-top:20px;margin-top:24px}
+  .pedido-page .pedido-step-footer .button{max-width:none;min-height:48px;padding:12px;font-size:12px;justify-content:center}
+  .pedido-page .pedido-step-footer .pedido-mobile-save{display:flex;grid-column:1/-1;order:3;min-height:46px}
+  .pedido-page .pedido-back{min-height:48px;font-size:13px}
+  .pedido-page .pedido-text-button{min-height:44px}
+  .pedido-page .pedido-aside .button{width:100%;min-height:48px;font-size:12px}
+  .pedido-page:has(.pedido-mobile-save) .pedido-aside>.button{display:none}
+  button,input,select,textarea{font-family:inherit}
+  main input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=color]),main select,main textarea{font-size:16px}
+  /* Form modules set their own smaller fonts; keep touch fields at a readable
+     size and prevent automatic input zoom on iOS. */
+  main :is(select,textarea){font-size:16px!important}
+  .pedido-modal,.pedido-catalog-preview{max-height:calc(100dvh - 24px);overscroll-behavior:contain}
+  .pedido-saved-tabs button,.te-zone-filters button{min-height:44px}
+  html:has(.pedido-modal[open],.pedido-catalog-preview[open],.catalog-gallery-dialog[open]){overflow:hidden}
+  .catalog-gallery-dialog-head,.pedido-catalog-preview .pedido-editor-heading{position:sticky;top:-1px;z-index:2;background:#101c13;padding:6px 0}
+  .tony-scale-glow-layer,.tony-peek,.tony-scratch-stage,.route-transition{display:none}
+  .button,.pedido-tool-button,.pedido-piece-button,.pedido-choice,.tony-icon-button{touch-action:manipulation;-webkit-tap-highlight-color:#c4ed8030}
+  .button:not(:disabled):active,.pedido-tool-button:not(:disabled):active,.pedido-piece-button:not(:disabled):active{filter:brightness(1.15)}
+  .button.outline{border-color:#9daf7b;box-shadow:inset 0 1px #d5f7a718,0 3px 8px #0003}
+  .pedido-tool-button{border-color:#627c50}
+  .pedido-choice:hover,.pedido-catalog-card:hover,.pedido-primary-button:hover{transform:none}
+  .button{min-height:48px}
+}
+@media(max-width:370px){.tony-header .tony-header-inner{padding-inline:12px}.tony-header .official-logo{width:98px}.tony-header .tony-header-actions{gap:2px}.tony-mobile-inner{padding-inline:16px}}
+@media(pointer:coarse){.route-transition,.tony-scale-glow-layer,.tony-peek,.tony-scratch-stage{display:none}}

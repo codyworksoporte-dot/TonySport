@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {useEffect, useRef, useState} from 'react';
 import {addCartItem, cartError} from '@/lib/cart';
 import type {DesignAssets, OrderDraft} from '@/lib/order';
+import {announceCartSave} from '@/lib/cart-feedback';
 import {CartIcon} from './CartLink';
 import './cart-controls.css';
 
@@ -12,13 +13,14 @@ export default function AddToCart({order, assets}: {order: OrderDraft; assets: D
   const saving = useRef(false), mounted = useRef(true);
   useEffect(() => {mounted.current = true; return () => {mounted.current = false;};}, []);
   useEffect(() => {setStatus('idle'); setMessage('');}, [order, assets]);
-  async function add() {
+  async function add(event: React.MouseEvent<HTMLButtonElement>) {
     if (saving.current) return;
     saving.current = true; setBusy(true); setStatus('idle'); setMessage('Guardando el equipo y sus imágenes…');
     try {
       const result = await addCartItem(order, assets);
+      announceCartSave({message: result.added ? 'Tu diseño y sus archivos ya están guardados.' : 'Este diseño ya estaba guardado.', animate: event.detail !== 0});
       if (mounted.current) {setStatus('success'); setMessage(result.added ? 'Diseño añadido. Tu equipo y sus archivos quedaron guardados en el carrito.' : 'Este diseño ya está en tu carrito. Puedes revisarlo sin añadirlo de nuevo.');}
-    } catch (error) {if (mounted.current) {setStatus('error'); setMessage(cartError(error));}}
+    } catch (error) {announceCartSave({message: cartError(error), error: true}); if (mounted.current) {setStatus('error'); setMessage(cartError(error));}}
     finally {saving.current = false; if (mounted.current) setBusy(false);}
   }
   return <section className="cart-add-panel" aria-label="Guardar diseño en el carrito">

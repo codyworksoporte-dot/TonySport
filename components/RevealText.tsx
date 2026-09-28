@@ -45,6 +45,11 @@ export default function RevealText({ children, as: Tag = 'h2', className = '', .
       // Wait for the intro, or for a section change to uncover the page.
       if (boot?.pending || document.querySelector('.lagarto-intro[open]') || document.documentElement.dataset.routeCover) return;
       played = true;
+      if (matchMedia('(max-width: 900px), (pointer: coarse)').matches) {
+        // One short fade instead of a GPU layer and animation for every letter.
+        animations.push(element.animate([{opacity: .65}, {opacity: 1}], {duration: 180, easing: 'ease-out'}));
+        return;
+      }
       const chars = [...element.querySelectorAll<HTMLElement>('.tony-reveal-char')];
       const step = Math.max(10, Math.min(24, 520 / Math.max(chars.length, 1)));
       chars.forEach((char, index) => {

@@ -12,6 +12,7 @@ export default function Brand() {
   return (
     <Link href="/" className="brand" aria-label="Tony Sportswear — Inicio" onClick={event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+      if (matchMedia('(max-width: 900px), (pointer: coarse)').matches) return;
       event.preventDefault();
       // Mount the global modal before changing routes, so the page never flashes first.
       flushSync(() => window.dispatchEvent(new Event('tony:intro-replay')));

@@ -22,10 +22,11 @@ export function Hero() {
       const boot = (window as Window & { __tonyIntroBoot?: { pending: boolean } }).__tonyIntroBoot;
       if (boot?.pending || document.querySelector('.lagarto-intro[open]') || document.documentElement.dataset.routeCover) return;
       played = true;
+      const compact = matchMedia('(max-width: 900px), (pointer: coarse)').matches;
       const image = root.querySelector('.hero-campaign-art img');
-      if (image) animations.push(image.animate([{ transform: 'scale(1.09)', filter: 'brightness(.55) saturate(.8)' }, { transform: 'scale(1)', filter: 'none' }], { duration: 1700, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' }));
+      if (image && !compact) animations.push(image.animate([{ transform: 'scale(1.09)', filter: 'brightness(.55) saturate(.8)' }, { transform: 'scale(1)', filter: 'none' }], { duration: 1700, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' }));
       root.querySelectorAll<HTMLElement>('[data-rise]').forEach(element => {
-        animations.push(element.animate([{ opacity: 0, transform: 'translate3d(0, 18px, 0)' }, { opacity: 1, transform: 'none' }], { duration: 720, delay: 260 + Number(element.dataset.rise) * 110, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' }));
+        animations.push(element.animate([{ opacity: 0, transform: compact ? 'none' : 'translate3d(0, 18px, 0)' }, { opacity: 1, transform: 'none' }], { duration: compact ? 180 : 720, delay: compact ? 0 : 260 + Number(element.dataset.rise) * 110, easing: 'cubic-bezier(.16, 1, .3, 1)', fill: 'backwards' }));
       });
     };
     play();

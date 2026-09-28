@@ -121,7 +121,7 @@ export default function LagartoIntro() {
     let seen = false;
     try { seen = sessionStorage.getItem(SESSION_KEY) === 'seen'; } catch { /* Private browsing may disable storage. */ }
     // Keep the synchronous first-paint hand-off when arriving directly at Inicio.
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !seen && !introBoot()?.cancelled) setPlaying(true);
+    if (!window.matchMedia('(max-width: 900px), (pointer: coarse), (prefers-reduced-motion: reduce)').matches && !seen && !introBoot()?.cancelled) setPlaying(true);
     else introBoot()?.release();
   }, [pathname]);
 

@@ -9,7 +9,7 @@ const bootstrap = `(() => {
   const preference = matchMedia('(prefers-reduced-motion: reduce)');
   let seen = false;
   try { seen = sessionStorage.getItem('tony:intro:v2') === 'seen'; } catch {}
-  if (seen || preference.matches) return;
+  if (seen || preference.matches || matchMedia('(max-width: 900px), (pointer: coarse)').matches) return;
   const sheet = document.getElementById('tony-intro-boot-style')?.sheet;
   if (!sheet) return;
   let timer;

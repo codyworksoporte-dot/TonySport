@@ -20,6 +20,7 @@ export default function AmbientExperience() {
   const [enabled, setEnabled] = useState(true);
   const [reduced, setReduced] = useState(false);
   const [ready, setReady] = useState(false);
+  const [compact, setCompact] = useState(false);
   const glowRef = useRef<HTMLDivElement>(null);
   const pulseRef = useRef<HTMLDivElement>(null);
   const peekRef = useRef<HTMLDivElement>(null);
@@ -30,12 +31,14 @@ export default function AmbientExperience() {
 
   useEffect(() => {
     const preference = matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => setReduced(preference.matches);
+    const mobile = matchMedia('(max-width: 900px), (pointer: coarse)');
+    const update = () => {setReduced(preference.matches); setCompact(mobile.matches);};
     update();
     try { setEnabled(localStorage.getItem(AMBIENT.preferenceKey) !== 'off'); } catch { /* The choice then lasts for this visit only. */ }
     setReady(true);
     preference.addEventListener('change', update);
-    return () => preference.removeEventListener('change', update);
+    mobile.addEventListener('change', update);
+    return () => {preference.removeEventListener('change', update); mobile.removeEventListener('change', update);};
   }, []);
 
   const active = ready && enabled && !reduced;
@@ -48,12 +51,12 @@ export default function AmbientExperience() {
 
   useEffect(() => {
     const glowLayer = glowRef.current, pulseLayer = pulseRef.current, peekLayer = peekRef.current;
-    if (!active || !glowLayer || !pulseLayer || !peekLayer) return;
+    if (!active || compact || !glowLayer || !pulseLayer || !peekLayer) return;
     const scratches = [...(scratchRef.current?.querySelectorAll<SVGSVGElement>('svg') ?? [])];
     const controller = startAmbient({ glow: glowLayer, pulse: pulseLayer, peek: peekLayer, scratches }, path.current);
     runtime.current = controller;
     return () => { controller.destroy(); runtime.current = null; };
-  }, [active]);
+  }, [active, compact]);
 
   useEffect(() => { runtime.current?.setRoute(pathname); }, [pathname]);
 

@@ -30,7 +30,7 @@ export default function RouteTransition() {
   };
   const clear = () => { run.current.timers.forEach(id => clearTimeout(id)); run.current.timers = []; };
   const later = (callback: () => void, ms: number) => { run.current.timers.push(window.setTimeout(callback, ms)); };
-  const allowed = () => !matchMedia('(prefers-reduced-motion: reduce)').matches
+  const allowed = () => !matchMedia('(max-width: 900px), (pointer: coarse), (prefers-reduced-motion: reduce)').matches
     && document.documentElement.dataset.tonyEffects !== 'off'
     && !document.querySelector('.lagarto-intro[open]');
   /** While the page is covered its entrance animations wait (RevealText, the hero) and so does the peeking lizard. */
@@ -49,7 +49,7 @@ export default function RouteTransition() {
    */
   const arm = () => {
     const element = root.current;
-    if (!element || element.classList.contains('is-armed')) return;
+    if (!element || !allowed() || element.classList.contains('is-armed')) return;
     element.classList.add('is-armed');
     const texture = new Image();
     texture.src = siteAsset('/assets/escamas-tony-brasa.webp');
