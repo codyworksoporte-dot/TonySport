@@ -1,4 +1,6 @@
 'use client';
+import SectionImage, { type SectionPhoto } from './SectionImage';
+
 
 import { useRef, useState, type FormEvent } from 'react';
 
@@ -11,7 +13,7 @@ const techniques = [
 ];
 export function TechniqueGuide() {
   const [selected,setSelected] = useState(0); const technique = techniques[selected];
-  return <div className="te-technique-guide"><div className="te-technique-selector" role="group" aria-label="Explorar técnicas de personalización">{techniques.map((item,index) => <button type="button" key={item.name} aria-pressed={selected === index} onClick={() => setSelected(index)}><span>0{index + 1}</span>{item.name}<i aria-hidden="true">{selected === index ? '✓' : '+'}</i></button>)}</div><div className="te-technique-content"><div className={`te-technique-swatch ${technique.className}`} aria-hidden="true"><div className="te-swatch-shirt"><b>TS</b><i /></div><span>MUESTRA GRÁFICA · TÉCNICA POR CONFIRMAR</span></div><div className="te-technique-copy" aria-live="polite"><p className="te-eyebrow">{technique.tag}</p><h3>{technique.title}</h3><p>{technique.description}</p><dl><div><dt>Cuándo considerarla</dt><dd>{technique.use}</dd></div><div><dt>Antes de producir</dt><dd>{technique.confirm}</dd></div></dl></div></div></div>;
+  return <div className="te-technique-guide"><div className="te-technique-selector" role="group" aria-label="Explorar técnicas de personalización">{techniques.map((item,index) => <button type="button" key={item.name} aria-pressed={selected === index} onClick={() => setSelected(index)}><span>0{index + 1}</span>{item.name}<i aria-hidden="true">{selected === index ? '✓' : '+'}</i></button>)}</div><div className="te-technique-content"><div className={`te-technique-swatch ${technique.className}`} aria-hidden="true"><SectionImage photo={technique.className as SectionPhoto} shade="bottom" position="center" /><span>MUESTRA GRÁFICA · TÉCNICA POR CONFIRMAR</span></div><div className="te-technique-copy" aria-live="polite"><p className="te-eyebrow">{technique.tag}</p><h3>{technique.title}</h3><p>{technique.description}</p><dl><div><dt>Cuándo considerarla</dt><dd>{technique.use}</dd></div><div><dt>Antes de producir</dt><dd>{technique.confirm}</dd></div></dl></div></div></div>;
 }
 
 export type TonyStore = { name: string; address: string; phone: string; mapUrl?: string; zone?: string };

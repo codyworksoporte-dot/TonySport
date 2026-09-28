@@ -1,3 +1,4 @@
+import SectionImage from './SectionImage';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import '@/app/editorial.css';
@@ -15,5 +16,5 @@ export function EditorialLink({ href, children, outline = false, external = fals
 export function SectionLabel({ number, children }: { number: string; children: ReactNode }) { return <p className="te-section-label"><span>{number}</span>{children}</p>; }
 export function SourceNote({ href, children }: { href: string; children: ReactNode }) { return <p className="te-source">{children} <a href={href} target="_blank" rel="noopener noreferrer">Ver publicación de Tony <span aria-hidden="true">↗</span></a></p>; }
 export function StitchArtwork() {
-  return <div className="te-stitch-art" role="img" aria-label="Ilustración de tela, costura y acabado"><div className="te-thread-grid" /><span className="te-fabric-number">01—03</span><div className="te-fabric-fold"><i /><i /><i /></div><div className="te-fabric-labels"><span>01 / TELA</span><span>02 / CONFECCIÓN</span><span>03 / ACABADO</span></div><span className="te-art-note">EL DETALLE TAMBIÉN JUEGA.</span></div>;
+  return <div className="te-stitch-art" role="img" aria-label="Ilustración de tela, costura y acabado"><SectionImage photo="calidad" /><span className="te-fabric-number">01—03</span><div className="te-fabric-labels"><span>01 / TELA</span><span>02 / CONFECCIÓN</span><span>03 / ACABADO</span></div><span className="te-art-note">EL DETALLE TAMBIÉN JUEGA.</span></div>;
 }

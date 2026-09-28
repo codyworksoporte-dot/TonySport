@@ -1,4 +1,6 @@
 'use client';
+import SectionImage from './SectionImage';
+
 import Link from 'next/link';
 import {useState} from 'react';
 import {useCart} from '@/lib/cart';
@@ -24,7 +26,7 @@ export default function RecentOrders(){
         <div className="recent-order-art" aria-hidden="true"><Jersey color={order.design.color} accent={order.design.accent} variant={order.design.elements.pattern?order.design.variant:'clean'} name={order.team} elements={order.design.elements} collar={order.garment.collar} sleeve={order.garment.sleeve}/><span>RESUMEN DEL ESTILO</span></div>
         <div className="recent-order-copy"><div className="recent-order-top"><span className="customer-status">POR COTIZAR</span><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat('es-SV',{day:'2-digit',month:'short',year:'numeric'}).format(date)}</time></div><h3>{order.team}</h3><dl><div><dt>Cantidad</dt><dd>{order.quantity} {order.line==='kit'?'uniformes':'camisas'}</dd></div><div><dt>Técnica</dt><dd>{techniqueLabel(order.garment.technique)}</dd></div><div><dt>Diseño</dt><dd>{order.design.mode==='reference'?'Referencia propia':variantLabel(order.design.elements.pattern?order.design.variant:'clean')}</dd></div><div><dt>Tela</dt><dd>{order.garment.fabric}</dd></div></dl><div className="recent-sizes" role="group" aria-label="Resumen de tallas">{Object.entries(sizes).map(([size,quantity])=><span key={size}><strong>{size}</strong> × {quantity}</span>)}</div><Link href={`/carrito#cart-${item.id}`} className="recent-detail-link">Ver diseño completo y detalles <Icon name="diagonal"/></Link></div>
       </article>;
-    })}</div>:hasNewEntries===false?<div className="recent-empty"><div className="recent-empty-sheets" aria-hidden="true"><i/><i/><i/><span>TONY</span></div><div><h3>Tu próxima idea<br/><em>tendrá su lugar aquí.</em></h3><p>Aún no tienes solicitudes guardadas. Cuando añadas un diseño al carrito, encontrarás aquí sus detalles.</p><Link href="/" className="button outline">Volver al inicio <Icon/></Link></div></div>:null}
+    })}</div>:hasNewEntries===false?<div className="recent-empty"><div className="recent-empty-photo"><SectionImage photo="recientes" shade="none" /></div><div><h3>Tu próxima idea<br/><em>tendrá su lugar aquí.</em></h3><p>Aún no tienes solicitudes guardadas. Cuando añadas un diseño al carrito, encontrarás aquí sus detalles.</p><Link href="/" className="button outline">Volver al inicio <Icon/></Link></div></div>:null}
     <aside className="recent-purchases-note"><span className="recent-purchases-icon" aria-hidden="true">✓</span><div><h3>El estado de cada pedido</h3><p>Guardar un diseño en el carrito no confirma una compra ni un pago. Los pedidos enviados se verifican con el servicio de Tony desde la sesión que los creó.</p></div></aside>
   </section>;
 }
