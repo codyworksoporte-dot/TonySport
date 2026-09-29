@@ -5,6 +5,7 @@ import './privacidad.css';
 export const metadata: Metadata = {title: 'Política de privacidad', description: 'Qué datos pide Tony Sportswear al crear tu pedido, para qué los usa, con quién los comparte y cómo puedes pedir que se corrijan o eliminen.'};
 
 const SECTIONS: {title: string; body: React.ReactNode}[] = [
+  {title: 'Tu cuenta Tony', body: <p>Cuando se active el acceso con cuenta, utilizaremos tu correo para confirmar el registro, iniciar sesión y recuperar tu contraseña. La contraseña se almacena como un hash; nunca se envía por correo. La sesión se conserva en esta pestaña durante un máximo de ocho horas. Cambiar o recuperar la contraseña invalida las sesiones anteriores. Los borradores se separan por cuenta en este navegador; no se sincronizan automáticamente con otros dispositivos.</p>},
   {title: 'Quién cuida tus datos', body: <p>Tony Sportswear, El Salvador. Para cualquier consulta sobre tus datos escríbenos a <a href="mailto:info@tonysportselsalvador.com">info@tonysportselsalvador.com</a> o por WhatsApp al <a href="https://wa.me/50370155571" target="_blank" rel="noopener noreferrer">7015-5571</a>.</p>},
   {title: 'Qué datos pedimos', body: <><p>Solo cuando creas un pedido:</p><ul>
     <li>Datos de la persona responsable: nombre completo, DUI, WhatsApp y, si quieres, correo electrónico.</li>

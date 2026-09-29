@@ -1,5 +1,6 @@
 'use client';
 
+import {accountStorageKey} from './auth';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {activePlayers, readOrder, validateOrder, type DesignAssets, type OrderDraft} from './order';
 import {isAssetKey} from './studio';
@@ -19,7 +20,7 @@ function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') {reject(new Error('Este navegador no permite guardar el carrito. Descarga el resumen y tus diseños desde la revisión.')); return;}
     let settled = false;
-    const request = indexedDB.open(CART_DATABASE, 1);
+    const request = indexedDB.open(accountStorageKey(CART_DATABASE), 1);
     const timeout = window.setTimeout(() => {settled = true; reject(new Error('No se pudo abrir el carrito. Cierra otras pestañas de Tony e inténtalo de nuevo.'));}, 6000);
     request.onupgradeneeded = () => request.result.createObjectStore('items', {keyPath: 'id'});
     request.onsuccess = () => {

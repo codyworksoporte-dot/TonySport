@@ -1,4 +1,5 @@
 'use client';
+import {accountStorageKey} from '@/lib/auth';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import {useEffect, useRef, useState} from 'react';
@@ -73,7 +74,7 @@ export default function PedidoFlow() {
       } catch (e) {if (live) {setStorage(errorText(e)); setCanSave(false);}}
       if (!live) return;
       try {
-        let storedRef = ''; try {storedRef = sessionStorage.getItem(PENDING_PAYMENT) || ''; paymentKey.current = sessionStorage.getItem(PAYMENT_KEY) || '';} catch { /* The read-only draft can still be used without session storage. */ }
+        let storedRef = ''; try {storedRef = sessionStorage.getItem(accountStorageKey(PENDING_PAYMENT)) || ''; paymentKey.current = sessionStorage.getItem(accountStorageKey(PAYMENT_KEY)) || '';} catch { /* The read-only draft can still be used without session storage. */ }
         const paymentRef = query.get('wompi_order') || storedRef;
         if (paymentRef) {
           setBusy('Verificando el anticipo…');
@@ -126,10 +127,10 @@ export default function PedidoFlow() {
     if (payment.reference) {const existing = await verifyPayment(payment.reference); setPaymentUrl(existing.url || ''); setVerified(existing.paid); setNotice(existing.paid ? 'Anticipo verificado. Ya puedes continuar.' : existing.url ? 'Recuperamos el mismo enlace de pago.' : 'Conserva tu referencia y consulta con Tony el estado de este enlace antes de volver a pagar.'); return;}
     const checked = validateStep(draft, 'delivery', context); if (Object.keys(checked).length) {setErrors(checked); throw new Error('Revisa el pedido y la entrega antes de pagar.');}
     const quote = await quotePedido(draft, delivery); if (quote.totalCents !== pricing.totalCents || quote.depositCents !== pricing.depositCents) throw new Error('El precio del servidor cambió. Revisa tu pedido con Tony antes de pagar.');
-    if (!paymentKey.current) {paymentKey.current = crypto.randomUUID(); sessionStorage.setItem(PAYMENT_KEY, paymentKey.current);}
+    if (!paymentKey.current) {paymentKey.current = crypto.randomUUID(); sessionStorage.setItem(accountStorageKey(PAYMENT_KEY), paymentKey.current);}
     const result = await createPayment(draft, delivery, pricing.depositCents, paymentKey.current);
     const url = new URL(result.url);
-    sessionStorage.setItem(PENDING_PAYMENT, result.reference);
+    sessionStorage.setItem(accountStorageKey(PENDING_PAYMENT), result.reference);
     setPayment({...payment, reference: result.reference}); setPaymentUrl(url.href); setNotice('Tu enlace está listo. Se abrirá en esta pestaña y Wompi te devolverá aquí para verificar tu anticipo.');
   });}
   async function checkPayment() {await run('Consultando el estado del pago…', async () => {if (!payment.reference) throw new Error('Primero prepara el enlace de pago.'); const result = await verifyPayment(payment.reference); if (result.paid && result.amountCents === pricing.depositCents) {setVerified(true); setNotice('Anticipo verificado. Ya puedes continuar.');} else {setVerified(false); throw new Error(['failed', 'rejected'].includes(result.status) ? 'El pago fue rechazado. Puedes intentar nuevamente con tu enlace o elegir transferencia.' : 'El anticipo todavía no está confirmado. Espera un momento y verifica de nuevo.');}});}
@@ -141,7 +142,7 @@ export default function PedidoFlow() {
     // Independent storage operations: a full localStorage must not retain an old payment intent.
     const cleanup = await Promise.allSettled([
       Promise.resolve().then(() => rememberReceipt({id: result.id, status: result.status})),
-      Promise.resolve().then(() => {sessionStorage.removeItem(PENDING_PAYMENT); sessionStorage.removeItem(PAYMENT_KEY);}),
+      Promise.resolve().then(() => {sessionStorage.removeItem(accountStorageKey(PENDING_PAYMENT)); sessionStorage.removeItem(accountStorageKey(PAYMENT_KEY));}),
       clearDraft(),
     ]);
     if (cleanup.some(result => result.status === 'rejected')) setStorage('Pedido enviado. Guarda tu referencia; no pudimos actualizar todos los datos de este navegador.');

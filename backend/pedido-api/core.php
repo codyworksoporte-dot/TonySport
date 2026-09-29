@@ -86,12 +86,21 @@ function pedido_rate(string $scope, int $limit, int $window): void {
 }
 function pedido_ip(): string { return (string)($_SERVER['REMOTE_ADDR'] ?? 'cli'); }
 function pedido_session_create(): array {
+    if (pedido_env('TONY_AUTH_ENABLED') === 'true') {
+        require_once __DIR__.'/auth-service.php'; $identity=tony_auth_require();
+        return ['ok'=>true,'sessionToken'=>$identity['token'],'expiresAt'=>gmdate(DATE_ATOM,$identity['expiresAt']),'mock'=>pedido_mock()];
+    }
     pedido_rate('session:' . pedido_ip(), 12, 3600);
     $token = bin2hex(random_bytes(32)); $id = hash('sha256', $token); $expires = time() + 8 * 3600;
     pedido_put('session', $id, ['expiresAt' => $expires]);
     return ['ok' => true, 'sessionToken' => $token, 'expiresAt' => gmdate(DATE_ATOM, $expires), 'mock' => pedido_mock()];
 }
 function pedido_session(): string {
+    if (pedido_env('TONY_AUTH_ENABLED') === 'true') {
+        require_once __DIR__.'/auth-service.php'; $identity=tony_auth_require();
+        // Stable account ownership across browser sessions. Guest order records are not reassigned.
+        return hash('sha256','account:'.$identity['user']['id']);
+    }
     $auth = (string)($_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
     if (!preg_match('/^Bearer ([a-f0-9]{64})$/D', $auth, $m)) pedido_fail('unauthorized', 'Vuelve a abrir tu sesión de pedido.', 401);
     $id = hash('sha256', $m[1]); $s = pedido_get('session', $id);

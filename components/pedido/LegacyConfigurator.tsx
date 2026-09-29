@@ -1,4 +1,5 @@
 'use client';
+import {accountStorageKey} from '@/lib/auth';
 
 import Link from 'next/link';
 import {useEffect,useRef,useState} from 'react';
@@ -49,8 +50,8 @@ export default function ConfiguratorPage(){
     initialized.current=true;
     let next=createOrder();
     try{
-      const saved=localStorage.getItem(ORDER_STORAGE_KEY);
-      const legacy=!saved?localStorage.getItem(LEGACY_STORAGE_KEY):null;
+      const saved=localStorage.getItem(accountStorageKey(ORDER_STORAGE_KEY));
+      const legacy=!saved?localStorage.getItem(accountStorageKey(LEGACY_STORAGE_KEY)):null;
       const recovered=saved?readOrder(JSON.parse(saved)):legacy?migrateOrder(JSON.parse(legacy)):null;
       if(recovered){next=recovered;setStorage('restored');}
     }catch{setStorage('unavailable');}
@@ -75,7 +76,7 @@ export default function ConfiguratorPage(){
   useEffect(()=>{
     current.current=order;
     if(!ready)return;
-    try{localStorage.setItem(ORDER_STORAGE_KEY,JSON.stringify(order));setStorage(s=>s==='restored'?'restored':'saved');}
+    try{localStorage.setItem(accountStorageKey(ORDER_STORAGE_KEY),JSON.stringify(order));setStorage(s=>s==='restored'?'restored':'saved');}
     catch{setStorage('unavailable');}
   },[order,ready]);
   useEffect(()=>{
@@ -136,7 +137,7 @@ export default function ConfiguratorPage(){
   function resetOrder(){
     assetEpoch.current+=1;
     setOrder(createOrder());setAssets({});setStep(1);setFurthest(1);setErrors({});setResetOpen(false);setStorage('saved');
-    try{localStorage.removeItem(LEGACY_STORAGE_KEY);}catch{}
+    try{localStorage.removeItem(accountStorageKey(LEGACY_STORAGE_KEY));}catch{}
     window.history.replaceState(window.history.state,'',`${window.location.pathname}#paso-1`);
   }
   const players=activePlayers(order),complete=players.filter(playerComplete).length;

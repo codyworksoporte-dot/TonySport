@@ -1,2 +1,3 @@
 import PedidoFlow from '@/components/pedido/PedidoFlow';
-export default function ConfiguratorPage() {return <PedidoFlow/>;}
+import AccountGate from '@/components/AccountGate';
+export default function ConfiguratorPage() {return <AccountGate><PedidoFlow/></AccountGate>;}

@@ -1,4 +1,5 @@
 import {siteAsset} from '../asset-path';
+import {authEnabled, accountToken, forgetAccount} from '../auth';
 import type {Buyer, Delivery, Payment, PedidoDraft, PedidoPricing} from './types';
 
 const BASE = (process.env.NEXT_PUBLIC_TONY_API_BASE || '').replace(/\/+$/, '');
@@ -35,7 +36,7 @@ async function request<T extends ResponseObject>(path: string, init: RequestInit
     try {result = await response.json();} catch {throw new Error('El servicio no respondió correctamente. Tu pedido sigue aquí; verifica su estado antes de volver a enviarlo.');}
     if (!result || typeof result !== 'object' || Array.isArray(result)) throw new Error('El servicio devolvió una respuesta no válida.');
     if (!response.ok || result.ok === false || result.success === false) {
-      if (response.status === 401) clearToken();
+      if (response.status === 401) {clearToken(); if(authEnabled)forgetAccount();}
       throw new Error(result.message || result.error || 'No pudimos completar esta acción. Vuelve a intentarlo.');
     }
     if (result.ok !== true && result.success !== true) throw new Error('El servicio no confirmó esta acción. Verifica su estado antes de repetirla.');
@@ -47,6 +48,7 @@ async function request<T extends ResponseObject>(path: string, init: RequestInit
   } finally {clearTimeout(timeout);}
 }
 async function session(requireExisting = false) {
+  if(authEnabled){const token=accountToken();if(!/^[a-f0-9]{64}$/.test(token))throw new Error('Inicia sesión para crear o enviar un pedido.');return token;}
   const current = storedToken(); if (/^[a-f0-9]{64}$/.test(current)) return current;
   if (requireExisting) throw new Error('Abre esta referencia en la misma pestaña donde preparaste el pedido. Por privacidad no podemos abrirlo desde una sesión nueva.');
   if (!pendingSession) pendingSession = request<ResponseObject & {sessionToken: string}>('session.php', {method: 'POST', body: '{}'}, undefined, 20_000).then(value => {

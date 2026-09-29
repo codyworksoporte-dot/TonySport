@@ -1,10 +1,11 @@
+import {accountStorageKey} from './auth';
 import type {DesignAssets} from './order';
 import {isAssetKey} from './studio';
 
 const DATABASE='tony-team-artwork-v1';
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve,reject)=>{
-    const request=indexedDB.open(DATABASE,1);
+    const request=indexedDB.open(accountStorageKey(DATABASE),1);
     request.onupgradeneeded=()=>request.result.createObjectStore('artwork');
     request.onsuccess=()=>resolve(request.result);
     request.onerror=()=>reject(request.error);

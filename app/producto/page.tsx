@@ -3,6 +3,7 @@ import Link from 'next/link';
 import LineExplorer from '@/components/LineExplorer';
 import Icon from '@/components/Icon';
 import {PRODUCT_CATEGORIES,productInquiry} from '@/lib/products';
+import {sourceCollectionHref} from '@/lib/collections';
 import ProductDirectorySync from './ProductDirectorySync';
 import './producto.css';
 
@@ -19,11 +20,11 @@ export default function Producto(){return <main id="contenido" className="intern
     <div className="product-category-grid">{PRODUCT_CATEGORIES.map((category,index)=><details className="product-category" id={`categoria-${category.id}`} key={category.id}>
       <summary><span className="product-category-index">{String(index+1).padStart(2,'0')}</span><h3>{category.label}</h3><span className="product-category-toggle" aria-hidden="true">+</span></summary>
       <div className="product-category-body"><p>{category.description}</p>
-        {category.children.length>0&&<ul>{category.children.map(child=><li id={`opcion-${child.id}`} key={child.id}><span>{child.label}</span><a href={productInquiry(child.label)} target="_blank" rel="noopener noreferrer" aria-label={`Consultar ${child.label} por WhatsApp`}><Icon name="diagonal"/><span className="sr-only">Consultar</span></a></li>)}</ul>}
+        {category.children.length>0&&<ul>{category.children.map(child=><li id={`opcion-${child.id}`} key={child.id}><span>{sourceCollectionHref(child.sourceHref)?<Link href={sourceCollectionHref(child.sourceHref)!}>{child.label} · Ver diseños ↗</Link>:child.label}</span><a href={productInquiry(child.label)} target="_blank" rel="noopener noreferrer" aria-label={`Consultar ${child.label} por WhatsApp`}><Icon name="diagonal"/><span className="sr-only">Consultar</span></a></li>)}</ul>}
         <div className="product-category-actions"><Link href={category.line==='calidad'?'/calidad':`/producto#${category.line}`}>{category.line==='calidad'?'Conoce los acabados':'Explorar esta línea'} <Icon name="arrow"/></Link><a href={productInquiry(category.label)} target="_blank" rel="noopener noreferrer">Consultar con Tony <Icon name="diagonal"/></a></div>
       </div>
     </details>)}</div>
-    <div className="product-availability"><Icon name="shield"/><div><strong>El catálogo nuevo está en preparación.</strong><p>Estas son nuestras familias de producto. Los diseños, precios y disponibilidad se confirman con Tony.</p></div><Link href="/catalogo">Estado del catálogo <Icon name="diagonal"/></Link></div>
+    <div className="product-availability"><Icon name="shield"/><div><strong>Las colecciones de Tony ya están aquí.</strong><p>Recorre Mundial, Anime y todas las líneas. Confirma precios y disponibilidad con Tony.</p></div><Link href="/colecciones">Ver colecciones <Icon name="diagonal"/></Link></div>
   </section>
   <section className="product-next" aria-label="Ayuda para elegir"><div><p className="eyebrow">TU IDEA MERECE UNA BUENA BASE.</p><h2>DEL USO,<br/><em>AL ÚLTIMO DETALLE.</em></h2></div><nav><Link href="/calidad"><span>01</span><div><strong>Técnicas y confección</strong><small>Conoce los acabados para tu prenda.</small></div><Icon name="diagonal"/></Link><Link href="/tiendas"><span>02</span><div><strong>Encuentra tu tienda</strong><small>Conversa con la sucursal más cercana.</small></div><Icon name="diagonal"/></Link><Link href="/entregas"><span>03</span><div><strong>Recibe tu pedido</strong><small>Consulta las opciones de entrega.</small></div><Icon name="diagonal"/></Link></nav></section>
 </main>}

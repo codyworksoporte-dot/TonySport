@@ -10,3 +10,5 @@
 @media(max-width:760px){.tony-footer-stamp{flex-wrap:wrap;gap:18px}.tony-footer-origin{display:flex;align-items:center;gap:6px;flex-basis:100%;margin-left:57px;text-align:left;font-size:11px;letter-spacing:0.064em}.tony-footer-origin br{display:none}.tony-footer-origin strong{font-size:12px}.tony-salvador-flag{width:40px;height:24px;margin:0 0 0 auto}}
 @media(max-width:370px){.tony-footer-origin{margin-left:44px}}
 @media(prefers-reduced-motion:reduce){.tony-footer *{transition:none!important}.tony-footer-column>a:hover>svg{transform:none}}
+#contactos{scroll-margin-top:100px;outline:none}.tony-footer-email{display:grid;gap:7px;margin:18px 0 10px;min-height:44px;font-size:13px;overflow-wrap:anywhere}.tony-footer-email span{font-size:10px;letter-spacing:.1em;color:var(--mute)}.tony-footer-email strong{font-weight:600;color:var(--venom)}
+@media(max-width:760px){.tony-footer-email{grid-column:1/-1;margin-top:22px}.tony-footer-email strong{font-size:13px}}

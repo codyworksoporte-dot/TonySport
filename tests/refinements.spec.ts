@@ -40,7 +40,7 @@ test('entregas exige una sucursal y nunca reutiliza el contacto de una selecció
   await expect(page.locator('.te-section-label>span')).toHaveText(['01','02']);
 });
 
-test('las páginas internas y su búsqueda ya no duplican el acceso al creador',async({page})=>{
+test('las páginas internas conservan sus acciones y el directorio completo permite abrir el creador',async({page})=>{
   for(const route of ['/lineas','/calidad','/tiendas','/entregas','/patrocinio','/comunidad','/actualidad','/tony-news','/catalogo','/nosotros','/contacto']){
     await page.goto(route);
     await expect(page.locator('main h1')).toBeVisible();
@@ -49,7 +49,7 @@ test('las páginas internas y su búsqueda ya no duplican el acceso al creador',
   }
   await page.getByRole('button',{name:'Buscar en el sitio'}).click();
   await page.getByRole('searchbox').fill('uniforme');
-  await expect(page.getByRole('dialog').locator('a[href^="/configurador"]')).toHaveCount(0);
+  await expect(page.getByRole('dialog').locator('a[href^="/configurador"]')).toBeVisible();
   await page.keyboard.press('Escape');
   await page.goto('/comunidad');
   await expect(page.locator('#tonyplay')).toContainText('EN DESARROLLO');
