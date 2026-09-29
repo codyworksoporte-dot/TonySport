@@ -1,5 +1,7 @@
 # Asesora y navegación móvil — 28 de septiembre de 2026
 
+> Registro de la revisión anterior. La tarjeta compacta de transición descrita aquí fue sustituida por una cubierta de pantalla completa en la revisión posterior: [menú y transiciones móviles](REVISION-MENU-MOVIL.md).
+
 Seguimiento de las capturas del propietario. Se conserva la estructura del proyecto, el diseño de escritorio, el contenido comercial y la lógica de pedidos. No se modificaron backend, autenticación, precios, pagos, datos de productos ni puntos.
 
 ## Correcciones

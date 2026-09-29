@@ -24,7 +24,7 @@ test('menú móvil, búsqueda, Escape y preguntas frecuentes',async({page})=>{
   await page.getByRole('button',{name:'Buscar en el sitio',exact:true}).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   await page.getByRole('searchbox').fill('catalogo');
-  await page.getByRole('dialog').getByRole('link',{name:'Catálogo',exact:true}).click();
+  await page.getByRole('dialog').getByRole('link',{name:'70 diseños para personalizar',exact:true}).click();
   await expect(page).toHaveURL(/\/catalogo$/);await expect(page.getByRole('dialog')).not.toBeVisible();
   await page.goto('/');await page.getByText('¿Puedo crear el uniforme de mi equipo?',{exact:true}).click();
   await expect(page.locator('details').first()).toHaveAttribute('open','');

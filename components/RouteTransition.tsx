@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { usePathname } from 'next/navigation';
 import { AMBIENT } from '@/lib/ambient-config';
 import { siteAsset } from '@/lib/asset-path';
@@ -9,7 +9,7 @@ import './route-transition.css';
 
 type Phase = 'idle' | 'cover' | 'wink' | 'reveal';
 const { transition } = AMBIENT;
-const COMPACT = '(max-width: 900px), (pointer: coarse)';
+const MOBILE = '(max-width: 900px), (pointer: coarse)';
 
 /**
  * Changing section: the scales close over the page, a ring spreading from the
@@ -20,9 +20,9 @@ const COMPACT = '(max-width: 900px), (pointer: coarse)';
  */
 export default function RouteTransition() {
   const pathname = usePathname();
-  const [art, setArt] = useState<'pending' | 'compact' | 'full'>('pending');
+  const [art, setArt] = useState<'pending' | 'mobile' | 'full'>('pending');
   const root = useRef<HTMLDivElement>(null);
-  const run = useRef({ phase: 'idle' as Phase, coveredAt: 0, compact: false, timers: [] as number[], warm: 0, generation: 0 });
+  const run = useRef({ phase: 'idle' as Phase, coveredAt: 0, mobile: false, timers: [] as number[], warm: 0, generation: 0 });
   const shown = useRef(pathname);
 
   const set = (phase: Phase) => {
@@ -45,12 +45,12 @@ export default function RouteTransition() {
   };
   /**
    * Load and decode the artwork ahead of time, then draw every layer once, nearly
-   * transparent on desktop. Touch devices only mount a small head and a progress
-   * line, so they never download or decode the full-screen transition texture.
+   * transparent on desktop. The mobile cover uses a flat surface and cached
+   * character assets, without downloading the desktop texture or adding blur.
    */
   const arm = () => {
     const element = root.current;
-    if (!element || matchMedia(COMPACT).matches || !allowed() || element.classList.contains('is-armed')) return;
+    if (!element || matchMedia(MOBILE).matches || !allowed() || element.classList.contains('is-armed')) return;
     const generation = ++run.current.generation;
     element.classList.add('is-armed');
     const texture = new Image();
@@ -68,22 +68,22 @@ export default function RouteTransition() {
     clear();
     set('reveal');
     setCovered(false);
-    later(() => set('idle'), run.current.compact ? transition.mobile.revealMs : transition.revealMs);
+    later(() => set('idle'), run.current.mobile ? transition.mobile.revealMs : transition.revealMs);
   };
   const wink = () => {
     clear();
     set('wink');
-    later(reveal, run.current.compact ? transition.mobile.winkMs : transition.winkMs);
+    later(reveal, run.current.mobile ? transition.mobile.winkMs : transition.winkMs);
   };
   const cover = (x: number, y: number) => {
     clear();
-    run.current.compact = matchMedia(COMPACT).matches;
+    run.current.mobile = matchMedia(MOBILE).matches;
     arm();
     stopWarming();
     root.current?.style.setProperty('--from-x', `${Math.round(x)}px`);
     root.current?.style.setProperty('--from-y', `${Math.round(y)}px`);
     set('cover');
-    setCovered(!run.current.compact);
+    setCovered(true);
     run.current.coveredAt = performance.now();
     later(reveal, transition.timeoutMs);
   };
@@ -94,14 +94,14 @@ export default function RouteTransition() {
       const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
       if (!anchor || (anchor.target && anchor.target !== '_self') || anchor.hasAttribute('download')) return;
       // The logo replays the intro, which is its own entrance.
-      if (anchor.closest('[data-no-transition]') || (anchor.closest('.brand') && !matchMedia(COMPACT).matches)) return;
+      if (anchor.closest('[data-no-transition]') || (anchor.closest('.brand') && !matchMedia(MOBILE).matches)) return;
       const url = new URL(anchor.href, location.href);
       if (url.origin !== location.origin || url.pathname === location.pathname || !allowed()) return;
       cover(event.clientX || innerWidth / 2, event.clientY || innerHeight / 2);
     };
     const onIntro = () => { clear(); stopWarming(); set('idle'); setCovered(false); };
-    const mobile = matchMedia(COMPACT), reduced = matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => {onIntro(); setArt(mobile.matches ? 'compact' : 'full');};
+    const mobile = matchMedia(MOBILE), reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => {onIntro(); setArt(mobile.matches ? 'mobile' : 'full');};
     const interrupted = () => {if (!allowed()) onIntro();};
     update();
     const idle = window.requestIdleCallback?.(arm, { timeout: 2500 }) ?? window.setTimeout(arm, 1200);
@@ -132,17 +132,31 @@ export default function RouteTransition() {
     if (run.current.phase === 'cover') {
       // Let Tony arrive before the wink, however fast the page was.
       clear();
-      later(wink, Math.max(0, (run.current.compact ? transition.mobile.arriveMs : transition.arriveMs) - (performance.now() - run.current.coveredAt)));
+      later(wink, Math.max(0, (run.current.mobile ? transition.mobile.arriveMs : transition.arriveMs) - (performance.now() - run.current.coveredAt)));
     } else if (allowed()) {
       // Back and forward buttons: the same visit over the page that just arrived.
       cover(innerWidth / 2, innerHeight / 2);
       clear();
-      later(wink, run.current.compact ? transition.mobile.arriveMs : transition.arriveMs);
+      later(wink, run.current.mobile ? transition.mobile.arriveMs : transition.arriveMs);
     }
   }, [pathname]);
 
-  return <div ref={root} className="route-transition" data-phase="idle" data-art={art} aria-hidden="true">
-    {art === 'compact' && <div className="rt-mobile"><TonyFace className="rt-mobile-head"/><span>Cambiando<br/><strong>apartado</strong></span><i className="rt-mobile-progress"/></div>}
+  return <div ref={root} className="route-transition" data-phase="idle" data-art={art} aria-hidden="true" style={{
+    '--rt-mobile-arrive': `${transition.mobile.arriveMs}ms`,
+    '--rt-mobile-wink': `${transition.mobile.winkMs}ms`,
+    '--rt-mobile-reveal': `${transition.mobile.revealMs}ms`,
+  } as CSSProperties}>
+    {art === 'mobile' && <div className="rt-mobile">
+      <div className="rt-mobile-content">
+        <div className="rt-mobile-emblem">
+          <TonyFace className="rt-mobile-head"/>
+          <div className="rt-mobile-brand"><img src={siteAsset('/assets/tony-wordmark.webp')} alt="" width="720" height="351" decoding="async" draggable={false}/></div>
+          <TonyClaw className="rt-mobile-claw rt-mobile-claw--left"/><TonyClaw className="rt-mobile-claw rt-mobile-claw--right" flip/>
+        </div>
+        <span className="rt-mobile-label">Cambiando apartado</span>
+        <span className="rt-mobile-track"><i className="rt-mobile-progress"/></span>
+      </div>
+    </div>}
     {art === 'full' && <>
     <div className="rt-panel"/>
     <span className="rt-ring"/>

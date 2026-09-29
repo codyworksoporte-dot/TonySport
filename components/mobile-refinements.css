@@ -3,28 +3,16 @@
 .tony-menu-label,.pedido-mobile-save{display:none}
 @media(max-width:900px){
   html{scroll-padding-top:80px}
+  /* The root already reserves space for the header; do not add a second offset. */
+  #contactos{scroll-margin-top:0}
   .site-header.tony-header{background:#0c110e;backdrop-filter:none}
   .tony-header .tony-header-inner{height:64px;padding-inline:16px}
   .tony-header .tony-icon-button,.tony-header .cart-link{min-width:44px;min-height:44px}
   .tony-header .tony-menu-toggle{width:52px;display:flex;flex-direction:column;justify-content:center;gap:2px}
   .tony-menu-label{display:block;font:600 10px var(--font-body),sans-serif}
-  .tony-mobile{background:#152119;backdrop-filter:none}
-  .tony-mobile::backdrop,.tony-search::backdrop{backdrop-filter:none}
-  .tony-mobile-inner{padding:0 20px max(24px,env(safe-area-inset-bottom));display:flex;flex-direction:column}
-  .tony-mobile-top{position:sticky;top:0;z-index:2;background:#152119;min-height:78px;margin:0 -4px 14px;padding-top:env(safe-area-inset-top);border-bottom:1px solid #71845e55;order:0}
-  .tony-mobile-top .tony-icon-button{width:48px;height:48px}
-  .tony-mobile-search{order:1;min-height:48px;margin-bottom:12px}
-  .tony-mobile-support{order:2;display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 0 10px}
-  .tony-mobile-support>a{justify-content:center;min-height:44px;border:1px solid #61794b;border-radius:5px;color:#deedcc;background:#243524;font-size:13px}
-  .tony-mobile-inner>.tony-mega-kicker{order:3;margin-top:12px}
-  .tony-mobile-nav{order:4;margin-top:4px}
-  .tony-mobile-nav>a,.tony-mobile-group>button{min-height:56px;font-size:27px;padding:12px 0}
-  .tony-mobile-sub{padding-left:0;gap:0 16px}
-  .tony-mobile-sub>a{min-height:48px;font-size:13px}
-  .tony-mobile-signature{order:5;margin-top:24px}
   .tony-search{top:max(12px,env(safe-area-inset-top));max-height:calc(100dvh - 24px);background:#152119;backdrop-filter:none}
   .tony-search-hint{display:none}
-  .tony-mobile-nav .tony-mobile-create{order:-1;font-size:24px}
+  .tony-search::backdrop{backdrop-filter:none}
   .pedido-page{padding-top:18px}
   .pedido-page .pedido-breadcrumb{margin-bottom:18px}
   .pedido-page .pedido-topline{padding-bottom:12px}
@@ -72,5 +60,17 @@
   .pedido-choice:hover,.pedido-catalog-card:hover,.pedido-primary-button:hover{transform:none}
   .button{min-height:48px}
 }
-@media(max-width:370px){.tony-header .tony-header-inner{padding-inline:12px}.tony-header .official-logo{width:98px}.tony-header .tony-header-actions{gap:2px}.tony-mobile-inner{padding-inline:16px}}
+/* Keep search controls visible while browsing the complete directory on a phone. */
+@media(max-width:600px){
+  .tony-search{inset:0;margin:0;transform:none;width:100%;max-width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0;overflow:hidden}
+  .tony-search-inner{height:100%;display:flex;flex-direction:column;min-height:0;padding:calc(12px + env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left))}
+  .tony-search-heading{flex:none}
+  .tony-search-heading .tony-icon-button{width:44px;height:44px;border-color:#71865b66;background:#203024}
+  .tony-search h2{flex:none;font-size:30px;margin:12px 0 18px}
+  .tony-search-input{flex:none}
+  .tony-search-count{flex:none;margin:16px 0 8px;font-size:10px}
+  .tony-search-results{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+  .tony-search-results>a{padding-inline:6px}
+}
+@media(max-width:370px){.tony-header .tony-header-inner{padding-inline:12px}.tony-header .official-logo{width:98px}.tony-header .tony-header-actions{gap:2px}}
 @media(pointer:coarse){.tony-scale-glow-layer,.tony-peek,.tony-scratch-stage{display:none}}
