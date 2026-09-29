@@ -40,6 +40,8 @@ export const AMBIENT = {
   },
 
   transition: {
+    /** Touch feedback never covers or delays the next page. */
+    mobile: {arriveMs: 220, winkMs: 260, revealMs: 180},
     /** Minimum time the cover stays before the wink, so Tony can arrive (route-transition.css: rt-arrive). */
     arriveMs: 480,
     /** From the start of the wink to the page opening; the wink finishes while it opens. */

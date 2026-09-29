@@ -72,7 +72,7 @@ export default function AmbientExperience() {
       <div className="tony-scale-glow" ref={glowRef}><span className="tony-scale-joints"/></div>
       <div className="tony-scale-glow tony-scale-glow--ambient" ref={pulseRef}><span className="tony-scale-joints"/></div>
     </div>
-    <div className="tony-ambient tony-peek" ref={peekRef} style={variables} data-state="off" aria-hidden="true"><TonyPeek/></div>
+    <div className="tony-ambient tony-peek" ref={peekRef} style={variables} data-state="off" aria-hidden="true">{ready && !compact && <TonyPeek/>}</div>
     <div ref={scratchRef} className="tony-ambient tony-scratch-stage" style={variables} aria-hidden="true">
       {Array.from({ length: scratch.maxActive }, (_, index) => <svg key={index} viewBox="0 0 40 40" focusable="false">
         <path d="M29.5 4.5C25 13.6 18.8 23.6 9.5 33.5c11.4-8.6 17.8-18.6 20-29Z"/>

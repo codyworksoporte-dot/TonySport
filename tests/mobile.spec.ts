@@ -60,7 +60,7 @@ test('storage failure shows an error and never a false cart success', async ({pa
   await expect(page.locator('.cart-link').first()).toHaveAttribute('aria-label','Carrito, 0 diseños');
 });
 
-test('mobile navigation keeps close and search reachable, releases scroll and skips covers', async ({page}) => {
+test('mobile navigation keeps close and search reachable, releases scroll and uses compact feedback', async ({page}) => {
   await page.goto('/');
   await expect(page.locator('.lagarto-intro[open]')).toHaveCount(0);
   const menu=page.getByRole('dialog',{name:'Menú de Tony Sportswear'});
@@ -70,6 +70,8 @@ test('mobile navigation keeps close and search reachable, releases scroll and sk
   await expect(page).toHaveURL(/\/producto#categoria-futbol$/);
   await expect(menu).not.toBeVisible();
   await expect(page.locator('.route-transition')).toHaveAttribute('data-phase','idle');
+  await expect(page.locator('.route-transition')).toHaveAttribute('data-art','compact');
+  await expect(page.locator('.rt-panel')).toHaveCount(0);
   await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.documentElement).overflow)).not.toBe('hidden');
   await page.getByRole('button',{name:'Abrir menú'}).tap();
   await menu.getByRole('button',{name:/Busca un producto/}).tap();

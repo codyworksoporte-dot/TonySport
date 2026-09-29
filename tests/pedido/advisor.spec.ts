@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {adviseFor, femaleVoice, missingBefore, numberWords, spoken, type AdvisorInput} from '../../lib/pedido/advisor';
+import {adviseFor, advisorVoice, femaleVoice, missingBefore, numberWords, spoken, type AdvisorInput} from '../../lib/pedido/advisor';
 import {createPedido} from '../../lib/pedido/order';
 import {completePedido} from './pricing.fixtures';
 
@@ -54,7 +54,7 @@ test('jugadores, entrega, pago y firma piden un dato a la vez', () => {
   expect(adviseFor(base(11, {draft: done, buyer: {...buyer, dui: '1', phone: '7'}})).text).toBe('Lee y acepta los términos.');
 });
 
-test('la asesora solo usa voces femeninas en español; sin una, se queda en silencio', () => {
+test('la asesora prefiere las voces femeninas reconocibles en español', () => {
   const voices = [
     {name: 'Microsoft Jorge - Spanish (Mexico)', lang: 'es-MX'},
     {name: 'Microsoft Rodrigo Online (Natural) - Spanish (El Salvador)', lang: 'es-SV'},
@@ -66,6 +66,16 @@ test('la asesora solo usa voces femeninas en español; sin una, se queda en sile
   expect(femaleVoice(voices.filter(voice => !voice.name.includes('Lorena')))?.name).toContain('Helena');
   expect(femaleVoice([{name: 'Google español', lang: 'es-ES'}])?.name).toBe('Google español');
   expect(femaleVoice([{name: 'Microsoft Raul - Spanish (Mexico)', lang: 'es-MX'}, {name: 'es-us-x-sfb-local', lang: 'es-US'}])).toBeUndefined();
+});
+
+test('admite nombres genéricos de Android y Female sin confundir idiomas o género', () => {
+  const generic = {name: 'es-us-x-sfb-local', lang: 'es-US'};
+  const female = {name: 'Spanish Female', lang: 'ES_mx'};
+  expect(advisorVoice([generic])).toEqual(generic);
+  expect(femaleVoice([female])).toEqual(female);
+  expect(advisorVoice([generic, female])).toEqual(female);
+  expect(advisorVoice([{name: 'Spanish Female', lang: 'est'}, {name: 'Jorge', lang: 'es-MX'}, {name: 'Spanish Male', lang: 'es-MX'}])).toBeUndefined();
+  expect(advisorVoice([])).toBeUndefined();
 });
 
 test('los montos y abreviaturas se leen como los diría una persona', () => {

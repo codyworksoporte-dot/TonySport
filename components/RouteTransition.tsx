@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { AMBIENT } from '@/lib/ambient-config';
 import { siteAsset } from '@/lib/asset-path';
@@ -9,6 +9,7 @@ import './route-transition.css';
 
 type Phase = 'idle' | 'cover' | 'wink' | 'reveal';
 const { transition } = AMBIENT;
+const COMPACT = '(max-width: 900px), (pointer: coarse)';
 
 /**
  * Changing section: the scales close over the page, a ring spreading from the
@@ -19,8 +20,9 @@ const { transition } = AMBIENT;
  */
 export default function RouteTransition() {
   const pathname = usePathname();
+  const [art, setArt] = useState<'pending' | 'compact' | 'full'>('pending');
   const root = useRef<HTMLDivElement>(null);
-  const run = useRef({ phase: 'idle' as Phase, coveredAt: 0, timers: [] as number[], warm: 0 });
+  const run = useRef({ phase: 'idle' as Phase, coveredAt: 0, compact: false, timers: [] as number[], warm: 0, generation: 0 });
   const shown = useRef(pathname);
 
   const set = (phase: Phase) => {
@@ -30,7 +32,7 @@ export default function RouteTransition() {
   };
   const clear = () => { run.current.timers.forEach(id => clearTimeout(id)); run.current.timers = []; };
   const later = (callback: () => void, ms: number) => { run.current.timers.push(window.setTimeout(callback, ms)); };
-  const allowed = () => !matchMedia('(max-width: 900px), (pointer: coarse), (prefers-reduced-motion: reduce)').matches
+  const allowed = () => !document.hidden && !matchMedia('(prefers-reduced-motion: reduce)').matches
     && document.documentElement.dataset.tonyEffects !== 'off'
     && !document.querySelector('.lagarto-intro[open]');
   /** While the page is covered its entrance animations wait (RevealText, the hero) and so does the peeking lizard. */
@@ -43,44 +45,45 @@ export default function RouteTransition() {
   };
   /**
    * Load and decode the artwork ahead of time, then draw every layer once, nearly
-   * transparent: the GPU rasterises its tiles and prepares its shaders now instead
-   * of on the first frames of the first section change (measured: from about half
-   * the frames dropped to about one in ten on a fresh browser).
+   * transparent on desktop. Touch devices only mount a small head and a progress
+   * line, so they never download or decode the full-screen transition texture.
    */
   const arm = () => {
     const element = root.current;
-    if (!element || !allowed() || element.classList.contains('is-armed')) return;
+    if (!element || matchMedia(COMPACT).matches || !allowed() || element.classList.contains('is-armed')) return;
+    const generation = ++run.current.generation;
     element.classList.add('is-armed');
     const texture = new Image();
     texture.src = siteAsset('/assets/escamas-tony-brasa.webp');
     const decoded = [texture, ...element.querySelectorAll('img')].map(image => image.decode().catch(() => { /* Drawn when it arrives. */ }));
     Promise.all(decoded).then(() => {
-      if (run.current.phase !== 'idle' || !root.current) return;
+      if (generation !== run.current.generation || run.current.phase !== 'idle' || !root.current || !allowed()) return;
       element.classList.add('is-warming');
       run.current.warm = window.setTimeout(() => element.classList.remove('is-warming'), 400);
     });
   };
-  const stopWarming = () => { clearTimeout(run.current.warm); root.current?.classList.remove('is-warming'); };
+  const stopWarming = () => { run.current.generation++; clearTimeout(run.current.warm); root.current?.classList.remove('is-warming'); };
 
   const reveal = () => {
     clear();
     set('reveal');
     setCovered(false);
-    later(() => set('idle'), transition.revealMs);
+    later(() => set('idle'), run.current.compact ? transition.mobile.revealMs : transition.revealMs);
   };
   const wink = () => {
     clear();
     set('wink');
-    later(reveal, transition.winkMs);
+    later(reveal, run.current.compact ? transition.mobile.winkMs : transition.winkMs);
   };
   const cover = (x: number, y: number) => {
     clear();
+    run.current.compact = matchMedia(COMPACT).matches;
     arm();
     stopWarming();
     root.current?.style.setProperty('--from-x', `${Math.round(x)}px`);
     root.current?.style.setProperty('--from-y', `${Math.round(y)}px`);
     set('cover');
-    setCovered(true);
+    setCovered(!run.current.compact);
     run.current.coveredAt = performance.now();
     later(reveal, transition.timeoutMs);
   };
@@ -91,18 +94,30 @@ export default function RouteTransition() {
       const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
       if (!anchor || (anchor.target && anchor.target !== '_self') || anchor.hasAttribute('download')) return;
       // The logo replays the intro, which is its own entrance.
-      if (anchor.closest('.brand, [data-no-transition]')) return;
+      if (anchor.closest('[data-no-transition]') || (anchor.closest('.brand') && !matchMedia(COMPACT).matches)) return;
       const url = new URL(anchor.href, location.href);
       if (url.origin !== location.origin || url.pathname === location.pathname || !allowed()) return;
       cover(event.clientX || innerWidth / 2, event.clientY || innerHeight / 2);
     };
-    const onIntro = () => { clear(); set('idle'); setCovered(false); };
+    const onIntro = () => { clear(); stopWarming(); set('idle'); setCovered(false); };
+    const mobile = matchMedia(COMPACT), reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => {onIntro(); setArt(mobile.matches ? 'compact' : 'full');};
+    const interrupted = () => {if (!allowed()) onIntro();};
+    update();
     const idle = window.requestIdleCallback?.(arm, { timeout: 2500 }) ?? window.setTimeout(arm, 1200);
     document.addEventListener('click', onClick, true);
     window.addEventListener('tony:intro-start', onIntro);
+    window.addEventListener('tony:effects-change', interrupted);
+    document.addEventListener('visibilitychange', interrupted);
+    mobile.addEventListener('change', update);
+    reduced.addEventListener('change', interrupted);
     return () => {
       document.removeEventListener('click', onClick, true);
       window.removeEventListener('tony:intro-start', onIntro);
+      window.removeEventListener('tony:effects-change', interrupted);
+      document.removeEventListener('visibilitychange', interrupted);
+      mobile.removeEventListener('change', update);
+      reduced.removeEventListener('change', interrupted);
       if (window.cancelIdleCallback) window.cancelIdleCallback(idle); else clearTimeout(idle);
       clear();
       stopWarming();
@@ -117,16 +132,18 @@ export default function RouteTransition() {
     if (run.current.phase === 'cover') {
       // Let Tony arrive before the wink, however fast the page was.
       clear();
-      later(wink, Math.max(0, transition.arriveMs - (performance.now() - run.current.coveredAt)));
-    } else if (run.current.phase === 'idle' && allowed()) {
+      later(wink, Math.max(0, (run.current.compact ? transition.mobile.arriveMs : transition.arriveMs) - (performance.now() - run.current.coveredAt)));
+    } else if (allowed()) {
       // Back and forward buttons: the same visit over the page that just arrived.
       cover(innerWidth / 2, innerHeight / 2);
       clear();
-      later(wink, transition.arriveMs);
+      later(wink, run.current.compact ? transition.mobile.arriveMs : transition.arriveMs);
     }
   }, [pathname]);
 
-  return <div ref={root} className="route-transition" data-phase="idle" aria-hidden="true">
+  return <div ref={root} className="route-transition" data-phase="idle" data-art={art} aria-hidden="true">
+    {art === 'compact' && <div className="rt-mobile"><TonyFace className="rt-mobile-head"/><span>Cambiando<br/><strong>apartado</strong></span><i className="rt-mobile-progress"/></div>}
+    {art === 'full' && <>
     <div className="rt-panel"/>
     <span className="rt-ring"/>
     <div className="rt-stage">
@@ -137,6 +154,6 @@ export default function RouteTransition() {
         <div className="rt-claw rt-claw--left"><TonyClaw/></div>
         <div className="rt-claw rt-claw--right"><TonyClaw flip/></div>
       </div>
-    </div>
+    </div></>}
   </div>;
 }

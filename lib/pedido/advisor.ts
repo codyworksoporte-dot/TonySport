@@ -154,16 +154,22 @@ export function spoken(text: string): string {
 }
 
 /*
- * She is a woman, so only female Spanish voices are used. Voices do not declare
- * their gender: known female names are preferred, known male names are never used,
- * and without a female voice she stays silent and the advice is only written.
+ * Web Speech exposes a name and language, not gender. Prefer familiar female
+ * voices, but accept unlabelled Spanish voices (common on Android) as a fallback.
+ * Do not mistake the word "female" for "male" or Estonian (est) for Spanish (es).
  */
 const FEMALE = /lorena|dalia|elvira|paloma|salome|sabina|helena|laura|paulina|m[oó]nica|marisol|ang[eé]lica|soledad|isabel|camila|valentina|ximena|elena|francisca|karla|catalina|renata|lucia|luc[ií]a|andrea|estrella|irene|sof[ií]a|marina|nora|beatriz|carlota|larissa|triana|teresa|abril|female|mujer|google espa/i;
-const MALE = /rodrigo|ra[uú]l|pablo|jorge|[aá]lvaro|gonzalo|alonso|tom[aá]s|diego|juan|carlos|jos[eé]|dario|dar[ií]o|gerardo|alex|andr[eé]s|emilio|federico|luciano|mateo|nicol[aá]s|sa[uú]l|jaime|lucas|arnau|enrique|antonio|ricardo|pedro|male|hombre/i;
-const LANGS = ['es-SV', 'es-419', 'es-MX', 'es-US', 'es-CO', 'es-GT', 'es-ES'];
+const MALE = /\b(?:rodrigo|ra[uú]l|pablo|jorge|[aá]lvaro|gonzalo|alonso|tom[aá]s|diego|juan|carlos|jos[eé]|dario|dar[ií]o|gerardo|alex|andr[eé]s|emilio|federico|luciano|mateo|nicol[aá]s|sa[uú]l|jaime|lucas|arnau|enrique|antonio|ricardo|pedro|male|hombre)\b/i;
+const LANGS = ['es-sv', 'es-419', 'es-mx', 'es-us', 'es-co', 'es-gt', 'es-es'];
+type Voice = {name: string; lang: string};
+function spanishVoices<V extends Voice>(voices: V[]): V[] {
+  const language = (voice: V) => voice.lang.replaceAll('_', '-').toLowerCase();
+  const rank = (voice: V) => LANGS.indexOf(language(voice)) + 1 || LANGS.length + 1;
+  return voices.filter(voice => /^es(?:-|$)/.test(language(voice)) && !MALE.test(voice.name)).sort((a, b) => rank(a) - rank(b));
+}
 export function femaleVoice<V extends {name: string; lang: string}>(voices: V[]): V | undefined {
-  const spanish = voices.filter(voice => voice.lang.toLowerCase().startsWith('es') && !MALE.test(voice.name));
-  const rank = (voice: V) => (FEMALE.test(voice.name) ? 0 : 100) + (LANGS.indexOf(voice.lang) + 1 || LANGS.length + 1);
-  const best = spanish.sort((a, b) => rank(a) - rank(b))[0];
-  return best && FEMALE.test(best.name) ? best : undefined;
+  return spanishVoices(voices).find(voice => FEMALE.test(voice.name));
+}
+export function advisorVoice<V extends Voice>(voices: V[]): V | undefined {
+  return femaleVoice(voices) ?? spanishVoices(voices)[0];
 }

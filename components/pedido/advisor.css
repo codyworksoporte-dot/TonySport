@@ -9,7 +9,9 @@
 .pedido-advisor-actions button:active{transform:translateY(1px)}
 .pedido-advisor-actions .pedido-advisor-voice[aria-pressed=true]{border-color:#b7dd79;background:linear-gradient(180deg,#c9f27f,#9fdc4d);color:#10200f;box-shadow:inset 0 1px 0 #f3ffd9,0 2px 0 #4f7a22}
 .pedido-advisor-actions .pedido-advisor-voice[aria-pressed=true] svg{color:#10200f}
-.pedido-advisor-actions .pedido-advisor-hide{margin-left:auto;border-color:transparent;background:none;box-shadow:none;color:var(--pedido-muted,#adbcae);font-weight:600}
+.pedido-advisor-actions .pedido-advisor-hide{margin-left:auto;border-color:#718462;background:#14291d;color:var(--pedido-ink,#eaf0e3);font-weight:600}
+.pedido-advisor-actions button:focus-visible,.pedido-advisor-recall:focus-visible{outline:2px solid #d4f69e;outline-offset:3px}
+.pedido-advisor-actions button:disabled{opacity:.65;cursor:not-allowed}
 .pedido-advisor-actions .pedido-advisor-hide svg{color:currentColor;width:13px;height:13px}
 @media(hover:hover){.pedido-advisor-actions button:hover{border-color:#b7dd79}.pedido-advisor-actions .pedido-advisor-hide:hover{color:var(--pedido-ink,#eaf0e3)}}
 .pedido-advisor-note{margin:10px 0 0;font-size:11.5px;color:var(--pedido-muted,#adbcae)}

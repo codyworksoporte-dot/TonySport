@@ -1,7 +1,8 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
 import {siteAsset} from '@/lib/asset-path';
-import {femaleVoice, spoken, type AdvisorCue} from '@/lib/pedido/advisor';
+import {type AdvisorCue} from '@/lib/pedido/advisor';
+import {useAdvisorSpeech} from './useAdvisorSpeech';
 import './advisor.css';
 
 /** Remembered per browser: whether the advisor is shown and speaks. Voice starts on. */
@@ -20,59 +21,34 @@ const activated = () => (navigator as Navigator & {userActivation?: {hasBeenActi
  */
 export default function PedidoAdvisor({cue, step}: {cue: AdvisorCue; step: number}) {
   const [preference, setPreference] = useState<Preference>({visible: true, voice: true});
-  const [speaking, setSpeaking] = useState(false), [canSpeak, setCanSpeak] = useState(false), [voiceChecked, setVoiceChecked] = useState(false), [docked, setDocked] = useState(false);
-  const card = useRef<HTMLElement>(null), latest = useRef(cue), said = useRef(''), lastStep = useRef(step), lastTarget = useRef({step: -1, target: undefined as string | undefined}), run = useRef(0);
+  const [docked, setDocked] = useState(false);
+  const {availability, playback, deviceVoice, speak, stop, canSpeak, speaking} = useAdvisorSpeech();
+  const voiceFailure = playback === 'blocked' || playback === 'error';
+  const card = useRef<HTMLElement>(null), latest = useRef(cue), said = useRef(''), lastStep = useRef(step), lastTarget = useRef({step: -1, target: undefined as string | undefined});
   latest.current = cue;
 
   useEffect(() => {
-    const check = () => setCanSpeak('speechSynthesis' in window && !!femaleVoice(window.speechSynthesis.getVoices()));
-    check();
-    // Voices arrive a moment after load on some browsers: only then can we say there is none.
-    const settle = window.setTimeout(() => {check(); setVoiceChecked(true);}, 1500);
-    window.speechSynthesis?.addEventListener?.('voiceschanged', check);
     try {
       const saved = JSON.parse(localStorage.getItem(PREFERENCE) || 'null');
       if (saved && typeof saved.visible === 'boolean') setPreference({visible: saved.visible, voice: saved.voice !== false});
     } catch { /* The advisor then starts visible and speaking for this visit. */ }
-    return () => {clearTimeout(settle); window.speechSynthesis?.removeEventListener?.('voiceschanged', check); window.speechSynthesis?.cancel();};
   }, []);
 
   function remember(next: Preference) {
     setPreference(next);
     try {localStorage.setItem(PREFERENCE, JSON.stringify(next));} catch { /* Only this visit keeps the choice. */ }
   }
-  function stop() {run.current++; window.speechSynthesis?.cancel(); setSpeaking(false);}
-  /** Sentence by sentence: some voices cut long utterances short. */
-  function speak(text: string) {
-    if (!('speechSynthesis' in window)) return;
-    stop();
-    const voice = femaleVoice(window.speechSynthesis.getVoices());
-    if (!voice) return;
-    const token = run.current;
-    const sentences = spoken(text).split(/(?<=[.!?])\s+/).filter(Boolean);
-    sentences.forEach((sentence, index) => {
-      const utterance = new SpeechSynthesisUtterance(sentence);
-      utterance.voice = voice;
-      utterance.lang = voice.lang;
-      utterance.rate = 1.02;
-      utterance.pitch = 1.05;
-      if (index === sentences.length - 1) utterance.onend = () => {if (token === run.current) setSpeaking(false);};
-      utterance.onerror = () => {if (token === run.current) setSpeaking(false);};
-      window.speechSynthesis.speak(utterance);
-    });
-    setSpeaking(true);
-  }
 
   // Speak each new instruction once: quickly on a new step, after a short pause
   // while choosing or typing inside a step so it doesn't talk over every keystroke.
   useEffect(() => {
-    if (!preference.visible || !preference.voice || !canSpeak || said.current === cue.key) return;
+    if (!preference.visible || !preference.voice || !canSpeak || voiceFailure || said.current === cue.key) return;
     const newStep = lastStep.current !== step;
     let first: (() => void) | undefined;
     let activationTimer = 0;
     const timer = window.setTimeout(() => {
       const current = latest.current;
-      if (said.current === current.key) return;
+      if (document.hidden || said.current === current.key) return;
       if (activated()) {said.current = current.key; speak(current.text); return;}
       // Before any click the browser keeps the page silent: speak on the first touch or key,
       // once that touch has done its work (it may have opened the next step).
@@ -83,9 +59,7 @@ export default function PedidoAdvisor({cue, step}: {cue: AdvisorCue; step: numbe
       window.addEventListener('pointerdown', first, true); window.addEventListener('keydown', first, true);
     }, cue.warning ? 120 : newStep ? 350 : 900);
     return () => {clearTimeout(timer); clearTimeout(activationTimer); if (first) {window.removeEventListener('pointerdown', first, true); window.removeEventListener('keydown', first, true);}};
-    // speak() only reads refs and stable setters.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cue.key, step, preference.visible, preference.voice, canSpeak]);
+  }, [cue.key, step, preference.visible, preference.voice, canSpeak, voiceFailure, speak]);
   useEffect(() => {lastStep.current = step;}, [step]);
 
   // Outline the part of the form the advice is about; within a step, bring the next part into view.
@@ -107,11 +81,18 @@ export default function PedidoAdvisor({cue, step}: {cue: AdvisorCue; step: numbe
 
   // The bubble appears only while the full card is out of view.
   useEffect(() => {
-    const element = card.current;
-    if (!element || !preference.visible) {setDocked(false); return;}
-    const observer = new IntersectionObserver(([entry]) => setDocked(!entry.isIntersecting), {rootMargin: '-80px 0px 0px 0px'});
-    observer.observe(element);
-    return () => observer.disconnect();
+    const mobile = matchMedia('(max-width: 900px)');
+    let observer: IntersectionObserver | undefined;
+    const observe = () => {
+      observer?.disconnect();
+      setDocked(false);
+      if (mobile.matches || !card.current || !preference.visible) return;
+      observer = new IntersectionObserver(([entry]) => setDocked(!entry.isIntersecting), {rootMargin: '-80px 0px 0px 0px'});
+      observer.observe(card.current);
+    };
+    observe();
+    mobile.addEventListener('change', observe);
+    return () => {observer?.disconnect(); mobile.removeEventListener('change', observe);};
   }, [preference.visible]);
 
   const icon = (d: string) => <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d}/></svg>;
@@ -122,7 +103,19 @@ export default function PedidoAdvisor({cue, step}: {cue: AdvisorCue; step: numbe
     stop: 'M7 7h10v10H7Z',
     hide: 'M6 6l12 12M18 6 6 18',
   };
-  const voiceButton = canSpeak && <button type="button" className="pedido-advisor-voice" aria-pressed={preference.voice} onClick={() => {const voice = !preference.voice; remember({...preference, voice}); if (voice) {said.current = cue.key; speak(cue.text);} else stop();}}>{icon(preference.voice ? ICONS.on : ICONS.off)}<span>{preference.voice ? 'Voz activada' : 'Voz en silencio'}</span></button>;
+  const voiceActive = preference.voice && canSpeak && !voiceFailure;
+  const voiceLabel = availability === 'unsupported' ? 'Voz no disponible' : voiceFailure ? 'Escuchar guía' : availability === 'missing' ? 'Reintentar voz' : voiceActive ? 'Voz activada' : 'Escuchar guía';
+  const voiceButton = <button type="button" className="pedido-advisor-voice" disabled={availability === 'unsupported'} aria-pressed={voiceActive} onClick={() => {
+    const voice = !voiceActive;
+    remember({...preference, voice});
+    if (voice) {said.current = cue.key; speak(cue.text);} else stop();
+  }}>{icon(voiceActive ? ICONS.on : ICONS.off)}<span>{voiceLabel}</span></button>;
+  const note = playback === 'blocked' ? 'Toca Escuchar guía para activar el audio. También puedes seguir por escrito.'
+    : playback === 'error' ? 'No se pudo reproducir la voz. Toca Escuchar guía para reintentar.'
+    : availability === 'unsupported' ? 'Este navegador no permite leer la guía en voz alta. Puedes seguir por escrito.'
+    : availability === 'missing' ? 'La voz aún no está disponible en este navegador. Puedes reintentar o seguir por escrito.'
+    : availability === 'loading' ? 'Preparando la voz. Puedes continuar mientras tanto.'
+    : deviceVoice ? 'Uso la voz en español disponible en tu dispositivo.' : '';
   const state = `${speaking ? ' is-speaking' : ''}${cue.warning ? ' is-warning' : ''}`;
 
   if (!preference.visible) return <button type="button" className="pedido-advisor-recall" onClick={() => {remember({...preference, visible: true}); said.current = '';}}>
@@ -140,10 +133,10 @@ export default function PedidoAdvisor({cue, step}: {cue: AdvisorCue; step: numbe
         <p className="pedido-advisor-message" aria-live="polite">{cue.text}</p>
         <div className="pedido-advisor-actions">
           {voiceButton}
-          {canSpeak && <button type="button" onClick={() => speaking ? stop() : speak(cue.text)}>{icon(speaking ? ICONS.stop : ICONS.again)}<span>{speaking ? 'Detener' : 'Repetir'}</span></button>}
+          {canSpeak && !voiceFailure && <button type="button" onClick={() => {said.current = cue.key; if (speaking) stop(); else speak(cue.text);}}>{icon(speaking ? ICONS.stop : ICONS.again)}<span>{speaking ? 'Detener' : 'Repetir'}</span></button>}
           <button type="button" className="pedido-advisor-hide" onClick={() => {stop(); remember({...preference, visible: false});}}>{icon(ICONS.hide)}<span>No quiero asesora</span></button>
         </div>
-        {!canSpeak && voiceChecked && <p className="pedido-advisor-note">Este dispositivo no tiene una voz femenina en español; te guío por escrito.</p>}
+        {note && <p className="pedido-advisor-note" role="status">{note}</p>}
       </div>
     </section>
     <div className={`pedido-advisor-dock${docked ? ' is-shown' : ''}${state}`} aria-hidden={!docked} inert={!docked}>
