@@ -14,6 +14,10 @@ function notify(next:AuthState) {
   if(typeof window!=='undefined') for(const name of [event,'tony:cart-changed','tony-pedido-updated']) window.dispatchEvent(new Event(name));
 }
 export function accountToken() {try{return sessionStorage.getItem(tokenKey)||memoryToken;}catch{return memoryToken;}}
+// A payment return must recover the account token after this page reloads.
+export function accountTokenPersisted(token:string):boolean {
+  try{return !!token && sessionStorage.getItem(tokenKey)===token;}catch{return false;}
+}
 export function forgetAccount() {
   memoryToken='';try{sessionStorage.removeItem(tokenKey);}catch{/* Memory-only sessions. */}
   notify({user:null,status:'guest',error:'',expiresAt:0});

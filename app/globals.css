@@ -41,3 +41,4 @@ html{scroll-padding-top:82px}.utility-bar{height:28px;justify-content:center;pad
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}.hero-campaign-art{transform:none!important}}
 
 
+.privacy-inline-link{color:var(--venom);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}.privacy-inline-link:focus-visible{outline:2px solid var(--venom);outline-offset:4px}

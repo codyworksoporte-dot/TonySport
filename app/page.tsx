@@ -16,6 +16,8 @@ const questions=[
   ['¿La imagen del configurador es el diseño final?','Es una vista ilustrativa para ayudarte a comunicar tu idea. Tony debe confirmar el diseño final, los colores, las tallas y las condiciones antes de iniciar la producción.'],
   ['¿Cómo consulto precios y tiempos de entrega?','Escríbenos por WhatsApp al 7015-5571 con la cantidad de prendas y los detalles de tu equipo. Tony te confirmará la cotización y el tiempo de producción.'],
   ['¿Dónde puedo ver el catálogo?','En Catálogo encontrarás 70 diseños para personalizar. En Colecciones puedes explorar Mundial, Anime y todas las líneas del sitio oficial, y consultar con Tony por WhatsApp.'],
+  ['¿Se confirma mi pedido al guardar el diseño?','Guardar un diseño o ponerlo en el carrito conserva tu idea en este navegador. La confirmación requiere que Tony reciba el pedido y se cumplan las condiciones acordadas de diseño, información y pago.'],
+  ['¿Cómo pido un cambio o presento un reclamo?','Contacta a Tony al 7015-5571 o a info@tonysportselsalvador.com con la referencia del pedido y el detalle de tu solicitud. En el Centro de ayuda encontrarás cómo preparar la consulta sobre cambios, garantías o pagos.'],
 ];
 
 export default function Home(){

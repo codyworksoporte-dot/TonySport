@@ -2,9 +2,11 @@
 
 Sitio público de TONY SPORTSWEAR, orientado a presentar la marca y preparar la solicitud de uniformes de un equipo completo. [Abrir la versión publicada en GitHub Pages](https://codyworksoporte-dot.github.io/TonySport/). La dirección combina verde bosque, escamas de lagarto en el entorno de la página, una campaña conceptual de gran formato y botones lima. El protagonismo del fútbol de Charly México y la presencia deportiva de Under Armour sirven como referencias para una experiencia propia de TONY. Las prendas empiezan con una base lisa; las escamas son una alternativa de diseño.
 
-El proyecto está en fase de base visual y funcional. No es todavía una tienda preparada para producción. El catálogo nuevo, DTE, IVA, la decisión sobre pagos y el dominio propio siguen pendientes por indicación del usuario. El detalle está en [Alcance y pendientes](docs/ALCANCE-Y-PENDIENTES.md).
+El proyecto está en fase de preparación para producción. El catálogo incluye 70 diseños para personalizar y el configurador actual tiene once pasos de preparación, además de Inicio y confirmación. El código incorpora una API PHP para pedidos, cuentas, IA y pagos; la configuración y verificación de los servicios en el alojamiento definitivo siguen pendientes. El dominio, la información fiscal y las condiciones comerciales deben confirmarse antes de habilitar ventas. La [revisión vigente del 30 de septiembre de 2026](docs/REVISION-Y-PENDIENTES-2026-09-30.md) reúne las mejoras y los pendientes. El editor anterior de cuatro pasos se conserva en `/configurador/archivo`; las descripciones de fases anteriores de este documento conservan su contexto histórico.
 
 ## Publicación
+
+La [revisión del 30 de septiembre de 2026](docs/REVISION-Y-PENDIENTES-2026-09-30.md) documenta las mejoras de privacidad, condiciones, cookies y centro de ayuda, y los datos comerciales y legales que todavía deben confirmarse antes de habilitar ventas. El catálogo y los servicios actuales deben evaluarse con el código vigente; las descripciones de fases anteriores que aparecen más abajo conservan su contexto histórico.
 
 Cada cambio enviado a `main` compila una exportación estática mediante [GitHub Actions](.github/workflows/pages.yml) y la publica en GitHub Pages. En la configuración del repositorio, **Pages → Build and deployment → Source** debe estar en **GitHub Actions**. La exportación usa el prefijo `/TonySport` para que funcionen rutas y recursos en el sitio del proyecto. Para comprobarla antes de publicar:
 

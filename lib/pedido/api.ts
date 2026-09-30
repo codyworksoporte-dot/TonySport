@@ -1,5 +1,5 @@
 import {siteAsset} from '../asset-path';
-import {authEnabled, accountToken, forgetAccount} from '../auth';
+import {authEnabled, accountToken, accountTokenPersisted, forgetAccount} from '../auth';
 import type {Buyer, Delivery, Payment, PedidoDraft, PedidoPricing} from './types';
 
 const BASE = (process.env.NEXT_PUBLIC_TONY_API_BASE || '').replace(/\/+$/, '');
@@ -118,7 +118,7 @@ export async function quotePedido(order: PedidoDraft, delivery: Delivery) {retur
 export async function createPayment(order: PedidoDraft, delivery: Delivery, amountCents: number, key: string) {
   if (!Number.isSafeInteger(amountCents) || amountCents <= 0) throw new Error('El anticipo no es válido. Actualiza la cotización.');
   const token = await session();
-  let persists = false; try {persists = sessionStorage.getItem(TOKEN_KEY) === token;} catch { /* A payment return must be able to recover this session. */ }
+  let persists = false; try {persists = authEnabled ? accountTokenPersisted(token) : sessionStorage.getItem(TOKEN_KEY) === token;} catch { /* A payment return must be able to recover this session. */ }
   if (!persists) throw new Error('Tu navegador no permite conservar la sesión para volver del pago. Habilita el almacenamiento de esta pestaña o utiliza transferencia.');
   const result = await post<ResponseObject & CreatedPayment>('wompi-crear-pago.php', {order: await apiOrder(order), delivery, amountCents}, key);
   validReference(result.reference);

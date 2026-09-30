@@ -3,7 +3,7 @@ import {SPORT_LINES} from './lines';
 import {PRODUCT_CATEGORIES, productHref} from './products';
 
 export const company = [['/nosotros','Nuestra historia','De El Salvador, con identidad.'],['/patrocinio','Patrocinios','Proyectos que comparten nuestra pasión.'],['/comunidad','Comunidad, App y TonyPlay','Conexión, responsabilidad social y lo que viene.']];
-export const customer = [['/tiendas','Tiendas','Encuentra la sucursal más cercana.'],['/contacto','Contacto','Conversemos sobre lo que necesitas.'],['/entregas','Entregas','Domicilio y retiro en sucursal.'],['/calidad','Calidad y confección','Telas, técnicas y acabados.'],['/actualidad','Guías y novedades','Información para preparar tu pedido.'],['/resenas','Reseñas','La experiencia de nuestra comunidad.'],['/recientes','Recientes','Consulta tus pedidos recientes.'],['/cuenta','Mi cuenta','Iniciar sesión, registro y contraseña.']];
+export const customer = [['/tiendas','Tiendas','Encuentra la sucursal más cercana.'],['/contacto','Contacto','Conversemos sobre lo que necesitas.'],['/ayuda','Centro de ayuda','Pedidos, tallas, entregas y atención al cliente.'],['/entregas','Entregas','Domicilio y retiro en sucursal.'],['/calidad','Calidad y confección','Telas, técnicas y acabados.'],['/actualidad','Guías y novedades','Información para preparar tu pedido.'],['/resenas','Reseñas','La experiencia de nuestra comunidad.'],['/recientes','Recientes','Consulta tus pedidos recientes.'],['/cuenta','Mi cuenta','Iniciar sesión, registro y contraseña.']];
 export type DirectoryEntry = {href:string;label:string;group:string;terms:string};
 const entries: DirectoryEntry[] = [
   {href:'/',label:'Inicio',group:'EXPLORAR TONY',terms:'pagina principal portada'},
@@ -34,7 +34,10 @@ const entries: DirectoryEntry[] = [
   ...categories.map(category=>({href:`/colecciones?categoria=${encodeURIComponent(category.slug)}`,label:category.name,group:'COLECCIONES OFICIALES',terms:`uniformes catalogo imagenes ${category.slug}`})),
   ...company.map(([href,label,terms])=>({href,label,terms,group:'SOMOS TONY'})),
   ...customer.map(([href,label,terms])=>({href,label,terms:`${terms} ${href==='/tiendas'?'sucursales ubicaciones direcciones horarios':href==='/calidad'?'materiales sublimado bordado estampado':href==='/contacto'?'whatsapp correo telefono ayuda':''}`,group:'PARA TI'})),
-  {href:'/privacidad',label:'Privacidad y uso de tus datos',group:'INFORMACIÓN',terms:'politica datos personales condiciones'},
+  {href:'/privacidad',label:'Privacidad y uso de tus datos',group:'INFORMACIÓN',terms:'politica datos personales derechos eliminar corregir'},
+  {href:'/terminos',label:'Términos y condiciones',group:'INFORMACIÓN',terms:'contrato pedido cotizacion precios pagos anticipo cancelacion devolucion garantia retracto reembolso'},
+  {href:'/cookies',label:'Cookies y almacenamiento',group:'INFORMACIÓN',terms:'privacidad navegador borrador guardado datos preferencias redes almacenamiento local'},
+  {href:'/ayuda#reclamos',label:'Cambios, garantías y reclamos',group:'AYUDA',terms:'devoluciones cancelar cancelacion reembolso retracto reversión atencion cliente problema pedido'},
 ];
 // A recovered album and its old menu option now share one direct destination.
 export const SITE_DIRECTORY = Array.from(new Map(entries.map(item=>[item.href,item])).values());

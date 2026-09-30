@@ -11,4 +11,6 @@
 @media(max-width:370px){.tony-footer-origin{margin-left:44px}}
 @media(prefers-reduced-motion:reduce){.tony-footer *{transition:none!important}.tony-footer-column>a:hover>svg{transform:none}}
 #contactos{scroll-margin-top:100px;outline:none}.tony-footer-email{display:grid;gap:7px;margin:18px 0 10px;min-height:44px;font-size:13px;overflow-wrap:anywhere}.tony-footer-email span{font-size:10px;letter-spacing:.1em;color:var(--mute)}.tony-footer-email strong{font-weight:600;color:var(--venom)}
+.tony-footer-bottom{flex-wrap:wrap}.tony-footer-legal{display:flex;flex-wrap:wrap;gap:4px 20px}.tony-footer-legal a{display:inline-flex;align-items:center;min-height:44px}.tony-footer-legal a:hover{color:var(--venom)}
+@media(max-width:760px){.tony-footer-legal{flex-basis:100%;order:2;gap:0 18px}.tony-footer-bottom>a:nth-child(2){order:0;flex-basis:auto;min-height:44px}.tony-footer-bottom>a:last-child{order:3}}
 @media(max-width:760px){.tony-footer-email{grid-column:1/-1;margin-top:22px}.tony-footer-email strong{font-size:13px}}

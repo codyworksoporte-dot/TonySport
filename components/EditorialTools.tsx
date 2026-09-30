@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import SectionImage, { type SectionPhoto } from './SectionImage';
 
 
@@ -173,7 +174,7 @@ export function SponsorshipProposal() {
       <button type="button" onClick={copyProposal} disabled={copyState === 'busy'} aria-busy={copyState === 'busy'}>{copyState === 'busy' ? 'Copiando…' : copyState === 'success' ? 'Copiada ✓' : 'Copiar propuesta'}</button>
     </div>
     <p className={`te-copy-status${copyState === 'error' ? ' te-feedback-error' : ''}`} role="status">{copyState === 'success' ? 'Propuesta copiada. Ya puedes pegarla donde necesites.' : copyState === 'error' ? 'No se pudo copiar. Inténtalo de nuevo o prepárala en WhatsApp o correo.' : ''}</p>
-    <p className="te-form-note">Compartir una propuesta no confirma patrocinio, aportes ni condiciones. El equipo de Tony debe revisarla contigo.</p>
+    <p className="te-form-note">Compartir una propuesta no confirma patrocinio, aportes ni condiciones. El equipo de Tony debe revisarla contigo. Al abrir WhatsApp o preparar un correo, los datos pasan al canal que elijas y tú confirmas el envío. Consulta la <Link className="privacy-inline-link" href="/privacidad">política de privacidad</Link>.</p>
   </div>;
   return <form className="te-proposal-form" onSubmit={submit} noValidate>
     <div className="te-form-heading"><span className="te-eyebrow">PRESENTA TU EQUIPO</span><h3>Empecemos por conocernos.</h3><p>Completa los datos y revisa tu propuesta antes de compartirla.</p></div>
@@ -188,6 +189,6 @@ export function SponsorshipProposal() {
       <label className="te-form-wide">{labels.idea}<textarea {...inputProps('idea')} rows={5} maxLength={1000} placeholder="Qué hacen, qué necesitan y qué les gustaría construir junto a Tony." />{fieldError('idea')}<small>{value.idea.length}/1000</small></label>
     </div>
     <button type="submit" className="te-button">Revisar mi propuesta <span aria-hidden="true">→</span></button>
-    <p className="te-form-note">Estos datos permanecen en esta página hasta que decidas compartirlos. Este formulario no envía mensajes automáticamente.</p>
+    <p className="te-form-note">Estos datos permanecen en esta página hasta que decidas compartirlos. Este formulario no envía mensajes automáticamente. Usa el contacto de una persona autorizada y evita datos de menores en la propuesta. Consulta la <Link className="privacy-inline-link" href="/privacidad">política de privacidad</Link>.</p>
   </form>;
 }
