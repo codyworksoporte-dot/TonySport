@@ -20,3 +20,4 @@
 .pedido-roster-single .pedido-player .pedido-field{grid-column:2}
 .pedido-roster-single .pedido-player .pedido-field-label>span{font-size:13px}
 @media(max-width:480px){.pedido-wizard-progress{margin:20px 0}.pedido-wizard-progress strong{font-size:11px}.pedido-one-choice .pedido-choice:has(.pedido-choice-img){grid-template-columns:60px minmax(0,1fr);column-gap:13px;padding-right:40px}.pedido-one-choice .pedido-choice .pedido-choice-img{width:60px;height:68px}.pedido-one-choice .pedido-choice strong{font-size:16px}.pedido-one-choice .pedido-choice>span:not(.pedido-choice-check){font-size:11px}.pedido-one-choice .pedido-choice .pedido-choice-check{right:12px}}
+.pedido-prices .pedido-unit-price dd strong{font-size:26px;color:var(--pedido-green)}.pedido-prices .pedido-price-pending dd{font-size:13px;font-weight:400;white-space:normal;text-align:right}

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, PointerEvent } from 'react';
 import type { PedidoDesign, PedidoDraft, PedidoLayer } from '@/lib/pedido/types';
 import { siteAsset } from '@/lib/asset-path';
+import {money, PRICES} from '@/lib/pedido/pricing';
 import CatalogPicker, { type CatalogDesign } from './CatalogPicker';
 import { fitImage, resetToZone, roleOf, samplePlayer, scaleLayer, textLayer, zoneFor, type Role } from '@/lib/pedido/layout';
 import './editor.css';
@@ -229,7 +230,8 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
     setError(''); try { const href = await renderPedidoDesign(current.current.design, side); const link = document.createElement('a'); link.href = href; link.download = `tony-${draft.design.catalogCode || 'propio'}-${side === 'front' ? 'frontal' : 'dorsal'}.png`; link.click(); setMessage('Vista preparada para descargar.'); } catch (reason) { setError(reason instanceof Error ? reason.message : 'No pudimos exportar la vista.'); }
   }
   return <section className="pedido-editor" aria-label="Editor de tu uniforme" data-history={historyVersion}>
-    <div className="pedido-editor-heading"><div><span className="pedido-editor-kicker">Tu identidad, a tu manera</span><h3>Diseña las dos caras.</h3></div><span className="pedido-design-code">{draft.design.catalogCode || 'Diseño propio'}</span></div>
+    <div className="pedido-editor-heading"><div><span className="pedido-editor-kicker">Tu identidad, a tu manera</span><h3>Diseña las dos caras.</h3></div><span className="pedido-design-code">{draft.design.catalogCode || (draft.design.front || draft.design.back ? 'Diseño propio' : 'Diseño por elegir')}</span></div>
+    {!draft.design.front && !draft.design.back && <p className="pedido-fine">Catálogo Tony: sin recargo de creación. Subir un diseño propio: +{money(PRICES.design.creationCents)} por pedido.</p>}
     <div className="pedido-editor-toolbar"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => setCatalogOpen(value => !value)}>▦ {catalogOpen ? 'Ocultar catálogo' : 'Explorar 70 diseños'}</button><button type="button" className="pedido-tool-button" disabled={disabled || !past.current.length} onClick={undo}>↶ Deshacer</button><button type="button" className="pedido-tool-button" disabled={disabled || !future.current.length} onClick={redo}>↷ Rehacer</button></div>
     {catalogOpen && <CatalogPicker value={draft.design.catalogCode} disabled={disabled} onSelect={selectCatalog} onClose={() => setCatalogOpen(false)} />}
     <div className="pedido-editor-workspace" aria-busy={disabled} data-mobile-panel={mobilePanel}>

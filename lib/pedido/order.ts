@@ -7,7 +7,7 @@ const newPlayer = (): PedidoPlayer => ({id: id(), name: '', number: '', size: ''
 export function createPedido(product: Product = 'uniform'): PedidoDraft {
   return {
     version: 279, id: id(), product, gender: '', quantity: MIN_QUANTITY,
-    choices: {product: false, brand: false, brand3d: false, crest3d: false},
+    choices: {product: false, brand: false, brand3d: false, crest3d: false, quantity: false},
     teamName: '', notes: '', shortsNumber: true,
     config: {mold: '', fabric: '', collar: '', sleeve: '', brand: 'Propia', brand3d: false, crest3d: false},
     players: Array.from({length: MIN_QUANTITY}, newPlayer), goalkeepers: [],
@@ -69,7 +69,7 @@ export function readPedido(value: unknown): PedidoDraft | null {
   const sockValues = value.socks as Record<string, number>;
   return {
     version: 279, id: value.id, product: value.product as Product, gender: value.gender as PedidoDraft['gender'], quantity: value.quantity as number,
-    ...(record(value.choices) ? {choices: {product: value.choices.product === true, brand: value.choices.brand === true, brand3d: value.choices.brand3d === true, crest3d: value.choices.crest3d === true}} : {}),
+    ...(record(value.choices) ? {choices: {product: value.choices.product === true, brand: value.choices.brand === true, brand3d: value.choices.brand3d === true, crest3d: value.choices.crest3d === true, ...(typeof value.choices.quantity === 'boolean' ? {quantity: value.choices.quantity} : {})}} : {}),
     teamName: value.teamName, notes: value.notes, shortsNumber: value.shortsNumber,
     config: {mold: config.mold as PedidoDraft['config']['mold'], fabric: config.fabric as PedidoDraft['config']['fabric'], collar: config.collar as PedidoDraft['config']['collar'], sleeve: config.sleeve as PedidoDraft['config']['sleeve'], brand: config.brand as 'Tony' | 'Propia', brand3d: config.brand3d as boolean, crest3d: config.crest3d as boolean},
     players: players as PedidoPlayer[], goalkeepers: goalkeepers as PedidoGoalkeeper[],

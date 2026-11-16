@@ -46,6 +46,11 @@ test('configuración muestra una decisión, conserva selecciones al volver y exi
   await page.getByLabel('Nombre de equipo',{exact:true}).fill('EQUIPO DE PRUEBA');
   await continuePedido(page);
   await expect(page.getByRole('heading',{name:'¿Cuántas prendas necesitas?',exact:true})).toBeVisible();
+  const quantity=page.getByRole('spinbutton');
+  await expect(quantity).toHaveValue('');
+  await continuePedido(page);
+  await expect(page.getByRole('alert').first()).toContainText('El pedido es de 6 a 99 prendas de campo.');
+  await quantity.fill('6');
   await continuePedido(page);
   await expect(page.getByRole('heading',{name:'Jugador 1 de 6',exact:true})).toBeVisible();
   await expect(page.locator('.pedido-player')).toHaveCount(1);
@@ -64,7 +69,7 @@ test('recuperar un borrador parcial conserva los acabados sin responder', async 
   await page.emulateMedia({reducedMotion:'reduce'});
   await mockPedidoApi(page);
   const draft=completePedido();
-  draft.choices={product:true,brand:true,brand3d:false,crest3d:false};
+  draft.choices={...draft.choices!,brand3d:false,crest3d:false};
   await seedPedido(page,draft);
   await page.goto('/configurador?borrador=actual');
   await expect(page.getByText('Recuperamos tu diseño. Revisa los pasos para continuar.')).toBeVisible();

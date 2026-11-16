@@ -20,44 +20,62 @@ async function startUniform(page: Page) {
   await continuePedido(page);
 }
 
-test('los recargos se suman inmediatamente para las seis prendas antes de elegir tallas', async ({page}) => {
+test('muestra precio por prenda y suma el total solo al confirmar la cantidad', async ({page}) => {
   await page.goto('/configurador');
   await startUniform(page);
-  await expect(page.locator('.pedido-aside .pedido-price-total dt')).toHaveText('Total estimado');
-  // Six uniforms (77.94) plus the current own-design service (5.00).
-  await expect(total(page)).toHaveText('$82.94');
-  await choose(page,'Molde','Raglan'); // +6 × 1.50
-  await expect(total(page)).toHaveText('$91.94');
+  const unit=page.locator('.pedido-aside .pedido-unit-price dd');
+  await expect(page.locator('.pedido-aside .pedido-price-total dt')).toHaveText('Total pendiente');
+  await expect(total(page)).toHaveText('Elige la cantidad');
+  await expect(unit).toHaveText('$12.99');
+  await expect(page.locator('.pedido-aside .pedido-prices')).not.toContainText('Anticipo');
+  await expect(page.locator('.pedido-aside .pedido-prices')).not.toContainText('Creación del diseño');
+  await choose(page,'Molde','Raglan'); // +1.50 per garment, with no assumed quantity.
+  await expect(unit).toHaveText('$14.49');
   await choose(page,'Molde','Estándar');
-  await expect(total(page)).toHaveText('$82.94');
+  await expect(unit).toHaveText('$12.99');
   await choose(page,'Molde','Raglan');
   await continuePedido(page);
-  await choose(page,'Tela','Dryfit'); // +6 × 1.75
-  await expect(total(page)).toHaveText('$102.44');
+  await choose(page,'Tela','Dryfit');
+  await expect(unit).toHaveText('$16.24');
   await choose(page,'Tela','Slim Pro'); // Replace Dryfit; do not accumulate both fees.
-  await expect(total(page)).toHaveText('$96.44');
+  await expect(unit).toHaveText('$15.24');
   await choose(page,'Tela','Dryfit');
   await page.getByRole('button',{name:/Anterior/}).click();
   await choose(page,'Molde','Estándar');
-  await expect(total(page)).toHaveText('$93.44');
+  await expect(unit).toHaveText('$14.74');
   await choose(page,'Molde','Raglan');
   await continuePedido(page);
   await continuePedido(page);
-  await choose(page,'Cuello','Polo'); // +6 × 1.50
-  await expect(total(page)).toHaveText('$111.44');
+  await choose(page,'Cuello','Polo');
+  await expect(unit).toHaveText('$17.74');
   await continuePedido(page);
-  await choose(page,'Manga','Larga'); // +6 × 3.00
-  await expect(total(page)).toHaveText('$129.44');
+  await choose(page,'Manga','Larga');
+  await expect(unit).toHaveText('$20.74');
   await continuePedido(page);
-  await page.getByRole('button',{name:/^Marca Tony/}).click(); // −6 × 0.50
-  await expect(total(page)).toHaveText('$126.44');
+  await page.getByRole('button',{name:/^Marca Tony/}).click();
+  await expect(unit).toHaveText('$20.24');
   await continuePedido(page);
-  await choose(page,'Acabado de la marca','Relieve 3D'); // +6 × 1.75
-  await expect(total(page)).toHaveText('$136.94');
+  await choose(page,'Acabado de la marca','Relieve 3D');
+  await expect(unit).toHaveText('$21.99');
   await continuePedido(page);
   await choose(page,'Acabado del escudo','Relieve 3D');
-  await expect(total(page)).toHaveText('$147.44');
-  await expect(page.locator('.pedido-aside .pedido-prices')).toContainText('$73.72');
+  await expect(unit).toHaveText('$23.74');
+  await expect(total(page)).toHaveText('Elige la cantidad');
+  await continuePedido(page);
+  await page.getByLabel('Nombre de equipo',{exact:true}).fill('EQUIPO DE PRUEBA');
+  await continuePedido(page);
+  await expect(page.getByRole('heading',{name:'¿Cuántas prendas necesitas?',exact:true})).toBeVisible();
+  const quantity=page.getByRole('spinbutton');
+  await expect(quantity).toHaveValue('');
+  await continuePedido(page);
+  await expect(page.getByRole('alert').first()).toContainText('El pedido es de 6 a 99 prendas de campo.');
+  await expect(total(page)).toHaveText('Elige la cantidad');
+  await quantity.fill('6');
+  await continuePedido(page);
+  await expect(page.getByRole('heading',{name:'Jugador 1 de 6',exact:true})).toBeVisible();
+  await expect(total(page)).toHaveText('$142.44');
+  await expect(page.locator('.pedido-aside .pedido-prices')).toContainText('$71.22');
+  await expect(page.locator('.pedido-aside .pedido-prices')).not.toContainText('Creación del diseño');
 });
 
 test('un pedido nuevo y una recarga no seleccionan las respuestas del borrador anterior', async ({page}) => {

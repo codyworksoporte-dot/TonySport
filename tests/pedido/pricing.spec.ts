@@ -20,17 +20,17 @@ test('diseño propio suma $5 y el pedido incompleto cobra solamente tallas selec
 
 test('el estimado suma los recargos de todas las prendas antes de escoger tallas', () => {
   const order = createPedido();
-  expect(estimatePedido(order)).toMatchObject({fieldQuantity: 6, totalCents: 8294, depositCents: 4147, balanceCents: 4147});
+  expect(estimatePedido(order)).toMatchObject({fieldQuantity: 6, creationDesignCents: 0, totalCents: 7794, depositCents: 3897, balanceCents: 3897});
   order.config.mold = 'Raglan';
-  expect(estimatePedido(order).totalCents).toBe(9194);
+  expect(estimatePedido(order).totalCents).toBe(8694);
   order.config.fabric = 'Dryfit';
-  expect(estimatePedido(order).totalCents).toBe(10244);
+  expect(estimatePedido(order).totalCents).toBe(9744);
   order.config.collar = 'Chino';
   order.config.sleeve = 'Larga';
   order.config.brand3d = true;
   order.config.crest3d = true;
   order.config.brand = 'Tony';
-  expect(estimatePedido(order)).toMatchObject({garmentExtrasCents: 4350, threeDCents: 2100, discountCents: 300, totalCents: 14444, depositCents: 7222, balanceCents: 7222});
+  expect(estimatePedido(order)).toMatchObject({garmentExtrasCents: 4350, threeDCents: 2100, discountCents: 300, totalCents: 13944, depositCents: 6972, balanceCents: 6972});
   // Previewing does not populate real sizes or change the exact server calculation.
   expect(order.players.every(player => player.size === '')).toBe(true);
   expect(calculatePedido(order)).toMatchObject({fieldQuantity: 0, totalCents: 500});
@@ -39,12 +39,21 @@ test('el estimado suma los recargos de todas las prendas antes de escoger tallas
 test('el estimado conserva tallas especiales conocidas y se ajusta al cambiar la cantidad', () => {
   const order = createPedido();
   order.players[0].size = '2XL';
-  expect(estimatePedido(order)).toMatchObject({fieldQuantity: 6, sizeExtrasCents: 200, totalCents: 8494});
+  expect(estimatePedido(order)).toMatchObject({fieldQuantity: 6, sizeExtrasCents: 200, totalCents: 7994});
   const expanded = resizePlayers(order, 12);
   expanded.goalkeepers = [{id: 'keeper-estimate', size: '', name: '', number: '', color: ''}];
-  expect(estimatePedido(expanded)).toMatchObject({fieldQuantity: 12, sizeExtrasCents: 200, freeKeeper: true, keeperCents: 0, totalCents: 16288});
+  expect(estimatePedido(expanded)).toMatchObject({fieldQuantity: 12, sizeExtrasCents: 200, freeKeeper: true, keeperCents: 0, totalCents: 15788});
   expanded.socks.Negro = 2;
-  expect(estimatePedido(expanded, 'home').totalCents).toBe(17138);
+  expect(estimatePedido(expanded, 'home').totalCents).toBe(16638);
+});
+
+test('el servicio de diseño propio se suma únicamente después de cargar un diseño', () => {
+  const order = createPedido();
+  order.players = order.players.map(player => ({...player, size: 'M'}));
+  expect(estimatePedido(order)).toMatchObject({creationDesignCents: 0, designServicesCents: 0, totalCents: 7794});
+  order.design.front = DEMO_IMAGE;
+  expect(estimatePedido(order)).toMatchObject({creationDesignCents: 500, designServicesCents: 500, totalCents: 8294});
+  expect(estimatePedido(order)).toEqual(calculatePedido(order));
 });
 
 test('al completar las tallas el estimado coincide exactamente con el cálculo definitivo', () => {

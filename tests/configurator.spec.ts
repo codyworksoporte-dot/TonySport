@@ -53,6 +53,7 @@ test('nada viene marcado; para quién, marca y cada jugador se validan antes de 
   await page.getByLabel(/^Nombre de equipo/).fill('EQUIPO DE PRUEBA');
   await continuePedido(page);
   await expect(page.getByRole('heading',{name:'¿Cuántas prendas necesitas?',exact:true})).toBeVisible();
+  await page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true}).fill('6');
   await continuePedido(page);
   for(let i=1;i<=6;i++) {
     await expect(page.getByRole('heading',{name:`Jugador ${i} de 6`,exact:true})).toBeVisible();
@@ -61,8 +62,8 @@ test('nada viene marcado; para quién, marca y cada jugador se validan antes de 
     await page.getByLabel(`Dorsal jugador ${i}`,{exact:true}).fill(String(i));
     await continuePedido(page);
   }
-  // 6 × 12.99 + talla 2XL 2.00 + diseño propio 5.00 = 84.94.
-  await expect(page.locator('.pedido-aside .pedido-price-total dd')).toHaveText('$84.94');
+  // 6 × 12.99 + talla 2XL 2.00 = 79.94; todavía no hay diseño elegido.
+  await expect(page.locator('.pedido-aside .pedido-price-total dd')).toHaveText('$79.94');
   await expect(page.getByRole('heading',{name:'Agrega tus porteros',exact:true})).toBeVisible();
   await continuePedido(page);
   await expect(page.getByRole('heading',{name:'Indicaciones adicionales',exact:true})).toBeVisible();

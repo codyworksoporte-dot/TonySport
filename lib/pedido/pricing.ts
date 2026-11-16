@@ -115,14 +115,17 @@ export function calculatePedido(order: PedidoDraft, deliveryKind: DeliveryKind =
   return {currency: 'USD', fieldQuantity, paidKeeperCount, freeKeeper, baseCents, garmentExtrasCents, sizeExtrasCents, creationDesignCents, crestDesignCount, crestDesignCents, brandDesignCount, brandDesignCents, sponsorCount, sponsorCents, designServicesCents, crest3dCents, brand3dCents, threeDCents, sockQuantity, socksCents, keeperSizeExtrasCents, keeperCents, discountCents, deliveryCents, totalCents, depositCents, balanceCents: totalCents - depositCents};
 }
 
-/** Preview all planned garments before their sizes are chosen. Unknown sizes have
- * no size surcharge; selected sizes and every other price rule remain unchanged.
- * Checkout and the server continue to use calculatePedido with the real sizes.
+/** Preview the selected garments and services. Unknown sizes have no surcharge;
+ * an empty editor has not selected the own-design service yet.
+ * Checkout and the server continue to use calculatePedido with the real design.
  */
 export function estimatePedido(order: PedidoDraft, deliveryKind: DeliveryKind = ''): PedidoPricing {
   const actual = calculatePedido(order, deliveryKind);
-  if (order.players.every(player => player.size !== '')) return actual;
-  return calculatePedido({...order, players: order.players.map(player => player.size === '' ? {...player, size: 'M' as const} : player)}, deliveryKind);
+  const preview = order.players.every(player => player.size !== '') ? actual : calculatePedido({...order, players: order.players.map(player => player.size === '' ? {...player, size: 'M' as const} : player)}, deliveryKind);
+  if (order.design.source !== 'own' || order.design.front || order.design.back) return preview;
+  const totalCents = Math.max(0, preview.totalCents - preview.creationDesignCents);
+  const depositCents = Math.round(totalCents * prices.deposit.numerator / prices.deposit.denominator);
+  return {...preview, creationDesignCents: 0, designServicesCents: preview.designServicesCents - preview.creationDesignCents, totalCents, depositCents, balanceCents: totalCents - depositCents};
 }
 
 export function money(cents: number): string {
