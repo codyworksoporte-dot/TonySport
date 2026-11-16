@@ -102,7 +102,9 @@ async function apiOrder(order: PedidoDraft): Promise<PedidoDraft> {
     image(order.design.front), image(order.design.back), image(order.design.finalFront), image(order.design.finalBack),
     Promise.all(order.design.layers.map(async layer => layer.data ? {...layer, data: await dataImage(layer.data)} : {...layer})),
   ]);
-  return {...order, design: {...order.design, front, back, finalFront, finalBack, layers}};
+  // Wizard answers are local metadata, outside the server's strict order schema.
+  const {choices: _localChoices, ...payload} = order;
+  return {...payload, design: {...order.design, front, back, finalFront, finalBack, layers}};
 }
 function validReference(reference: string): string {
   if (!/^TONY-[A-F0-9]{24}$/.test(reference)) throw new Error('La referencia del pedido no es válida.');

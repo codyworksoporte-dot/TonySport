@@ -1,7 +1,7 @@
 import {expect,test,type Page} from '@playwright/test';
 import fs from 'node:fs';
 import {completePedido} from './pedido/pricing.fixtures';
-import {continuePedido,expectNoOverflow,mockPedidoApi,openSeededDelivery,openSeededEditor,pngFixture,seedPedido,signPedido,TEST_PAYMENT_URL,TEST_REFERENCE} from './pedido/helpers';
+import {continuePedido,expectNoOverflow,mockPedidoApi,openSeededDelivery,openSeededEditor,openSeededRoster,pngFixture,seedPedido,signPedido,TEST_PAYMENT_URL,TEST_REFERENCE} from './pedido/helpers';
 
 test.beforeEach(async({page})=>{await page.emulateMedia({reducedMotion:'reduce'});});
 
@@ -33,28 +33,47 @@ test('nada viene marcado; para quién, marca y cada jugador se validan antes de 
   await continuePedido(page);
   await expect(page.getByRole('alert').first()).toContainText('Selecciona Hombre o Mujer.');
   await page.getByRole('button',{name:/Uniforme para hombre/}).click();await continuePedido(page);
-  for(const [group,choice] of [['Molde','Estándar'],['Tela','Slim Fit'],['Cuello','V'],['Manga','Corta']])await page.getByRole('group',{name:group,exact:true}).getByRole('button',{name:new RegExp(`^${choice}\\b`)}).click();
+  for(const [group,choice] of [['Molde','Estándar'],['Tela','Slim Fit'],['Cuello','V'],['Manga','Corta']]) {
+    await page.getByRole('group',{name:group,exact:true}).getByRole('button',{name:new RegExp(`^${choice}\\b`)}).click();
+    await continuePedido(page);
+  }
   // The brand is not chosen for the customer either.
-  await continuePedido(page);await expect(page.getByRole('alert').first()).toContainText('Elige la marca deportiva');
+  await continuePedido(page);await expect(page.getByRole('alert').first()).toContainText('Elige una opción de marca deportiva');
   await page.getByRole('button',{name:/^Marca propia/}).click();
-  await continuePedido(page);await continuePedido(page);
-  await expect(page.getByRole('heading',{name:'Cada jugador cuenta',exact:true})).toBeVisible();
+  await continuePedido(page);
+  for(const finish of ['Acabado de la marca','Acabado del escudo']) {
+    const group=page.getByRole('group',{name:finish,exact:true});
+    await expect(group.getByRole('button',{name:/^Sublimado/})).toHaveAttribute('aria-pressed','false');
+    await group.getByRole('button',{name:/^Sublimado/}).click();
+    await continuePedido(page);
+  }
+  await expect(page.getByRole('heading',{name:'El nombre de tu equipo',exact:true})).toBeVisible();
+  await continuePedido(page);
   await expect(page.getByRole('alert').first()).toContainText('Escribe el nombre del equipo');
   await page.getByLabel(/^Nombre de equipo/).fill('EQUIPO DE PRUEBA');
+  await continuePedido(page);
+  await expect(page.getByRole('heading',{name:'¿Cuántas prendas necesitas?',exact:true})).toBeVisible();
+  await continuePedido(page);
   for(let i=1;i<=6;i++) {
+    await expect(page.getByRole('heading',{name:`Jugador ${i} de 6`,exact:true})).toBeVisible();
     await page.getByLabel(`Nombre jugador ${i}`,{exact:true}).fill(`JUGADOR ${i}`);
     await page.getByRole('combobox',{name:new RegExp(`^Talla jugador ${i}\\b`)}).selectOption(i===1?'2XL':'M');
     await page.getByLabel(`Dorsal jugador ${i}`,{exact:true}).fill(String(i));
+    await continuePedido(page);
   }
   // 6 × 12.99 + talla 2XL 2.00 + diseño propio 5.00 = 84.94.
   await expect(page.locator('.pedido-aside .pedido-price-total dd')).toHaveText('$84.94');
+  await expect(page.getByRole('heading',{name:'Agrega tus porteros',exact:true})).toBeVisible();
+  await continuePedido(page);
+  await expect(page.getByRole('heading',{name:'Indicaciones adicionales',exact:true})).toBeVisible();
   await continuePedido(page);await expect(page.getByRole('heading',{name:'Completa tu equipo',exact:true})).toBeVisible();
 });
 
-test('la asesora habla sola con voz femenina, frase a frase, y no deja saltarse opciones',async({page})=>{
+test('la asesora guía cada pantalla con voz opcional y recuerda la versión ligera',async({page})=>{
   await mockPedidoApi(page);
   // Record what is said and with which voice instead of playing it; the device offers a male and a female voice.
   await page.addInitScript(()=>{
+    if(!localStorage.getItem('tony:pedido:quality:v1')) localStorage.setItem('tony:pedido:quality:v1','high');
     const said:{text:string;voice:string}[]=[];(window as unknown as {__said:typeof said}).__said=said;
     const voices=[{name:'Microsoft Jorge - Spanish (Mexico)',lang:'es-MX'},{name:'Microsoft Sabina - Spanish (Mexico)',lang:'es-MX'}];
     // Plain objects stand in for the browser's voices, so the utterance is simulated too.
@@ -65,42 +84,40 @@ test('la asesora habla sola con voz femenina, frase a frase, y no deja saltarse 
   await page.goto('/configurador');
   const advisor=page.getByRole('region',{name:'Tu asesora Tony'});
   await expect(advisor).toContainText('Toca Crear mi pedido y empezamos.');
+  expect(await said()).toBe('');
+  await advisor.getByRole('button',{name:'Activar voz',exact:true}).click();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
-  // No play button needed, and only the female voice is used.
+  // Once enabled, guidance follows the steps and prefers the Spanish female voice.
   await expect.poll(said).toContain('Elige tu producto.');
   expect(await page.evaluate(()=>[...new Set((window as unknown as {__said:{voice:string}[]}).__said.map(item=>item.voice))])).toEqual(['Microsoft Sabina - Spanish (Mexico)']);
   await page.getByRole('button',{name:/Uniformes Full Sublimados/}).click();await expect(advisor).toContainText('Uniformes, anotado.');
   await continuePedido(page);await expect(advisor).toContainText('¿Uniforme para hombre o para mujer?');
   await page.getByRole('button',{name:/Uniforme para hombre/}).click();await continuePedido(page);
-  await expect(advisor).toContainText('Primero, elige el molde.');
-  // Choosing the collar before the mold is refused and she says what comes first.
-  const collar=page.getByRole('group',{name:'Cuello',exact:true});
-  await expect(collar).toContainText('Primero elige el molde');
-  await collar.getByRole('button',{name:/^Polo\b/}).click();
-  await expect(advisor).toContainText('Primero elige el molde.');
-  await expect(collar.getByRole('button',{name:/^Polo\b/})).toHaveAttribute('aria-pressed','false');
-  await expect.poll(said).toContain('Primero elige el molde.');
-  await expect(page.locator('[data-advisor="mold"]')).toHaveClass(/is-advised/);
-  for (const [group,choice,next,target] of [['Molde','Raglan','Ahora elige la tela.','fabric'],['Tela','Dryfit','Ahora elige el cuello.','collar'],['Cuello','Polo','¿Manga corta o larga?','sleeve'],['Manga','Larga','elige la marca deportiva','brand']]) {
+  await expect(advisor).toContainText('Elige el corte de la prenda.');
+  // Future decisions are not displayed beside the current choice.
+  await expect(page.getByRole('group',{name:'Cuello',exact:true})).toHaveCount(0);
+  for (const [group,choice,next] of [['Molde','Raglan','Selecciona la tela para tu equipo.'],['Tela','Dryfit','Escoge el estilo de cuello.'],['Cuello','Polo','¿Prefieres manga corta o larga?'],['Manga','Larga','Elige la marca Tony o tu propia marca.']]) {
     await page.getByRole('group',{name:group,exact:true}).getByRole('button',{name:new RegExp(`^${choice}\\b`)}).click();
+    await expect(advisor).toContainText('Toca Continuar cuando estés listo.');
+    await continuePedido(page);
     await expect(advisor).toContainText(next);
-    await expect(page.locator(`[data-advisor="${target}"]`)).toHaveClass(/is-advised/);
     await expect.poll(said).toContain(next);
   }
-  await expect(page.getByRole('navigation',{name:'Pasos del pedido'}).getByRole('button',{name:/Asesora/})).toHaveCount(0);
-  await advisor.getByRole('button',{name:'No quiero asesora'}).click();
+  await advisor.getByRole('button',{name:'Usar versión ligera'}).click();
   await expect(advisor).toHaveCount(0);
+  await expect(page.locator('.advisor-text-guide')).toContainText('Elige la marca Tony o tu propia marca.');
   await page.reload();
-  const recall=page.getByRole('button',{name:'Mostrar a tu asesora Tony'});await expect(recall).toBeVisible();
-  await recall.click();await expect(page.getByRole('region',{name:'Tu asesora Tony'})).toBeVisible();
+  await expect(page.getByRole('button',{name:/^Gama baja/})).toHaveAttribute('aria-pressed','true');
+  await expect(advisor).toHaveCount(0);
+  await page.getByRole('button',{name:/^Gama alta/}).click();await expect(advisor).toBeVisible();
 });
 
 test('la política de privacidad explica los datos del pedido y se enlaza desde el pie',async({page})=>{
   await page.goto('/privacidad');
   await expect(page.getByRole('heading',{level:1})).toContainText('PRIVACIDAD');
-  for (const title of ['Qué datos pedimos','Con quién se comparten','Qué se guarda en tu navegador','Tus derechos']) await expect(page.getByRole('heading',{name:title})).toBeVisible();
+  for (const title of ['Qué información utilizas aquí','Servicios externos y opciones voluntarias','Lo que permanece en tu navegador','Solicitudes sobre tu información']) await expect(page.getByRole('heading',{name:title})).toBeVisible();
   await page.goto('/contacto');
-  await page.locator('.tony-footer-bottom').getByRole('link',{name:'Política de privacidad'}).click();
+  await page.locator('.tony-footer-bottom').getByRole('link',{name:'Privacidad',exact:true}).click();
   await expect(page).toHaveURL(/\/privacidad\/?$/);
 });
 
@@ -121,14 +138,21 @@ test('el catálogo muestra los 70 diseños oficiales y lleva el elegido al pedid
 });
 
 test('reducir jugadores requiere confirmación y mantiene los datos de las filas restantes',async({page})=>{
-  await mockPedidoApi(page);await seedPedido(page,completePedido(12));await openSeededEditor(page);
-  await page.getByRole('navigation',{name:'Pasos del pedido'}).getByRole('button',{name:/Jugadores/}).click();
-  await page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true}).fill('6');
-  await page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true}).blur();
+  await mockPedidoApi(page);await seedPedido(page,completePedido(12));await openSeededRoster(page);
+  await continuePedido(page);
+  const quantity=page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true});
+  await quantity.fill('6');
   const dialog=page.getByRole('dialog',{name:'¿Reducir la cantidad del equipo?'});await expect(dialog).toBeVisible();
-  await dialog.getByRole('button',{name:'Conservar jugadores'}).click();await expect(page.getByLabel('Nombre jugador 12',{exact:true})).toBeVisible();
-  await page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true}).fill('6');await page.getByLabel('¿Cuántas prendas sin contar el portero son?',{exact:true}).blur();await page.getByRole('button',{name:'Sí, reducir cantidad'}).click();
-  await expect(page.getByLabel('Nombre jugador 6',{exact:true})).toHaveValue('JUGADOR 6');await expect(page.getByLabel('Nombre jugador 7',{exact:true})).toHaveCount(0);
+  await dialog.getByRole('button',{name:'Conservar jugadores'}).click();await expect(quantity).toHaveValue('12');
+  await quantity.fill('6');await dialog.getByRole('button',{name:'Sí, reducir cantidad'}).click();
+  await continuePedido(page);
+  for(let i=1;i<=6;i++) {
+    await expect(page.getByRole('heading',{name:`Jugador ${i} de 6`,exact:true})).toBeVisible();
+    await expect(page.getByLabel(`Nombre jugador ${i}`,{exact:true})).toHaveValue(`JUGADOR ${i}`);
+    await continuePedido(page);
+  }
+  await expect(page.getByRole('heading',{name:'Agrega tus porteros',exact:true})).toBeVisible();
+  await expect(page.getByLabel('Nombre jugador 7',{exact:true})).toHaveCount(0);
 });
 
 test('domicilio añade $6 y exige dirección; transferencia exige comprobante, firma y conserva solo referencia',async({page})=>{

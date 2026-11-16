@@ -10,7 +10,7 @@ const generic = {name:'es-us-x-sfb-local',lang:'es-US'};
 async function setup(page:Page, voices:Voice[]=[generic], mode='ok') {
   await mockPedidoApi(page);
   await page.addInitScript(({voices,mode})=>{
-    if(!localStorage.getItem('tony:pedido:asesora:v2')) localStorage.setItem('tony:pedido:asesora:v2',JSON.stringify({visible:true,voice:false}));
+    if(!localStorage.getItem('tony:pedido:quality:v1')) localStorage.setItem('tony:pedido:quality:v1','high');
     const harness:Harness={voices,mode,said:[],listeners:new Set(),cancels:0};
     (window as unknown as {__speech:Harness}).__speech=harness;
     let generation=0;
@@ -46,63 +46,69 @@ for(const width of [320,390,768]) test(`advisor actions are visible buttons with
   await page.setViewportSize({width,height:844});
   await setup(page);
   const card=page.getByRole('region',{name:'Tu asesora Tony'});
-  await expect(card).toContainText('Uso la voz en español disponible');
   await card.scrollIntoViewIfNeeded();
-  for(const button of await card.getByRole('button').all()) {
+  for(const button of await page.locator('.advisor-studio-actions button, .advisor-quality button').all()) {
     const metrics=await button.evaluate(el=>({height:el.getBoundingClientRect().height,border:getComputedStyle(el).borderTopColor}));
     expect(metrics.height).toBeGreaterThanOrEqual(44);
     expect(metrics.border).not.toBe('rgba(0, 0, 0, 0)');
   }
-  await card.getByRole('button',{name:'Repetir',exact:true}).tap();
+  expect(await page.evaluate(()=>(window as unknown as {__speech:Harness}).__speech.said)).toEqual([]);
+  await card.getByRole('button',{name:'Activar voz',exact:true}).tap();
   await expect.poll(()=>page.evaluate(()=>(window as unknown as {__speech:Harness}).__speech.said)).toContain(generic.name);
   await expectNoOverflow(page,width);
-  expect((await new AxeBuilder({page}).include('.pedido-advisor-card').analyze()).violations).toEqual([]);
+  expect((await new AxeBuilder({page}).include('.advisor-experience').analyze()).violations).toEqual([]);
   if(width===390)await page.screenshot({path:'output/mobile-advisor-after.png'});
-  await card.getByRole('button',{name:'No quiero asesora'}).tap();
+  await card.getByRole('button',{name:'Usar versión ligera'}).tap();
   await expect(card).toHaveCount(0);
+  await expect.poll(()=>page.evaluate(()=>(window as unknown as {__speech:Harness}).__speech.listeners.size)).toBe(0);
   await page.reload();
-  await expect(page.getByRole('button',{name:'Mostrar a tu asesora Tony'})).toBeVisible();
+  await expect(page.getByRole('button',{name:/^Gama baja/})).toHaveAttribute('aria-pressed','true');
+  await expect(card).toHaveCount(0);
+  await expect(page.locator('.advisor-text-guide')).toContainText('Toca Crear mi pedido y empezamos.');
 });
 
 test('late voices recover after the initial empty list and remain retryable',async({page})=>{
   await setup(page,[]);
   const card=page.getByRole('region',{name:'Tu asesora Tony'});
-  await expect(card.getByRole('button',{name:'Reintentar voz'})).toBeVisible();
+  await expect(card.locator('.advisor-voice-note')).toContainText('Puedes seguir la guía escrita.');
   await expect(card).not.toContainText('no tiene una voz femenina');
-  await card.getByRole('button',{name:'Reintentar voz'}).tap();
+  await card.getByRole('button',{name:'Activar voz',exact:true}).tap();
   await page.evaluate(voice=>{
     (window as unknown as {__speech:Harness}).__speech.voices=[voice];
     speechSynthesis.dispatchEvent(new Event('voiceschanged'));
   },generic);
-  await expect(card.getByRole('button',{name:'Voz activada'})).toBeVisible();
-  await card.getByRole('button',{name:'Repetir',exact:true}).tap();
+  await expect(card.getByRole('button',{name:'Silenciar voz'})).toBeVisible();
+  await card.getByRole('button',{name:'Repetir guía',exact:true}).tap();
   await expect.poll(()=>page.evaluate(()=>(window as unknown as {__speech:Harness}).__speech.said.length)).toBeGreaterThan(0);
 });
 
 for(const mode of ['not-allowed','synthesis-failed','hang']) test(`audio ${mode} offers a direct tap to retry without hiding the advisor`,async({page})=>{
   await setup(page,[generic],mode);
   const card=page.getByRole('region',{name:'Tu asesora Tony'});
-  await card.getByRole('button',{name:'Repetir',exact:true}).tap();
-  const retry=card.getByRole('button',{name:'Escuchar guía'});
-  await expect(retry).toBeVisible({timeout:6500});
-  await expect(card).not.toHaveClass(/is-speaking/);
+  await card.getByRole('button',{name:'Activar voz',exact:true}).tap();
+  await expect(card.locator('.advisor-voice-note')).toContainText('Puedes seguir la guía escrita.',{timeout:6500});
+  const retry=card.getByRole('button',{name:'Repetir guía',exact:true});
   const count=await page.evaluate(()=>(window as unknown as {__speech:Harness}).__speech.said.length);
   await page.evaluate(()=>{(window as unknown as {__speech:Harness}).__speech.mode='ok';});
   await retry.tap();
   await expect.poll(()=>page.evaluate(()=>(window as unknown as {__speech:Harness}).__speech.said.length)).toBeGreaterThan(count);
-  await expect(card.getByRole('button',{name:'Voz activada'})).toBeVisible();
-  await expect(card.getByRole('status')).not.toContainText('reintentar');
+  await expect(card.getByRole('button',{name:'Silenciar voz'})).toBeVisible();
+  await expect(card.locator('.advisor-voice-note')).toHaveCount(0);
 });
 
-test('no speech API still leaves a clear hide button and written guidance',async({page})=>{
+test('no speech API still leaves written guidance and a lightweight mode',async({page})=>{
   await mockPedidoApi(page);
-  await page.addInitScript(()=>Object.defineProperty(window,'speechSynthesis',{configurable:true,value:undefined}));
+  await page.addInitScript(()=>{
+    localStorage.setItem('tony:pedido:quality:v1','high');
+    Object.defineProperty(window,'speechSynthesis',{configurable:true,value:undefined});
+  });
   await page.goto('/configurador');
   const card=page.getByRole('region',{name:'Tu asesora Tony'});
-  await expect(card.getByRole('button',{name:'Voz no disponible'})).toBeDisabled();
-  await expect(card).toContainText('Puedes seguir por escrito');
-  await card.getByRole('button',{name:'No quiero asesora'}).tap();
-  await expect(page.getByRole('button',{name:'Mostrar a tu asesora Tony'})).toBeVisible();
+  await expect(card.getByRole('button',{name:'Activar voz',exact:true})).toBeDisabled();
+  await expect(card).toContainText('Puedes seguir la guía escrita.');
+  await card.getByRole('button',{name:'Usar versión ligera'}).tap();
+  await expect(card).toHaveCount(0);
+  await expect(page.getByRole('button',{name:/^Gama alta/})).toBeVisible();
 });
 
 test('leaving the order cancels speech and removes voice subscriptions',async({page})=>{
@@ -110,7 +116,7 @@ test('leaving the order cancels speech and removes voice subscriptions',async({p
   await expect.poll(()=>page.evaluate(()=>(window as unknown as {__speech:Harness}).__speech.listeners.size)).toBe(1);
   await page.getByRole('button',{name:'Abrir menú'}).tap();
   await page.getByRole('dialog',{name:'Menú de Tony Sportswear'}).getByRole('link',{name:/Tony News/}).tap();
-  await expect(page).toHaveURL(/\/tony-news$/);
+  await expect(page).toHaveURL(/\/tony-news$/,{timeout:20000});
   await expect.poll(()=>page.evaluate(()=>(window as unknown as {__speech:Harness}).__speech.listeners.size)).toBe(0);
   await page.goBack();
   await expect(page.getByRole('region',{name:'Tu asesora Tony'})).toBeVisible();

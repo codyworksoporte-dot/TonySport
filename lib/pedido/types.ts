@@ -28,6 +28,8 @@ export interface PedidoDesign {
 }
 export interface PedidoDraft {
   version: 279; id: string; product: Product; gender: Gender; quantity: number;
+  /** Explicit decisions in the wizard; absent in legacy drafts. */
+  choices?: {product: boolean; brand: boolean; brand3d: boolean; crest3d: boolean};
   teamName: string; notes: string; shortsNumber: boolean;
   config: PedidoConfig; players: PedidoPlayer[];
   /** The first goalkeeper is the main goalkeeper; all later entries are charged. */

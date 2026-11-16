@@ -14,7 +14,8 @@
     "leaflet": "^1.9.4",
     "next": "16.3.6",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "three": "0.180.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.10.0",
@@ -26,6 +27,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/three": "0.180.0",
     "typescript": "~5.9.3"
   }
 }

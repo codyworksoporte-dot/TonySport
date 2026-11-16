@@ -9,7 +9,7 @@ test('mobile editor keeps the chosen piece and its controls together', async ({p
   order.design.back='/assets/pedido/catalog/tony-010-back.webp';
   order.design.layers=[layer('Escudo','Escudo')];
   await seedPedido(page,order);
-  await page.addInitScript(()=>localStorage.setItem('tony:pedido:asesora:v2',JSON.stringify({visible:true,voice:false})));
+  await page.addInitScript(()=>localStorage.setItem('tony:pedido:quality:v1','low'));
   await openSeededEditor(page);
   await page.locator('.pedido-design-layer').click();
   await page.getByRole('button',{name:'Más grande',exact:true}).click();
@@ -22,7 +22,7 @@ test('mobile editor keeps the chosen piece and its controls together', async ({p
     expect(scene!.y).toBeGreaterThanOrEqual(60);
     expect(scene!.y+scene!.height).toBeLessThan(controls!.y);
     expect(controls!.y+controls!.height).toBeLessThan(844);
-    await expect(page.locator('.pedido-advisor-dock')).toBeHidden();
+    await expect(page.getByRole('region',{name:'Tu asesora Tony'})).toHaveCount(0);
   }
 });
 

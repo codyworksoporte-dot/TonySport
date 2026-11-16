@@ -19,6 +19,7 @@ export async function mockPedidoApi(page: Page, options: {paid?: boolean; pendin
     if (endpoint === 'session.php') return respond({ok:true,sessionToken:'0'.repeat(64)});
     if (['generate.php','finalize.php','magic_eraser.php'].includes(endpoint)) return options.failAI ? respond({ok:false,message:'La imagen no se pudo preparar. Conservamos tu diseño; vuelve a intentarlo.'},503) : respond({ok:true,image:options.aiImage||DEMO_IMAGE,mime:'image/png',provider:'synthetic-test'});
     const body = request.method()==='POST' ? request.postDataJSON() : undefined;
+    if (body?.order) expect(body.order).not.toHaveProperty('choices');
     if (endpoint === 'quote.php') {order=body.order;delivery=body.delivery;return respond({ok:true,quote:calculatePedido(order!,delivery!.kind)});}
     if (endpoint === 'wompi-crear-pago.php') {
       order=body.order;delivery=body.delivery;
@@ -64,12 +65,21 @@ export async function expectNoOverflow(page: Page, width: number) {
 }
 
 export const continuePedido = (page: Page) => page.locator('.pedido-step-footer').getByRole('button',{name:/Continuar/}).click();
-export async function openSeededEditor(page: Page) {
+export async function openSeededRoster(page: Page) {
   await page.goto('/configurador');
   await expect(page.getByText('Recuperamos tu diseño. Revisa los pasos para continuar.')).toBeVisible();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
-  for(const heading of ['Escoge tu producto','¿Para quién es?','Hecho a tu manera','Cada jugador cuenta']) {
+  for(const heading of ['Escoge tu producto','¿Para quién es?','Elige el molde','Elige la tela','Elige el cuello','Elige la manga','Elige la marca deportiva','Acabado de la marca','Acabado del escudo']) {
     await expect(page.getByRole('heading',{name:heading,exact:true})).toBeVisible();
+    await continuePedido(page);
+  }
+  await expect(page.getByRole('heading',{name:'El nombre de tu equipo',exact:true})).toBeVisible();
+}
+
+export async function openSeededEditor(page: Page) {
+  await openSeededRoster(page);
+  for(let screen=0; screen<105; screen++) {
+    if(await page.getByRole('heading',{name:'Completa tu equipo',exact:true}).isVisible()) break;
     await continuePedido(page);
   }
   await expect(page.getByRole('heading',{name:'Completa tu equipo',exact:true})).toBeVisible();
