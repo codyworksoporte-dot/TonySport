@@ -1,3 +1,58 @@
-.advisor-experience{margin:0 0 24px;min-width:0}.advisor-quality{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px}.advisor-quality>span{font-size:11px;letter-spacing:.1em;text-transform:uppercase;margin-right:auto;color:#acb9a9}.advisor-quality button{border:1px solid #40513d;border-radius:10px;background:#101a13;color:#f0f5e9;padding:10px 16px;min-height:48px;text-align:left;font-size:13px;font-weight:700}.advisor-quality button small{display:block;font-weight:400;font-size:10px;color:#b9c3b5;margin-top:3px}.advisor-quality button[aria-pressed=true]{background:#223719;border-color:#b9f56c;box-shadow:inset 0 0 0 1px #b9f56c}.advisor-quality button:focus-visible,.advisor-studio button:focus-visible{outline:3px solid #c4f58a;outline-offset:3px}.advisor-text-guide{padding:20px 24px;border:1px solid #567637;border-radius:14px;background:linear-gradient(100deg,#223715,#222515);font-size:16px;line-height:1.65;color:#f1f5e9}.advisor-text-guide strong{display:block;color:#bdf768;font-size:11px;letter-spacing:.12em;margin-bottom:6px}.advisor-text-guide.is-warning{border-color:#e6b664}.advisor-studio{display:grid;grid-template-columns:minmax(180px,.85fr) minmax(0,1fr);border:1px solid #405937;border-radius:22px;overflow:hidden;background:radial-gradient(ellipse at 15% 65%,#31572a 0,transparent 60%),#0b160f;min-height:340px}.advisor-stage-wrap{position:relative;min-height:340px;overflow:hidden;background:radial-gradient(ellipse at 50% 70%,#9bda4030,transparent 65%)}.advisor-stage{width:100%;height:100%;position:absolute;inset:0;min-height:300px}.advisor-stage canvas{display:block;width:100%;height:100%}.advisor-stage-loading,.advisor-stage-error{height:100%;min-height:300px;display:grid;place-content:center;padding:28px;text-align:center;color:#c7d3bd;font-size:13px}.advisor-stage-badge{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:9px;color:#c4f384;letter-spacing:.19em;pointer-events:none}.advisor-studio-copy{align-self:center;padding:25px 24px 25px 12px}.advisor-studio-eyebrow{font-size:10px;color:#bdf768;letter-spacing:.17em}.advisor-studio-message{font-size:clamp(17px,2vw,23px);line-height:1.5;color:#f2f5ed;margin:14px 0 24px}.advisor-studio-actions{display:flex;flex-wrap:wrap;gap:8px}.advisor-studio-actions button{padding:10px 12px;min-height:44px;border:1px solid #527044;border-radius:9px;background:#18291b;color:#edf5e7;font-size:12px}.advisor-light-link{display:block;color:#a9bb9e;background:none;border:0;font-size:11px;padding:14px 0 0;text-decoration:underline;text-underline-offset:3px}.advisor-voice-note{font-size:12px;color:#d8cba6;line-height:1.5}.advisor-stage-status{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:20px;font-size:12px;color:#d7e4ce}.advisor-stage-status button{background:#bddf82;color:#13230c;border:0;padding:10px;border-radius:8px;margin-top:12px}
-@media(max-width:600px){.advisor-quality>span{flex-basis:100%;margin-bottom:2px}.advisor-quality button{flex:1;padding:10px}.advisor-studio{grid-template-columns:minmax(125px,.8fr) minmax(0,1fr);min-height:290px}.advisor-stage-wrap{min-height:290px}.advisor-stage{min-height:290px}.advisor-studio-copy{padding:18px 14px 18px 0}.advisor-studio-message{font-size:15px;line-height:1.6;margin:8px 0 14px}.advisor-studio-eyebrow{font-size:8px}.advisor-studio-actions{gap:5px}.advisor-studio-actions button{font-size:10px;padding:8px}.advisor-text-guide{font-size:14px;padding:16px}.advisor-stage-badge{font-size:7px}}
-.advisor-light-link{min-height:44px}.advisor-studio-actions button{min-height:44px}
+.advisor-experience{min-width:0}
+.advisor-quality{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.advisor-quality>span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-right:auto;color:#acb9a9}
+.advisor-quality button{border:1px solid #40513d;border-radius:9px;background:#101a13;color:#f0f5e9;padding:8px 13px;min-height:44px;text-align:left;font-size:12px;font-weight:700}
+.advisor-quality button small{display:block;font-weight:400;font-size:10px;color:#b9c3b5;margin-top:2px}
+.advisor-quality button[aria-pressed=true]{background:#223719;border-color:#b9f56c;box-shadow:inset 0 0 0 1px #b9f56c}
+.advisor-quality button:focus-visible,.advisor-studio button:focus-visible{outline:3px solid #c4f58a;outline-offset:3px}
+.pedido-guided-body,.pedido-guided-options{min-width:0}
+.advisor-text-guide{margin:0 0 20px;padding:16px 20px;border:1px solid #567637;border-radius:14px;background:linear-gradient(100deg,#223715,#222515);font-size:15px;line-height:1.6;color:#f1f5e9}
+.advisor-text-guide strong{display:block;color:#bdf768;font-size:10px;letter-spacing:.12em;margin-bottom:5px}
+.advisor-text-guide.is-warning{border-color:#e6b664}
+.advisor-studio{position:relative;display:grid;grid-template-columns:160px minmax(0,1fr);align-items:center;min-width:0;margin-bottom:20px;border:1px solid #405937;border-radius:18px;background:radial-gradient(ellipse at 15% 65%,#31572a 0,transparent 65%),#0b160f}
+.advisor-stage-wrap{position:relative;min-height:220px;overflow:hidden;background:radial-gradient(ellipse at 50% 70%,#9bda4030,transparent 65%);border-radius:18px}
+.advisor-stage{position:absolute;inset:0;width:100%;height:100%}
+.advisor-stage canvas{display:block;width:100%;height:100%}
+.advisor-stage-loading{min-height:180px;display:grid;place-content:center;padding:20px;text-align:center;color:#c7d3bd;font-size:12px}
+.advisor-stage-badge{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:8px;color:#c4f384;letter-spacing:.15em;pointer-events:none}
+.advisor-studio-copy{padding:24px 56px 24px 16px;min-width:0}
+.advisor-studio-eyebrow{font-size:9px;color:#bdf768;letter-spacing:.15em}
+.advisor-studio-message{font-size:17px;line-height:1.5;color:#f2f5ed;margin:8px 0 0;overflow-wrap:anywhere}
+.advisor-sound-toggle{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #527044;border-radius:50%;background:#122719;color:#c4f384;z-index:1;cursor:pointer}
+.advisor-sound-toggle svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.advisor-sound-toggle[aria-pressed=false]{color:#bbc8b2}
+.advisor-voice-note{font-size:11px;color:#d8cba6;line-height:1.5;margin:8px 0 0}
+.advisor-stage-status{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:20px;font-size:12px;color:#d7e4ce}
+.advisor-stage-status button{background:#bddf82;color:#13230c;border:0;padding:10px;border-radius:8px;margin-top:12px;min-height:44px}
+.is-guided-choice.mode-high .pedido-guided-body{display:grid;grid-template-columns:clamp(180px,22vw,270px) minmax(0,1fr);gap:24px;align-items:start}
+.is-guided-choice.mode-high .advisor-studio{position:sticky;top:120px;display:flex;flex-direction:column;align-items:stretch;margin:0}
+.is-guided-choice.mode-high .advisor-stage-wrap{min-height:300px}
+.is-guided-choice.mode-high .advisor-studio-copy{padding:0 18px 18px}
+.is-guided-choice.mode-high .advisor-studio-message{font-size:15px}
+.pedido-guided-options .pedido-gender-options,.pedido-guided-options .pedido-gender-options.two{grid-template-columns:1fr;gap:12px}
+.pedido-gender-options .pedido-choice{min-height:90px;padding:21px 48px 21px 22px;text-align:left;border-radius:16px}
+.pedido-gender-options .pedido-choice strong{font-size:18px;margin:0 0 6px}
+.pedido-gender-options .pedido-choice>span:not(.pedido-choice-check){color:var(--pedido-green);margin:0;font-size:12px}
+.pedido-gender-options .pedido-choice-check{top:50%;transform:translateY(-50%)}
+.is-guided-choice .pedido-guided-options>.pedido-notice{margin:0 0 14px;padding:10px 14px;font-size:11px}
+.is-guided-choice .pedido-step-footer{margin-top:22px;padding-top:20px}
+@media(max-width:1100px) and (min-width:701px){.is-guided-choice.mode-high .pedido-guided-body{grid-template-columns:190px minmax(0,1fr);gap:18px}.mode-high .pedido-product-options{grid-template-columns:1fr}}
+@media(max-width:700px){
+.advisor-quality{gap:6px;margin-bottom:12px;flex-wrap:nowrap}
+.advisor-quality>span{font-size:8px;letter-spacing:.06em}
+.advisor-quality button{font-size:11px;padding:8px 10px}
+.advisor-quality button small{display:none}
+.is-guided-choice.mode-high .pedido-guided-body{display:block}
+.advisor-studio,.is-guided-choice.mode-high .advisor-studio{position:relative;top:auto;display:grid;grid-template-columns:112px minmax(0,1fr);margin:0 0 16px;min-height:184px}
+.advisor-stage-wrap,.is-guided-choice.mode-high .advisor-stage-wrap{min-height:184px}
+.advisor-studio-copy,.is-guided-choice.mode-high .advisor-studio-copy{padding:40px 14px 14px 6px}
+.advisor-studio-eyebrow{font-size:8px;letter-spacing:.1em}
+.advisor-studio-message,.is-guided-choice.mode-high .advisor-studio-message{font-size:13px;line-height:1.5;margin-top:6px}
+.advisor-stage-badge{font-size:6px;letter-spacing:.09em}
+.advisor-sound-toggle{top:5px;right:5px}
+.advisor-text-guide{font-size:13px;padding:14px 16px}
+.pedido-gender-options .pedido-choice{min-height:82px;padding:18px 42px 18px 18px}
+.pedido-gender-options .pedido-choice strong{font-size:16px}
+}
+/* Keep the design preview below the mobile header while adjusting a piece. */
+@media(max-width:900px){.pedido-guided-options .pedido-editor-workspace .pedido-design-stage{position:sticky;top:76px;z-index:2}}

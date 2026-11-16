@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {expectNoOverflow, mockPedidoApi} from './pedido/helpers';
+import {continuePedido, expectNoOverflow, mockPedidoApi} from './pedido/helpers';
 
 test('modo ligero no descarga el modelo, alta lo carga y la preferencia persiste', async ({page}) => {
   await page.setViewportSize({width:390,height:844});
@@ -13,18 +13,33 @@ test('modo ligero no descarga el modelo, alta lo carga y la preferencia persiste
   await expect(page.locator('.advisor-stage')).toHaveCount(0);
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
   await expect(page.getByRole('heading',{name:'Escoge tu producto',exact:true})).toBeVisible();
+  await page.getByRole('button',{name:/Uniformes Full Sublimados/}).click();
+  await continuePedido(page);
+  await expect(page.getByRole('heading',{name:'¿Para quién es?',exact:true})).toBeVisible();
   expect(models).toEqual([]);
   await page.getByRole('button',{name:/Gama alta/}).click();
   await expect(page.locator('.advisor-stage')).toHaveAttribute('data-state','ready',{timeout:30000});
   await expect(page.getByRole('img',{name:/Asesora Tony en tres dimensiones/})).toBeVisible();
-  await expect(page.getByRole('button',{name:'Activar voz',exact:true})).toHaveAttribute('aria-pressed','false');
+  await expect(page.locator('.advisor-sound-toggle')).toHaveCount(1);
+  await expect(page.getByRole('button',{name:/Pausar movimiento|Repetir guía|Usar versión ligera/})).toHaveCount(0);
   expect(models.length).toBeGreaterThan(0);
   await expectNoOverflow(page,390);
+  const mobileAdvisor=await page.locator('.advisor-studio').boundingBox(), mobileChoices=await page.locator('[data-advisor="gender"]').boundingBox();
+  expect(mobileAdvisor!.y+mobileAdvisor!.height).toBeLessThanOrEqual(mobileChoices!.y+1);
+  const men=page.getByRole('button',{name:/Uniforme para hombre/}), women=page.getByRole('button',{name:/Uniforme para mujer/});
+  const menBox=await men.boundingBox(), womenBox=await women.boundingBox();
+  expect(menBox!.y+menBox!.height).toBeLessThanOrEqual(womenBox!.y+1);
+  await expect(page.getByRole('img',{name:/Asesora Tony en tres dimensiones/})).toBeInViewport({ratio:.99});
+  await expect(women).toBeInViewport({ratio:.99});
+  await page.screenshot({path:'output/advisor-choices-viewport.png'});
   await page.screenshot({path:'output/advisor-mobile.png',fullPage:true});
   await page.setViewportSize({width:1440,height:1000});
   await expectNoOverflow(page,1440);
+  const desktopAdvisor=await page.locator('.advisor-studio').boundingBox(), desktopChoices=await page.locator('[data-advisor="gender"]').boundingBox();
+  expect(desktopAdvisor!.x+desktopAdvisor!.width).toBeLessThanOrEqual(desktopChoices!.x+1);
+  expect(Math.max(desktopAdvisor!.y,desktopChoices!.y)).toBeLessThan(Math.min(desktopAdvisor!.y+desktopAdvisor!.height,desktopChoices!.y+desktopChoices!.height));
   await page.screenshot({path:'output/advisor-desktop.png',fullPage:true});
-  await page.getByRole('button',{name:'Usar versión ligera',exact:true}).click();
+  await page.getByRole('button',{name:/^Gama baja/}).click();
   await expect(page.locator('.advisor-stage')).toHaveCount(0);
   const loaded = models.length;
   await page.reload();
@@ -43,6 +58,6 @@ test('un modelo que falla permite seguir y regresar a la versión ligera', async
   await expect(page.locator('.advisor-stage')).toHaveAttribute('data-state','error');
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
   await expect(page.getByRole('heading',{name:'Escoge tu producto',exact:true})).toBeVisible();
-  await page.getByRole('button',{name:'Usar versión ligera',exact:true}).click();
+  await page.getByRole('button',{name:/^Gama baja/}).click();
   await expect(page.locator('.advisor-text-guide')).toBeVisible();
 });

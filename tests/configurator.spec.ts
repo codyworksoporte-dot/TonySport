@@ -69,7 +69,7 @@ test('nada viene marcado; para quién, marca y cada jugador se validan antes de 
   await continuePedido(page);await expect(page.getByRole('heading',{name:'Completa tu equipo',exact:true})).toBeVisible();
 });
 
-test('la asesora guía cada pantalla con voz opcional y recuerda la versión ligera',async({page})=>{
+test('la asesora guía cada pantalla automáticamente y recuerda la versión ligera',async({page})=>{
   await mockPedidoApi(page);
   // Record what is said and with which voice instead of playing it; the device offers a male and a female voice.
   await page.addInitScript(()=>{
@@ -84,10 +84,10 @@ test('la asesora guía cada pantalla con voz opcional y recuerda la versión lig
   await page.goto('/configurador');
   const advisor=page.getByRole('region',{name:'Tu asesora Tony'});
   await expect(advisor).toContainText('Toca Crear mi pedido y empezamos.');
-  expect(await said()).toBe('');
-  await advisor.getByRole('button',{name:'Activar voz',exact:true}).click();
+  await expect.poll(said).toContain('Toca Crear mi pedido y empezamos.');
+  await expect(advisor.getByRole('button',{name:'Silenciar asesora',exact:true})).toBeVisible();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
-  // Once enabled, guidance follows the steps and prefers the Spanish female voice.
+  // Guidance follows the steps automatically and prefers the Spanish female voice.
   await expect.poll(said).toContain('Elige tu producto.');
   expect(await page.evaluate(()=>[...new Set((window as unknown as {__said:{voice:string}[]}).__said.map(item=>item.voice))])).toEqual(['Microsoft Sabina - Spanish (Mexico)']);
   await page.getByRole('button',{name:/Uniformes Full Sublimados/}).click();await expect(advisor).toContainText('Uniformes, anotado.');
@@ -103,7 +103,7 @@ test('la asesora guía cada pantalla con voz opcional y recuerda la versión lig
     await expect(advisor).toContainText(next);
     await expect.poll(said).toContain(next);
   }
-  await advisor.getByRole('button',{name:'Usar versión ligera'}).click();
+  await page.getByRole('button',{name:/^Gama baja/}).click();
   await expect(advisor).toHaveCount(0);
   await expect(page.locator('.advisor-text-guide')).toContainText('Elige la marca Tony o tu propia marca.');
   await page.reload();
