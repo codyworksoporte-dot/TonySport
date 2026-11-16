@@ -1,5 +1,5 @@
 import {expect, test} from '@playwright/test';
-import {calculatePedido, isCatalogCode, money, PedidoValidationError} from '../../lib/pedido/pricing';
+import {calculatePedido, estimatePedido, isCatalogCode, money, PedidoValidationError} from '../../lib/pedido/pricing';
 import {createPedido, readPedido, resizePlayers, validateBuyer, validateDelivery, validateStep} from '../../lib/pedido/order';
 import type {Buyer, Delivery, PedidoDraft} from '../../lib/pedido/types';
 import {completePedido, complexPedido, DEMO_IMAGE, layer} from './pricing.fixtures';
@@ -16,6 +16,42 @@ test('diseño propio suma $5 y el pedido incompleto cobra solamente tallas selec
   order.players[0].size = '';
   expect(calculatePedido(order).totalCents).toBe(6995);
   expect(validateStep(order, 'players')['players.0.size']).toBeTruthy();
+});
+
+test('el estimado suma los recargos de todas las prendas antes de escoger tallas', () => {
+  const order = createPedido();
+  expect(estimatePedido(order)).toMatchObject({fieldQuantity: 6, totalCents: 8294, depositCents: 4147, balanceCents: 4147});
+  order.config.mold = 'Raglan';
+  expect(estimatePedido(order).totalCents).toBe(9194);
+  order.config.fabric = 'Dryfit';
+  expect(estimatePedido(order).totalCents).toBe(10244);
+  order.config.collar = 'Chino';
+  order.config.sleeve = 'Larga';
+  order.config.brand3d = true;
+  order.config.crest3d = true;
+  order.config.brand = 'Tony';
+  expect(estimatePedido(order)).toMatchObject({garmentExtrasCents: 4350, threeDCents: 2100, discountCents: 300, totalCents: 14444, depositCents: 7222, balanceCents: 7222});
+  // Previewing does not populate real sizes or change the exact server calculation.
+  expect(order.players.every(player => player.size === '')).toBe(true);
+  expect(calculatePedido(order)).toMatchObject({fieldQuantity: 0, totalCents: 500});
+});
+
+test('el estimado conserva tallas especiales conocidas y se ajusta al cambiar la cantidad', () => {
+  const order = createPedido();
+  order.players[0].size = '2XL';
+  expect(estimatePedido(order)).toMatchObject({fieldQuantity: 6, sizeExtrasCents: 200, totalCents: 8494});
+  const expanded = resizePlayers(order, 12);
+  expanded.goalkeepers = [{id: 'keeper-estimate', size: '', name: '', number: '', color: ''}];
+  expect(estimatePedido(expanded)).toMatchObject({fieldQuantity: 12, sizeExtrasCents: 200, freeKeeper: true, keeperCents: 0, totalCents: 16288});
+  expanded.socks.Negro = 2;
+  expect(estimatePedido(expanded, 'home').totalCents).toBe(17138);
+});
+
+test('al completar las tallas el estimado coincide exactamente con el cálculo definitivo', () => {
+  expect(estimatePedido(complexPedido(), 'home')).toEqual(calculatePedido(complexPedido(), 'home'));
+  const invalid = createPedido();
+  invalid.players[0].size = '5XL' as PedidoDraft['players'][number]['size'];
+  expect(() => estimatePedido(invalid)).toThrow(PedidoValidationError);
 });
 
 test('caso manual completo: $203.43, anticipo $101.72 y saldo $101.71', () => {

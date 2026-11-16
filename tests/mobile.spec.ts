@@ -28,7 +28,7 @@ test('mobile editor keeps the chosen piece and its controls together', async ({p
 
 test('a mobile save confirms persistence, deduplicates repeated saves and opens the saved design', async ({page}) => {
   await seedPedido(page,completePedido());
-  await page.goto('/configurador');
+  await page.goto('/configurador?borrador=actual');
   await expect(page.getByText('Recuperamos tu diseño. Revisa los pasos para continuar.')).toBeVisible();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
   const save=page.locator('.pedido-step-footer .pedido-mobile-save');
@@ -49,7 +49,7 @@ test('a mobile save confirms persistence, deduplicates repeated saves and opens 
 
 test('storage failure shows an error and never a false cart success', async ({page}) => {
   await seedPedido(page,completePedido());
-  await page.goto('/configurador');
+  await page.goto('/configurador?borrador=actual');
   await expect(page.getByText('Recuperamos tu diseño. Revisa los pasos para continuar.')).toBeVisible();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
   await page.evaluate(()=>{const original=IDBObjectStore.prototype.put; IDBObjectStore.prototype.put=function(...args: Parameters<IDBObjectStore['put']>){if(this.name==='cart')throw new DOMException('Espacio de prueba agotado','QuotaExceededError');return original.apply(this,args);};});
@@ -127,7 +127,7 @@ for(const width of [320,768])test(`editor tools and framing stay usable at ${wid
 
 test('reduced motion preserves the cart confirmation without animation',async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});
-  await seedPedido(page,completePedido()); await page.goto('/configurador');
+  await seedPedido(page,completePedido()); await page.goto('/configurador?borrador=actual');
   await expect(page.getByText('Recuperamos tu diseño. Revisa los pasos para continuar.')).toBeVisible();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
   await page.locator('.pedido-mobile-save').tap();

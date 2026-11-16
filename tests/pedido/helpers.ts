@@ -66,7 +66,7 @@ export async function expectNoOverflow(page: Page, width: number) {
 
 export const continuePedido = (page: Page) => page.locator('.pedido-step-footer').getByRole('button',{name:/Continuar/}).click();
 export async function openSeededRoster(page: Page) {
-  await page.goto('/configurador');
+  await page.goto('/configurador?borrador=actual');
   await expect(page.getByText('Recuperamos tu diseño. Revisa los pasos para continuar.')).toBeVisible();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
   for(const heading of ['Escoge tu producto','¿Para quién es?','Elige el molde','Elige la tela','Elige el cuello','Elige la manga','Elige la marca deportiva','Acabado de la marca','Acabado del escudo']) {

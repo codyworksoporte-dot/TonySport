@@ -53,6 +53,7 @@ export default function PedidoFlow() {
   const [quantityText, setQuantityText] = useState('6');
   const [configStep, setConfigStep] = useState(0);
   const [rosterStep, setRosterStep] = useState(0);
+  const [hasSavedDraft, setHasSavedDraft] = useState(false);
   const [cartState, setCartState] = useState<'idle'|'saving'|'saved'|'error'>('idle');
   const cartSaving = useRef(false);
   const latestDraft = useRef(draft); latestDraft.current = draft;
@@ -82,14 +83,16 @@ export default function PedidoFlow() {
       try {
         const saved = await loadDraft(query.get('pedido') || undefined);
         if (!live) return;
+        const resume = !!query.get('pedido') || query.get('borrador') === 'actual';
+        if (saved && !resume) setHasSavedDraft(true);
         // A design chosen on /catalogo arrives as ?diseno=TONY-012.
         const wanted = (query.get('diseno') || '').toUpperCase();
         if (isCatalogCode(wanted) && !query.get('wompi_order')) {
-          const file = wanted.toLowerCase(), base = saved ?? createPedido();
+          const file = wanted.toLowerCase(), base = resume && saved ? saved : createPedido();
           setDraft({...base, design: {...base.design, source: 'catalog', catalogCode: wanted, front: `/assets/pedido/catalog/${file}-front.webp`, back: `/assets/pedido/catalog/${file}-back.webp`, approved: false, finalFront: null, finalBack: null}});
           setNotice(`Elegiste ${wanted} del catálogo Tony. Lo encontrarás cargado en el paso Diseño.`);
           history.replaceState(null, '', window.location.pathname);
-        } else if (saved) {setDraft(saved); setNotice('Recuperamos tu diseño. Revisa los pasos para continuar.');}
+        } else if (resume && saved) {setDraft(saved); setNotice('Recuperamos tu diseño. Revisa los pasos para continuar.');}
       } catch (e) {if (live) {setStorage(errorText(e)); setCanSave(false);}}
       if (!live) return;
       try {
@@ -105,7 +108,7 @@ export default function PedidoFlow() {
     return () => {live = false;};
   }, []);
   useEffect(() => {setQuantityText(String(draft.quantity));}, [draft.quantity]);
-  useEffect(() => {if (!ready || !canSave || receipt) return; const timer = setTimeout(() => {void saveDraft(draft).then(() => setStorage('Borrador guardado en este navegador.')).catch(e => setStorage(errorText(e)));}, 650); return () => clearTimeout(timer);}, [draft, ready, canSave, receipt]);
+  useEffect(() => {if (!ready || !canSave || receipt || !picked.product) return; const timer = setTimeout(() => {void saveDraft(draft).then(() => setStorage('Borrador guardado en este navegador.')).catch(e => setStorage(errorText(e)));}, 650); return () => clearTimeout(timer);}, [draft, ready, canSave, receipt, picked.product]);
   useEffect(() => {if (ready && step > 0) title.current?.focus({preventScroll: true});}, [step, configStep, rosterStep, ready]);
   const context = {delivery, payment, buyer, signature, termsAccepted: terms, wompiVerified: verified};
   function update(next: PedidoDraft) {if (verified || receipt || payment.reference) return; setCartState('idle'); setDraft(next); setErrors({}); setFailure(''); setPaymentUrl(''); setSignature(''); setTerms(false);}
@@ -196,7 +199,7 @@ export default function PedidoFlow() {
       {Object.keys(errors).length > 0 && <div className="pedido-alert" ref={errorBox} role="alert" tabIndex={-1}><strong>Revisa estos detalles para continuar</strong><ul>{[...new Set(Object.values(errors))].map(message => <li key={message}>{message}</li>)}</ul></div>}
       {failure && <div className="pedido-alert" role="alert">{failure}</div>}{notice && <p className="pedido-notice" role="status">{notice}</p>}{busy && <p className="pedido-busy" role="status">{busy}</p>}
       <fieldset className="pedido-step-content" disabled={!ready || !!busy || cartState === 'saving'}>
-      {step === 0 && <div className="pedido-welcome"><div><p className="pedido-lead">Uniformes Full Sublimados<br/>o Camisas Full Sublimadas.</p><p>Selecciona tu producto, personaliza cada prenda y crea el diseño de tu equipo.</p><button className="button primary" type="button" onClick={() => move(1)}>CREAR MI PEDIDO ↗</button><span className="pedido-fine">Pedido mínimo: 6 prendas · Anticipo del 50 %</span><Link href="/configurador/archivo" className="pedido-archive-link">Abrir un borrador del editor anterior ↗</Link></div><button type="button" className="pedido-welcome-art" aria-label="Empezar la personalización" onClick={() => move(1)}><img src={siteAsset('/assets/pedido/guides/welcome.webp')} alt="Tony Sportswear, crea tus uniformes o camisas" width="1000" height="667" fetchPriority="high"/></button></div>}
+      {step === 0 && <div className="pedido-welcome"><div><p className="pedido-lead">Uniformes Full Sublimados<br/>o Camisas Full Sublimadas.</p><p>Selecciona tu producto, personaliza cada prenda y crea el diseño de tu equipo.</p><button className="button primary" type="button" onClick={() => move(1)}>CREAR MI PEDIDO ↗</button><span className="pedido-fine">Pedido mínimo: 6 prendas · Anticipo del 50 %</span>{hasSavedDraft && <a className="pedido-text-button" href="?borrador=actual">Retomar último borrador ↗</a>}<Link href="/configurador/archivo" className="pedido-archive-link">Abrir un borrador del editor anterior ↗</Link></div><button type="button" className="pedido-welcome-art" aria-label="Empezar la personalización" onClick={() => move(1)}><img src={siteAsset('/assets/pedido/guides/welcome.webp')} alt="Tony Sportswear, crea tus uniformes o camisas" width="1000" height="667" fetchPriority="high"/></button></div>}
       {step === 1 && <div className="pedido-product-options" data-advisor="product">{PRODUCTS.map(product => <Choice key={product.value} selected={picked.product && draft.product === product.value} onClick={() => {update({...draft, choices: {...picked, product: true}, product: product.value, goalkeepers: product.value === 'shirt' ? [] : draft.goalkeepers, design: {...draft.design, approved: false, finalFront: null, finalBack: null}});}}><img src={siteAsset(`/assets/pedido/guides/${product.value}.webp`)} alt="" width="993" height="703"/><strong>{product.label}</strong><span>{money(product.cents)} <small>c/u · precio base</small></span></Choice>)}</div>}
       {step === 2 && <div className="pedido-options two pedido-gender-options" data-advisor="gender">{(['Hombre', 'Mujer'] as const).map(gender => <Choice key={gender} selected={draft.gender === gender} onClick={() => update({...draft, gender, design: {...draft.design, approved: false}})}><strong>{draft.product === 'shirt' ? 'Camisas' : 'Uniforme'} para {gender.toLowerCase()}</strong><span>{gender === 'Hombre' ? 'Corte de hombre' : 'Corte de mujer'}</span></Choice>)}</div>}
       {step === 3 && <div className="pedido-config-groups pedido-one-choice" key={configKey}>

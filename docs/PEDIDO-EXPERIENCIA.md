@@ -2,6 +2,10 @@
 
 La configuración muestra un grupo por pantalla: molde, tela, cuello, manga, marca y los dos acabados. El registro del equipo separa nombre, cantidad y cada jugador. Anterior conserva las respuestas. Los borradores nuevos guardan qué decisiones se han contestado; los anteriores siguen siendo compatibles.
 
+Abrir `/configurador` inicia un pedido sin respuestas anteriores seleccionadas. El último borrador se recupera únicamente con Retomar último borrador (`?borrador=actual`) o desde el carrito (`?pedido=id`). Un inicio vacío no sobrescribe el último borrador: el guardado automático comienza al elegir el producto. La recuperación de un pago pendiente mantiene su flujo independiente para evitar duplicar cobros.
+
+El panel muestra un total estimado para todas las prendas de la cantidad prevista desde que se elige el producto. Molde, tela, cuello, manga, acabados y descuentos se actualizan inmediatamente, incluso antes de completar las tallas. Las tallas pendientes se estiman sin recargo de talla; al elegirlas se incorporan sus recargos reales. El desglose explica los cargos, incluido el servicio existente de diseño propio, que se retira al elegir un diseño del catálogo. El checkout conserva el cálculo definitivo y la validación del servidor.
+
 El selector Gama baja / Gama alta guarda la preferencia en `tony:pedido:quality:v1`. Sin preferencia se usa la versión ligera, salvo cuando el navegador informa al menos 8 GB de memoria y 8 núcleos y no indica ahorro de datos o movimiento reducido. Esta detección es conservadora; el cliente siempre puede cambiarla.
 
 Gama baja muestra instrucciones escritas y no monta el escenario ni descarga el GLB. Gama alta carga Three.js y el personaje bajo demanda. Durante las elecciones, el personaje aparece junto a las opciones en computadora y encima de ellas en móvil; en computadora permanece visible al desplazarse por las opciones. Hombre/Mujer usa dos filas compactas.

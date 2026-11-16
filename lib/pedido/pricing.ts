@@ -115,6 +115,16 @@ export function calculatePedido(order: PedidoDraft, deliveryKind: DeliveryKind =
   return {currency: 'USD', fieldQuantity, paidKeeperCount, freeKeeper, baseCents, garmentExtrasCents, sizeExtrasCents, creationDesignCents, crestDesignCount, crestDesignCents, brandDesignCount, brandDesignCents, sponsorCount, sponsorCents, designServicesCents, crest3dCents, brand3dCents, threeDCents, sockQuantity, socksCents, keeperSizeExtrasCents, keeperCents, discountCents, deliveryCents, totalCents, depositCents, balanceCents: totalCents - depositCents};
 }
 
+/** Preview all planned garments before their sizes are chosen. Unknown sizes have
+ * no size surcharge; selected sizes and every other price rule remain unchanged.
+ * Checkout and the server continue to use calculatePedido with the real sizes.
+ */
+export function estimatePedido(order: PedidoDraft, deliveryKind: DeliveryKind = ''): PedidoPricing {
+  const actual = calculatePedido(order, deliveryKind);
+  if (order.players.every(player => player.size !== '')) return actual;
+  return calculatePedido({...order, players: order.players.map(player => player.size === '' ? {...player, size: 'M' as const} : player)}, deliveryKind);
+}
+
 export function money(cents: number): string {
   if (!Number.isSafeInteger(cents)) throw new Error('El importe debe estar expresado en centavos enteros.');
   return `$${(cents / 100).toFixed(2)}`;

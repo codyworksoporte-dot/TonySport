@@ -66,7 +66,7 @@ test('recuperar un borrador parcial conserva los acabados sin responder', async 
   const draft=completePedido();
   draft.choices={product:true,brand:true,brand3d:false,crest3d:false};
   await seedPedido(page,draft);
-  await page.goto('/configurador');
+  await page.goto('/configurador?borrador=actual');
   await expect(page.getByText('Recuperamos tu diseño. Revisa los pasos para continuar.')).toBeVisible();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
   for(let i=0;i<7;i++) await continuePedido(page);

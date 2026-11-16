@@ -1,6 +1,6 @@
 'use client';
 import {Children, cloneElement, isValidElement, useEffect, useId, useRef, type ReactNode, type ReactElement} from 'react';
-import {calculatePedido, money, SIZES} from '@/lib/pedido/pricing';
+import {calculatePedido, estimatePedido, money, PRICES, SIZES} from '@/lib/pedido/pricing';
 import type {Delivery, PedidoDraft, PedidoErrors, PedidoPlayer} from '@/lib/pedido/types';
 export function Field({label, error, children}: {label: string; error?: string; children: ReactNode}) {
   const errorId = useId();
@@ -13,9 +13,16 @@ export function Modal({title, onClose, children}: {title: string; onClose: () =>
   return <dialog ref={dialog} className="pedido-modal" aria-labelledby="pedido-dialog-title" onCancel={event => {event.preventDefault(); onClose();}} onClick={event => {if (event.target === event.currentTarget) onClose();}}><div className="pedido-modal-heading"><h2 id="pedido-dialog-title">{title}</h2><button type="button" aria-label="Cerrar ventana" onClick={onClose}>×</button></div>{children}</dialog>;
 }
 export function PriceLines({draft, delivery, full = false}: {draft: PedidoDraft; delivery: Delivery; full?: boolean}) {
-  const p = calculatePedido(draft, delivery.kind);
-  const lines: [string, number][] = [['Prendas de campo', p.baseCents], ['Molde, tela, cuello y manga', p.garmentExtrasCents], ['Tallas especiales', p.sizeExtrasCents], ['Creación del diseño', p.creationDesignCents], [`Escudos (${p.crestDesignCount})`, p.crestDesignCents], [`Marcas (${p.brandDesignCount})`, p.brandDesignCents], [`Patrocinadores (${p.sponsorCount})`, p.sponsorCents], ['Acabados 3D', p.threeDCents], ['Porteros', p.keeperCents], [`Medias (${p.sockQuantity} pares)`, p.socksCents], ['Descuento marca Tony', -p.discountCents], ['Entrega', p.deliveryCents]];
-  return <><dl className="pedido-prices">{full && lines.filter(([, amount]) => amount !== 0).map(([name, amount]) => <div key={name}><dt>{name}</dt><dd>{money(amount)}</dd></div>)}<div className="pedido-price-total"><dt>Total</dt><dd>{money(p.totalCents)}</dd></div><div><dt>Anticipo · 50 %</dt><dd>{money(p.depositCents)}</dd></div><div><dt>Saldo contra entrega</dt><dd>{money(p.balanceCents)}</dd></div></dl>{p.fieldQuantity !== draft.quantity && <p className="pedido-fine">El total se completa al elegir todas las tallas.</p>}{p.freeKeeper && <p className="pedido-gift">Incluye primer portero gratis y gafete de capitán.</p>}{p.totalCents > 15000 && <p className="pedido-gift">Tu pedido incluye una gorra de regalo.</p>}</>;
+  const pendingSizes = [...draft.players, ...draft.goalkeepers].filter(player => !player.size).length;
+  const p = pendingSizes ? estimatePedido(draft, delivery.kind) : calculatePedido(draft, delivery.kind);
+  const optionLines: [string, number][] = ([['mold', 'Molde', PRICES.molds], ['fabric', 'Tela', PRICES.fabrics], ['collar', 'Cuello', PRICES.collars], ['sleeve', 'Manga', PRICES.sleeves]] as const).map(([key, label, table]) => {
+    const option = draft.config[key], unit = option ? (table as Record<string, number>)[option] : 0;
+    return [`${label}: ${option}`, unit * p.fieldQuantity];
+  });
+  const lines: [string, number][] = [[`Prendas de campo (${draft.quantity})`, p.baseCents], ...optionLines, ['Tallas especiales', p.sizeExtrasCents], ['Creación del diseño', p.creationDesignCents], [`Escudos (${p.crestDesignCount})`, p.crestDesignCents], [`Marcas (${p.brandDesignCount})`, p.brandDesignCents], [`Patrocinadores (${p.sponsorCount})`, p.sponsorCents], ['Marca en 3D', p.brand3dCents], ['Escudo en 3D', p.crest3dCents], ['Porteros', p.keeperCents], [`Medias (${p.sockQuantity} pares)`, p.socksCents], ['Descuento marca Tony', -p.discountCents], ['Entrega', p.deliveryCents]];
+  const breakdown = lines.filter(([, amount]) => amount !== 0).map(([name, amount]) => <div key={name}><dt>{name}</dt><dd>{money(amount)}</dd></div>);
+  const total = <div className="pedido-price-total" role="status" aria-live="polite" aria-atomic="true"><dt>{pendingSizes ? 'Total estimado' : 'Total'}</dt><dd>{money(p.totalCents)}</dd></div>;
+  return <><dl className="pedido-prices">{full ? breakdown : total}{full && total}<div><dt>Anticipo · 50 %</dt><dd>{money(p.depositCents)}</dd></div><div><dt>Saldo contra entrega</dt><dd>{money(p.balanceCents)}</dd></div>{!full && breakdown}</dl>{pendingSizes > 0 && <p className="pedido-fine">Estimado para {draft.quantity} prendas de campo{draft.goalkeepers.length ? ` y ${draft.goalkeepers.length} ${draft.goalkeepers.length === 1 ? 'portero' : 'porteros'}` : ''}. {pendingSizes === 1 ? 'Falta una talla' : `Faltan ${pendingSizes} tallas`}; por ahora se consideran sin recargo de talla.</p>}{p.freeKeeper && <p className="pedido-gift">Incluye primer portero gratis y gafete de capitán.</p>}{p.totalCents > 15000 && <p className="pedido-gift">Tu pedido incluye una gorra de regalo.</p>}</>;
 }
 export function PlayerRow({player, index, keeper, onChange, errors}: {player: PedidoPlayer; index: number; keeper?: boolean; onChange: (patch: Partial<PedidoPlayer>) => void; errors: PedidoErrors}) {
   const prefix = `${keeper ? 'goalkeepers' : 'players'}.${index}`;
