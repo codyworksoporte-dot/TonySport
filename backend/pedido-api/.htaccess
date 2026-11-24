@@ -1,11 +1,7 @@
 Options -Indexes
 SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
-<FilesMatch "^(core|domain|services|ai|prompts)\.php$">
-    Require all denied
-</FilesMatch>
-<Files "config.example.php">
-    Require all denied
-</Files>
-<FilesMatch "\.(json|sqlite|sqlite-wal|sqlite-shm|log|env|md|txt)$">
+# Deny every file except the explicitly published API entry points. This also
+# protects new internal PHP files, backups and documents accidentally placed here.
+<FilesMatch "^(?!(?:auth|session|quote|generate|magic_eraser|finalize|order|tony-submit-order|wompi-crear-pago|wompi-retorno|wompi-verificar|wompi-webhook|mock-confirm)\.php$)">
     Require all denied
 </FilesMatch>

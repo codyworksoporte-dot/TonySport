@@ -14,6 +14,7 @@ const {startMock}=require('./mock-server.cjs');
   }
   try{
     let r=await request('session.php',{method:'OPTIONS'});check(r.response.status===204&&r.response.headers.get('access-control-allow-origin')===server.origin,'exact-origin preflight');
+    check(r.response.headers.get('x-frame-options')==='DENY'&&r.response.headers.get('content-security-policy')?.includes("frame-ancestors 'none'")&&r.response.headers.get('cache-control')==='no-store','API responses cannot be framed or cached');
     r=await request('session.php',{origin:server.origin+'.attacker.invalid'});check(r.response.status===403&&!r.response.headers.has('access-control-allow-origin'),'reject similar origin');
     r=await request('session.php',{origin:null});check(r.response.status===403,'reject absent browser origin');
     r=await request('session.php');const token=r.data.sessionToken;check(r.response.status===200&&token.length===64&&r.data.mock===true,'create bearer session');

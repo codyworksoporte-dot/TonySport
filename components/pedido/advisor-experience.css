@@ -1,34 +1,75 @@
+/*
+ * Tony's advisor on her stage. The portrait stands on a lit floor inside a
+ * deep green scene that fades into the page; the current advice sits in a
+ * glass bubble under her. Every animation is transform/opacity only and stops
+ * with reduced motion or the site's effects switch.
+ */
 .advisor-experience{min-width:0}
-.advisor-quality{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.advisor-quality>span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;margin-right:auto;color:#acb9a9}
-.advisor-quality button{border:1px solid #40513d;border-radius:9px;background:#101a13;color:#f0f5e9;padding:8px 13px;min-height:44px;text-align:left;font-size:12px;font-weight:700}
+.advisor-quality{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.advisor-quality>span{font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin-right:auto;color:#acb9a9}
+.advisor-quality button{position:relative;border:1px solid #40513d;border-radius:11px;background:#101a13;color:#f0f5e9;padding:8px 14px;min-height:44px;text-align:left;font-size:12px;font-weight:700;transition:border-color 180ms ease,background 180ms ease,transform 160ms var(--ease)}
 .advisor-quality button small{display:block;font-weight:400;font-size:10px;color:#b9c3b5;margin-top:2px}
-.advisor-quality button[aria-pressed=true]{background:#223719;border-color:#b9f56c;box-shadow:inset 0 0 0 1px #b9f56c}
+.advisor-quality button[aria-pressed=true]{background:linear-gradient(135deg,#243f1a,#182c14);border-color:#b9f56c;box-shadow:inset 0 0 0 1px #b9f56c,0 0 24px -6px #b4ff3566}
 .advisor-quality button:focus-visible,.advisor-studio button:focus-visible{outline:3px solid #c4f58a;outline-offset:3px}
 .pedido-guided-body,.pedido-guided-options{min-width:0}
 .advisor-text-guide{margin:0 0 20px;padding:16px 20px;border:1px solid #567637;border-radius:14px;background:linear-gradient(100deg,#223715,#222515);font-size:15px;line-height:1.6;color:#f1f5e9}
 .advisor-text-guide strong{display:block;color:#bdf768;font-size:10px;letter-spacing:.12em;margin-bottom:5px}
 .advisor-text-guide.is-warning{border-color:#e6b664}
-.advisor-studio{position:relative;display:grid;grid-template-columns:160px minmax(0,1fr);align-items:center;min-width:0;margin-bottom:20px;border:1px solid #405937;border-radius:18px;background:radial-gradient(ellipse at 15% 65%,#31572a 0,transparent 65%),#0b160f}
-.advisor-stage-wrap{position:relative;min-height:220px;overflow:hidden;background:radial-gradient(ellipse at 50% 70%,#9bda4030,transparent 65%);border-radius:18px}
-.advisor-stage{position:absolute;inset:0;width:100%;height:100%}
+
+/* ---------- the stage ---------- */
+.advisor-studio{position:relative;display:grid;grid-template-columns:minmax(0,1fr);min-width:0;margin-bottom:22px;border-radius:26px;isolation:isolate}
+.advisor-stage-wrap{position:relative;overflow:hidden;border-radius:26px;aspect-ratio:4/5;min-height:300px;background:radial-gradient(90% 60% at 50% 34%,#2a7a3c 0%,#15452a 36%,#0a2217 68%,#06140e 100%);box-shadow:inset 0 0 0 1px #c4ed8024,inset 0 -80px 120px -60px #000c,0 40px 90px -40px #b4ff3540,0 20px 50px -20px #000a;isolation:isolate;transform:translateZ(0)}
+/* Scales of the brand, barely there, give the scene texture. */
+.advisor-stage-wrap::before{content:'';position:absolute;inset:0;z-index:0;background:url('/assets/escamas-tony-base.webp') 50% 0/520px 520px;opacity:.16;mix-blend-mode:soft-light;pointer-events:none}
+/* A light vignette keeps the eye on her. */
+.advisor-stage-wrap::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 50%,#04100a99 100%),linear-gradient(180deg,#0000 70%,#06140ecc 100%)}
+.advisor-aura{position:absolute;z-index:0;left:-30%;top:-25%;width:160%;aspect-ratio:1;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 18%,#b4ff3524 28%,transparent 40%,#5be37a1c 58%,transparent 70%,#c4ed8018 86%,transparent 100%);filter:blur(26px);opacity:.9;will-change:transform;animation:advisor-aura 46s linear infinite;pointer-events:none}
+.is-speaking .advisor-aura{animation-duration:16s;opacity:1}
+.advisor-particles{position:absolute;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+.advisor-particles i{position:absolute;left:var(--x);bottom:-6px;width:5px;height:5px;border-radius:50%;background:#d7ff8f;box-shadow:0 0 10px 2px #b4ff3566;opacity:0;transform:translate3d(0,0,0) scale(.6);animation:advisor-particle var(--duration) var(--delay) ease-in-out infinite;will-change:transform,opacity}
+.advisor-particles i:nth-child(2n){width:3px;height:3px}
+.advisor-particles i:nth-child(3n){background:#8ff07a}
+.advisor-floor{position:absolute;z-index:1;left:12%;right:12%;bottom:5%;height:16%;border-radius:50%;background:radial-gradient(ellipse at 50% 50%,#d5ff7fcc 0%,#b4ff3566 38%,transparent 72%);filter:blur(8px);transform:scale(1);transform-origin:50% 50%;animation:advisor-floor 4s ease-in-out infinite;pointer-events:none}
+.is-speaking .advisor-floor{animation-duration:1.3s}
+.advisor-stage{position:absolute;inset:0;z-index:2;width:100%;height:100%}
 .advisor-stage canvas{display:block;width:100%;height:100%}
-.advisor-stage-loading{min-height:180px;display:grid;place-content:center;padding:20px;text-align:center;color:#c7d3bd;font-size:12px}
-.advisor-stage-badge{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:8px;color:#c4f384;letter-spacing:.15em;pointer-events:none}
-.advisor-studio-copy{padding:24px 56px 24px 16px;min-width:0}
-.advisor-studio-eyebrow{font-size:9px;color:#bdf768;letter-spacing:.15em}
-.advisor-studio-message{font-size:17px;line-height:1.5;color:#f2f5ed;margin:8px 0 0;overflow-wrap:anywhere}
-.advisor-sound-toggle{position:absolute;top:8px;right:8px;display:grid;place-items:center;width:44px;height:44px;padding:0;border:1px solid #527044;border-radius:50%;background:#122719;color:#c4f384;z-index:1;cursor:pointer}
+.advisor-stage-loading{position:absolute;inset:0;z-index:2;display:grid;place-content:center;padding:20px;text-align:center;color:#c7d3bd;font-size:12px}
+.advisor-stage-status{position:absolute;inset:0;z-index:2;display:grid;place-content:center;text-align:center;padding:20px;font-size:12px;color:#d7e4ce}
+.advisor-stage-status button{background:#bddf82;color:#13230c;border:0;padding:10px 16px;border-radius:8px;margin-top:12px;min-height:44px;font-weight:700}
+.advisor-stage-badge{position:absolute;z-index:4;left:14px;top:14px;display:inline-flex;align-items:center;gap:8px;padding:6px 10px 6px 8px;border-radius:999px;border:1px solid #c4ed8033;background:#06140ec7;backdrop-filter:blur(8px);font-size:9px;font-weight:700;color:#d7ff9a;letter-spacing:.16em;pointer-events:none}
+.advisor-live{display:inline-flex;align-items:flex-end;gap:2px;height:10px}
+.advisor-live i{display:block;width:2px;height:10px;border-radius:2px;background:#b4ff35;transform-origin:50% 100%;transform:scaleY(.25);transition:transform 240ms ease}
+.is-speaking .advisor-live i{animation:advisor-wave 760ms ease-in-out infinite}
+.is-speaking .advisor-live i:nth-child(2){animation-delay:120ms}
+.is-speaking .advisor-live i:nth-child(3){animation-delay:240ms}
+.is-speaking .advisor-live i:nth-child(4){animation-delay:360ms}
+.advisor-sound-toggle{position:absolute;z-index:5;top:12px;right:12px;display:grid;place-items:center;width:46px;height:46px;padding:0;border:1px solid #c4ed8055;border-radius:50%;background:#0b1f14d9;backdrop-filter:blur(8px);color:#d7ff9a;cursor:pointer;transition:transform 160ms var(--ease),background 180ms ease,border-color 180ms ease}
 .advisor-sound-toggle svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.advisor-sound-toggle[aria-pressed=false]{color:#bbc8b2}
+.advisor-sound-toggle[aria-pressed=false]{color:#bbc8b2;border-color:#52704466}
+.is-speaking .advisor-sound-toggle[aria-pressed=true]{box-shadow:0 0 0 4px #b4ff3522,0 0 24px -4px #b4ff3588}
+@media(hover:hover){.advisor-sound-toggle:hover{background:#163222;border-color:#c4ed80}}
+
+/* ---------- the bubble ---------- */
+.advisor-studio-copy{position:relative;margin:-26px 12px 0;padding:30px 18px 18px;border-radius:18px;border:1px solid #c4ed8026;background:linear-gradient(160deg,#122a1bf2,#0a1a11f2);box-shadow:0 18px 40px -20px #000c,inset 0 1px 0 #d7ffae14;min-width:0;backdrop-filter:blur(10px)}
+.advisor-studio-copy::before{content:'';position:absolute;top:-7px;left:34px;width:14px;height:14px;transform:rotate(45deg);border-left:1px solid #c4ed8026;border-top:1px solid #c4ed8026;background:#122a1b;border-top-left-radius:3px}
+.advisor-studio-eyebrow{font-size:9px;color:#bdf768;letter-spacing:.18em;font-weight:700}
+.is-warning .advisor-studio-eyebrow{color:#ffc978}
+.is-warning .advisor-studio-copy{border-color:#f0b35a66}
+.advisor-studio-message{font-size:17px;line-height:1.45;color:#f2f5ed;margin:8px 0 0;overflow-wrap:anywhere;font-weight:600;letter-spacing:-.01em;animation:advisor-message 460ms var(--ease) both}
 .advisor-voice-note{font-size:11px;color:#d8cba6;line-height:1.5;margin:8px 0 0}
-.advisor-stage-status{position:absolute;inset:0;display:grid;place-content:center;text-align:center;padding:20px;font-size:12px;color:#d7e4ce}
-.advisor-stage-status button{background:#bddf82;color:#13230c;border:0;padding:10px;border-radius:8px;margin-top:12px;min-height:44px}
-.is-guided-choice.mode-high .pedido-guided-body{display:grid;grid-template-columns:clamp(180px,22vw,270px) minmax(0,1fr);gap:24px;align-items:start}
-.is-guided-choice.mode-high .advisor-studio{position:sticky;top:120px;display:flex;flex-direction:column;align-items:stretch;margin:0}
-.is-guided-choice.mode-high .advisor-stage-wrap{min-height:300px}
-.is-guided-choice.mode-high .advisor-studio-copy{padding:0 18px 18px}
-.is-guided-choice.mode-high .advisor-studio-message{font-size:15px}
+
+/* ---------- welcome: a wide scene with her at the left and the message large ---------- */
+.is-welcome.mode-high .advisor-studio{grid-template-columns:minmax(220px,.42fr) minmax(0,.58fr);align-items:center;gap:0;background:linear-gradient(120deg,#0b1f14 0%,#08160f 60%,#0b1a12 100%);border:1px solid #c4ed8020;box-shadow:0 30px 80px -40px #000c}
+.is-welcome.mode-high .advisor-stage-wrap{aspect-ratio:auto;height:100%;min-height:360px;border-radius:26px 0 0 26px;box-shadow:inset 0 0 0 1px #c4ed8014}
+.is-welcome.mode-high .advisor-studio-copy{margin:0;padding:34px 40px 34px 34px;border:0;background:none;box-shadow:none;backdrop-filter:none}
+.is-welcome.mode-high .advisor-studio-copy::before{display:none}
+.is-welcome.mode-high .advisor-studio-message{font-size:clamp(22px,2.4vw,32px);font-family:var(--font-display),Impact,sans-serif;text-transform:uppercase;letter-spacing:-.01em;line-height:1.05;font-weight:700}
+.is-welcome.mode-high .advisor-studio-eyebrow{font-size:10px}
+
+/* ---------- guided steps: she stands at the left, the choices at the right ---------- */
+.is-guided-choice.mode-high .pedido-guided-body{display:grid;grid-template-columns:clamp(240px,27vw,380px) minmax(0,1fr);gap:28px;align-items:start}
+.is-guided-choice.mode-high .advisor-studio{position:sticky;top:112px;margin:0}
+.is-guided-choice.mode-high .advisor-studio-message{font-size:16px}
 .pedido-guided-options .pedido-gender-options,.pedido-guided-options .pedido-gender-options.two{grid-template-columns:1fr;gap:12px}
 .pedido-gender-options .pedido-choice{min-height:90px;padding:21px 48px 21px 22px;text-align:left;border-radius:16px}
 .pedido-gender-options .pedido-choice strong{font-size:18px;margin:0 0 6px}
@@ -36,23 +77,37 @@
 .pedido-gender-options .pedido-choice-check{top:50%;transform:translateY(-50%)}
 .is-guided-choice .pedido-guided-options>.pedido-notice{margin:0 0 14px;padding:10px 14px;font-size:11px}
 .is-guided-choice .pedido-step-footer{margin-top:22px;padding-top:20px}
-@media(max-width:1100px) and (min-width:701px){.is-guided-choice.mode-high .pedido-guided-body{grid-template-columns:190px minmax(0,1fr);gap:18px}.mode-high .pedido-product-options{grid-template-columns:1fr}}
+@media(max-width:1100px) and (min-width:701px){.is-guided-choice.mode-high .pedido-guided-body{grid-template-columns:clamp(200px,24vw,250px) minmax(0,1fr);gap:18px}.mode-high .pedido-product-options{grid-template-columns:1fr}.is-guided-choice.mode-high .advisor-stage-wrap{min-height:250px}.is-welcome.mode-high .advisor-studio{grid-template-columns:200px minmax(0,1fr)}}
+
+/* ---------- phones: head and shoulders beside the advice ---------- */
 @media(max-width:700px){
 .advisor-quality{gap:6px;margin-bottom:12px;flex-wrap:nowrap}
 .advisor-quality>span{font-size:8px;letter-spacing:.06em}
 .advisor-quality button{font-size:11px;padding:8px 10px}
 .advisor-quality button small{display:none}
 .is-guided-choice.mode-high .pedido-guided-body{display:block}
-.advisor-studio,.is-guided-choice.mode-high .advisor-studio{position:relative;top:auto;display:grid;grid-template-columns:112px minmax(0,1fr);margin:0 0 16px;min-height:184px}
-.advisor-stage-wrap,.is-guided-choice.mode-high .advisor-stage-wrap{min-height:184px}
-.advisor-studio-copy,.is-guided-choice.mode-high .advisor-studio-copy{padding:40px 14px 14px 6px}
-.advisor-studio-eyebrow{font-size:8px;letter-spacing:.1em}
-.advisor-studio-message,.is-guided-choice.mode-high .advisor-studio-message{font-size:13px;line-height:1.5;margin-top:6px}
-.advisor-stage-badge{font-size:6px;letter-spacing:.09em}
-.advisor-sound-toggle{top:5px;right:5px}
+.advisor-studio,.is-guided-choice.mode-high .advisor-studio,.is-welcome.mode-high .advisor-studio{position:relative;top:auto;display:grid;grid-template-columns:124px minmax(0,1fr);gap:0;margin:0 0 16px;border-radius:20px;background:linear-gradient(120deg,#0b1f14,#08160f);border:1px solid #c4ed8020;box-shadow:0 20px 50px -30px #000c}
+.advisor-stage-wrap,.is-guided-choice.mode-high .advisor-stage-wrap,.is-welcome.mode-high .advisor-stage-wrap{aspect-ratio:auto;height:100%;min-height:188px;border-radius:20px 0 0 20px;box-shadow:inset 0 0 0 1px #c4ed8014}
+.advisor-floor{left:8%;right:8%;height:12%;bottom:0}
+.advisor-stage-badge{left:8px;top:8px;padding:6px 7px;gap:0}
+.advisor-stage-badge-text{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.advisor-live{height:8px}.advisor-live i{height:8px}
+.advisor-sound-toggle{top:10px;right:10px;width:44px;height:44px}
+.advisor-studio-copy,.is-guided-choice.mode-high .advisor-studio-copy,.is-welcome.mode-high .advisor-studio-copy{margin:0;padding:16px 58px 14px 14px;border:0;background:none;box-shadow:none;backdrop-filter:none;align-self:center}
+.advisor-studio-copy::before{display:none}
+.advisor-studio-eyebrow,.is-welcome.mode-high .advisor-studio-eyebrow{font-size:8px;letter-spacing:.12em}
+.advisor-studio-message,.is-guided-choice.mode-high .advisor-studio-message,.is-welcome.mode-high .advisor-studio-message{font-size:14px;line-height:1.4;margin-top:6px;font-family:inherit;text-transform:none;letter-spacing:0}
 .advisor-text-guide{font-size:13px;padding:14px 16px}
 .pedido-gender-options .pedido-choice{min-height:82px;padding:18px 42px 18px 18px}
 .pedido-gender-options .pedido-choice strong{font-size:16px}
 }
-/* Keep the design preview below the mobile header while adjusting a piece. */
-@media(max-width:900px){.pedido-guided-options .pedido-editor-workspace .pedido-design-stage{position:sticky;top:76px;z-index:2}}
+@media(max-width:380px){.advisor-studio,.is-guided-choice.mode-high .advisor-studio,.is-welcome.mode-high .advisor-studio{grid-template-columns:108px minmax(0,1fr)}.advisor-sound-toggle{right:6px;top:6px}}
+
+@keyframes advisor-aura{to{transform:rotate(360deg)}}
+@keyframes advisor-floor{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
+@keyframes advisor-particle{0%{transform:translate3d(0,0,0) scale(.6);opacity:0}12%{opacity:.9}60%{opacity:.6}100%{transform:translate3d(14px,-130px,0) scale(1);opacity:0}}
+@keyframes advisor-wave{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
+@keyframes advisor-message{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.advisor-aura,.advisor-particles i,.advisor-floor,.advisor-live i,.advisor-studio-message{animation:none!important}.advisor-particles{display:none}.is-speaking .advisor-live i{transform:scaleY(.7)}}
+html[data-tony-effects='off'] :is(.advisor-aura,.advisor-particles i,.advisor-floor,.advisor-studio-message){animation:none!important}
+html[data-tony-effects='off'] .advisor-particles{display:none}

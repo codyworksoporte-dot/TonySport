@@ -6,7 +6,7 @@ test('modo ligero no descarga el modelo, alta lo carga y la preferencia persiste
   await page.emulateMedia({reducedMotion:'reduce'});
   await mockPedidoApi(page);
   const models: string[] = [], errors: string[] = [];
-  page.on('request',request=>{if(request.url().endsWith('.glb')) models.push(request.url());});
+  page.on('request',request=>{if(request.url().includes('/assets/advisor/')) models.push(request.url());});
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto('/configurador');
   await expect(page.getByRole('button',{name:/Gama baja/})).toHaveAttribute('aria-pressed','true');
@@ -52,7 +52,7 @@ test('modo ligero no descarga el modelo, alta lo carga y la preferencia persiste
 test('un modelo que falla permite seguir y regresar a la versión ligera', async ({page}) => {
   await page.emulateMedia({reducedMotion:'reduce'});
   await mockPedidoApi(page);
-  await page.route('**/tony-advisor.glb',route=>route.abort());
+  await page.route('**/assets/advisor/tony-advisor-portrait.webp',route=>route.abort());
   await page.goto('/configurador');
   await page.getByRole('button',{name:/Gama alta/}).click();
   await expect(page.locator('.advisor-stage')).toHaveAttribute('data-state','error');

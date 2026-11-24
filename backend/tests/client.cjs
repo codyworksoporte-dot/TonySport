@@ -16,11 +16,16 @@ const {startMock}=require('./mock-server.cjs');
   const server=await startMock({origin});const originalFetch=global.fetch,originalWindow=global.window,originalStorage=global.sessionStorage;
   const storage=new Map();global.sessionStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)};global.window={location:new URL(origin)};
   global.fetch=(url,init={})=>{if(String(url).startsWith(server.base+'/')){const headers=new Headers(init.headers);headers.set('Origin',origin);return originalFetch(url,{...init,headers});}return originalFetch(url,init);};
-  const module={exports:{}};
-  const compiled=ts.transpileModule(fs.readFileSync(path.join(root,'lib/pedido/api.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
-  new Function('require','module','exports','process',compiled)(id=>{if(id==='../asset-path')return {siteAsset:value=>'/TonySport'+value};throw new Error(`Unexpected import ${id}`);},module,module.exports,{env:{NEXT_PUBLIC_TONY_API_BASE:server.base}});
-  const api=module.exports;let count=0;const check=(condition,label)=>{assert.ok(condition,label);count++;console.log(`PASS ${label}`);};
+  let count=0;const check=(condition,label)=>{assert.ok(condition,label);count++;console.log(`PASS ${label}`);};
   try{
+    const module={exports:{}};
+    const compiled=ts.transpileModule(fs.readFileSync(path.join(root,'lib/pedido/api.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
+    new Function('require','module','exports','process',compiled)(id=>{
+      if(id==='../asset-path')return {siteAsset:value=>'/TonySport'+value};
+      if(id==='../auth')return {authEnabled:false,accountToken:()=>'',accountTokenPersisted:()=>false,forgetAccount:()=>{}};
+      throw new Error(`Unexpected import ${id}`);
+    },module,module.exports,{env:{NEXT_PUBLIC_TONY_API_BASE:server.base}});
+    const api=module.exports;
     await assert.rejects(api.verifyPayment('TONY-'+'A'.repeat(24)),/misma pestaña/);check(storage.size===0,'return never silently creates a new session');
     const order=structuredClone(server.fixtures.order);order.design.front='/assets/pedido/guides/welcome.webp';order.design.back='/TonySport/assets/pedido/guides/welcome.webp';
     const delivery=server.fixtures.delivery;const quote=await api.quotePedido(order,delivery);

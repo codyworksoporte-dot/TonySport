@@ -14,3 +14,17 @@
 .tony-footer-bottom{flex-wrap:wrap}.tony-footer-legal{display:flex;flex-wrap:wrap;gap:4px 20px}.tony-footer-legal a{display:inline-flex;align-items:center;min-height:44px}.tony-footer-legal a:hover{color:var(--venom)}
 @media(max-width:760px){.tony-footer-legal{flex-basis:100%;order:2;gap:0 18px}.tony-footer-bottom>a:nth-child(2){order:0;flex-basis:auto;min-height:44px}.tony-footer-bottom>a:last-child{order:3}}
 @media(max-width:760px){.tony-footer-email{grid-column:1/-1;margin-top:22px}.tony-footer-email strong{font-size:13px}}
+
+/* Living signature. The three claws draw top-down one after another as the stamp scrolls into view (scroll-driven, reversible; without support or with motion off they are simply complete, because the hidden state lives only in the keyframes). «TE LO HACEMOS.» closes the story with the same lime-amber claw as «HUELLA.» in the hero, a giant outlined TONY gives depth behind the directory (clipped by the footer's overflow:hidden, `/ ""` keeps it silent for screen readers) and the ↑ sits in a ring that springs on hover. */
+.tony-footer-stamp>svg path{transform-box:fill-box;transform-origin:50% 0}
+@keyframes tony-slash-draw{from{transform:scaleY(0);opacity:0}to{transform:none;opacity:1}}
+@supports(animation-timeline:view()){.tony-footer-stamp>svg{view-timeline:--tony-slash block}.tony-footer-stamp>svg path{animation:tony-slash-draw linear both;animation-timeline:--tony-slash;animation-range:entry 15% entry 70%}.tony-footer-stamp>svg path:nth-child(2){animation-range:entry 25% entry 80%}.tony-footer-stamp>svg path:nth-child(3){animation-range:entry 35% entry 90%}}
+.tony-footer-stamp em{background:linear-gradient(90deg,#c1ff61,#ff8a3d 88%,transparent) 0 92%/100% .05em no-repeat;-webkit-box-decoration-break:clone;box-decoration-break:clone;padding-bottom:.04em}
+.tony-footer-directory{position:relative}
+.tony-footer-directory>*{position:relative;z-index:1}
+.tony-footer-directory::before{content:'TONY' / "";position:absolute;right:-1%;top:-36px;font:700 italic clamp(150px,21vw,330px)/1 var(--font-display),Impact,sans-serif;letter-spacing:-.045em;color:transparent;-webkit-text-stroke:1px rgb(205 248 158 / .085);pointer-events:none;user-select:none}
+.tony-footer-bottom>a:last-child>span{display:grid;place-items:center;width:34px;height:34px;border:1px solid #b7d19777;border-radius:50%;color:#c1ff61;font-size:16px;line-height:1;transition:transform 520ms var(--spring,var(--ease))}
+@media(hover:hover) and (pointer:fine){.tony-footer-bottom>a:last-child:hover>span{transform:translateY(-4px)}.tony-footer-bottom>a:last-child:active>span{transform:translateY(1px);transition-duration:90ms}}
+@media(prefers-reduced-motion:reduce){.tony-footer-stamp>svg path{animation:none}.tony-footer-bottom>a:last-child>span{transform:none!important}}
+html[data-tony-effects=off] .tony-footer-stamp>svg path{animation:none}
+html[data-tony-effects=off] .tony-footer-bottom>a:last-child>span{transition:none;transform:none!important}

@@ -148,6 +148,7 @@ function pedido_idempotent(string $session, string $action, array $input, callab
 function pedido_reference(): string { return 'TONY-' . strtoupper(bin2hex(random_bytes(12))); }
 function pedido_run(string $method, callable $handler, bool $public = false, bool $webhook = false): void {
     ini_set('display_errors', '0'); header('Content-Type: application/json; charset=utf-8'); header('Cache-Control: no-store'); header('X-Content-Type-Options: nosniff'); header('Referrer-Policy: no-referrer');
+    header('X-Frame-Options: DENY'); header("Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; sandbox");
     try {
         pedido_mock(); pedido_secret();
         if (!$webhook) {

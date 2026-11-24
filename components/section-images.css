@@ -20,7 +20,7 @@
 .lx-visual:has(.section-image){overflow:clip;background:#101910}
 .lx-visual .lx-art.is-active{transform:none}
 .lx-visual .lx-art:not(.is-active){transform:translate3d(8px,0,0)}
-.lx-visual:has(.section-image)::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#0b110bd9,transparent 18%,transparent 68%,#0b110bf7);pointer-events:none;z-index:2}
+.lx-visual:has(.section-image)::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,#0b110bd9,transparent 18%,transparent 68%,#0b110bf7);box-shadow:inset -140px -180px 240px -150px color-mix(in srgb,var(--line-color) 42%,transparent);transition:box-shadow 480ms var(--ease);pointer-events:none;z-index:2}
 .lx-visual:has(.section-image) :is(.lx-visual-top,.lx-swatch-label,.lx-concept){color:#eef5e5;z-index:3}
 .lx-visual:has(.section-image) .lx-swatch-label span{color:#e5f4d6}
 

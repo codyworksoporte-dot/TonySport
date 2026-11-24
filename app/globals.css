@@ -42,3 +42,27 @@ html{scroll-padding-top:82px}.utility-bar{height:28px;justify-content:center;pad
 
 
 .privacy-inline-link{color:var(--venom);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}.privacy-inline-link:focus-visible{outline:2px solid var(--venom);outline-offset:4px}
+
+/* ============================================================================
+ * Portada y cromo global — hero light and ghost numerals.
+ * Kept at the end so these rules win the cascade over the hero block above.
+ * Later agents: append new global rules BELOW this block.
+ * ========================================================================== */
+/* Hero: a lime-amber glare follows the cursor beneath the vignette (which keeps the copy legible), the text block counter-shifts a few px against the art (layers at different depths) and the ↓ arrow nods. Variables are written by HomeExperience.tsx and only on fine pointers with motion allowed. */
+.hero-glare{position:absolute;left:0;top:0;width:72vmin;height:72vmin;margin:-36vmin 0 0 -36vmin;border-radius:50%;background:radial-gradient(closest-side,rgb(196 237 128 / .2),rgb(255 161 91 / .05) 48%,transparent 72%);mix-blend-mode:screen;z-index:-2;opacity:0;transform:translate3d(var(--gx,65vw),var(--gy,400px),0);transition:opacity 700ms ease,transform 1100ms var(--ease);pointer-events:none;will-change:transform}
+.hero-text{transform:translate3d(var(--px,0px),var(--py,0px),0);transition:transform 900ms var(--ease)}
+@keyframes cue-nudge{0%,55%,100%{transform:none}28%{transform:translateY(5px)}}
+.scroll-cue{animation:cue-nudge 2.8s var(--ease) infinite}
+@media(hover:hover) and (pointer:fine){.hero:hover .hero-glare{opacity:1}}
+@media(max-width:900px),(pointer:coarse){.hero-glare{display:none}}
+html[data-tony-effects=off] .hero-glare{display:none}
+html[data-tony-effects=off] .scroll-cue{animation:none}
+html[data-tony-effects=off] .hero-text{transition:none;transform:none}
+/* Ghost numerals 01–08: the small ring stays as the anchor; behind it the same index in giant italic Barlow with a lime outline gives the home page an editorial rhythm. The section is the stacking context, so the numeral sits under all content and over the background. `/ ""` keeps screen readers from announcing the index twice. No motion, so no guards needed. */
+main.home-page{counter-reset:tony-section}
+.home-page .section-wrap{position:relative;isolation:isolate}
+.home-page .section-index{position:relative;counter-increment:tony-section}
+.home-page .section-index::after{content:counter(tony-section,decimal-leading-zero) / "";position:absolute;left:-.08em;top:-.3em;z-index:-1;font:700 italic clamp(112px,13vw,204px)/1 var(--font-display),Impact,sans-serif;letter-spacing:-.045em;color:rgb(180 255 53 / .035);-webkit-text-stroke:1px rgb(196 237 128 / .14);white-space:nowrap;pointer-events:none;user-select:none}
+.home-client-hub .section-index::after{top:-.12em}
+.tribe-section .section-index::after{-webkit-text-stroke-color:rgb(196 237 128 / .09)}
+@media(max-width:760px){.home-page .section-index::after{font-size:92px;-webkit-text-stroke-color:rgb(196 237 128 / .11)}}

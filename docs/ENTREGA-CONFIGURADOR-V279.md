@@ -29,6 +29,7 @@ Ver [PEDIDO-BACKEND.md](./PEDIDO-BACKEND.md) y [.env.example](../.env.example) p
 - Se usan centavos enteros. El anticipo redondea al centavo y el saldo es total menos anticipo.
 - Se valida la plantilla completa antes del cobro para que cantidad y filas con talla coincidan.
 - La asesora usa la voz del navegador, activada expresamente; no se reproduce automáticamente audio de bienvenida ni se graba el micrófono. El formulario sigue disponible sin compatibilidad de voz.
+- Revisión del 24 de noviembre de 2026: la asesora pasa a ser un retrato animado de la modelo aportada por el cliente, con físicas de resorte, respiración, mirada al puntero y labios sincronizados con la voz a partir del texto; ocupa la columna izquierda del pedido con las opciones a la derecha. Detalle en [PEDIDO-EXPERIENCIA.md](./PEDIDO-EXPERIENCIA.md).
 - Las imágenes oficiales del catálogo son fichas aplanadas. Sus elementos impresos no son capas separadas: se quitan con el borrador mágico; los elementos añadidos en el editor sí son capas independientes. Los recortes iniciales siguen las proporciones de la fuente y pueden ajustarse con encuadre.
 - Los prompts de generación y acabado conservan la lógica original para uniformes. Para camisas se corrige la instrucción heredada que exigía siempre una calzoneta, de modo que respete el producto elegido.
 - Se corrige la selección de línea al navegar mediante enlaces a otra categoría dentro de la misma página. Se conservan sus contenidos y diseño, y Atrás recupera la selección anterior.

@@ -7,6 +7,8 @@ import Icon from './Icon';
 import RevealText from './RevealText';
 import { siteAsset } from '@/lib/asset-path';
 
+const GLARE_VARS = ['--gx', '--gy', '--px', '--py'];
+
 export function Hero() {
   const art = useRef<HTMLDivElement>(null);
   const section = useRef<HTMLElement>(null);
@@ -40,16 +42,28 @@ export function Hero() {
       animations.forEach(animation => animation.cancel());
     };
   }, []);
+  // Pointer light: the art drifts with the cursor, a lime-amber glare follows it and the text block counter-shifts (layers at different depths).
   function moveArt(event: MouseEvent<HTMLElement>) {
-    if (!art.current || !window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)').matches) return;
+    if (!art.current || document.documentElement.dataset.tonyEffects === 'off' || !window.matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)').matches) return;
     const rect = event.currentTarget.getBoundingClientRect();
-    art.current.style.transform = `translate3d(${(event.clientX - rect.left - rect.width / 2) * .012}px,${(event.clientY - rect.top - rect.height / 2) * .012}px,0) scale(1.025)`;
+    const dx = event.clientX - rect.left, dy = event.clientY - rect.top;
+    art.current.style.transform = `translate3d(${(dx - rect.width / 2) * .012}px,${(dy - rect.height / 2) * .012}px,0) scale(1.025)`;
+    const s = event.currentTarget.style;
+    s.setProperty('--gx', `${dx}px`);
+    s.setProperty('--gy', `${dy}px`);
+    s.setProperty('--px', `${(dx - rect.width / 2) * -.004}px`);
+    s.setProperty('--py', `${(dy - rect.height / 2) * -.004}px`);
+  }
+  function leaveArt(event: MouseEvent<HTMLElement>) {
+    if (art.current) art.current.style.transform = '';
+    GLARE_VARS.forEach(property => event.currentTarget.style.removeProperty(property));
   }
   return (
-    <section ref={section} className="hero" aria-labelledby="hero-title" onMouseMove={moveArt} onMouseLeave={() => { if (art.current) art.current.style.transform = ''; }}>
+    <section ref={section} className="hero" aria-labelledby="hero-title" onMouseMove={moveArt} onMouseLeave={leaveArt}>
       <div className="hero-campaign-art" ref={art}>
         <Image src={siteAsset('/assets/hero-campaign-v3.png')} alt="Concepto de camisetas Tony con textura de escamas, iluminadas en verde y ámbar" fill sizes="100vw" priority quality={90}/>
       </div>
+      <div className="hero-glare" aria-hidden="true"/>
       <div className="hero-vignette" aria-hidden="true"/>
       <div className="hero-topline" data-rise="0"><span>EL SALVADOR. EN NUESTRA PIEL.</span><span>DISEÑO / IDENTIDAD / INSTINTO</span></div>
       <div className="hero-text">

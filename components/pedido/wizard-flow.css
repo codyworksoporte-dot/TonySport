@@ -8,16 +8,22 @@
 .pedido-wizard-progress progress::-moz-progress-bar{background:var(--pedido-green)}
 .pedido-one-choice .pedido-options,.pedido-one-choice .pedido-options.two{grid-template-columns:1fr;gap:12px}
 .pedido-one-choice fieldset{min-width:0}
-.pedido-one-choice .pedido-choice{min-height:94px;text-align:left;padding:22px 52px 22px 22px;border-radius:16px}
+.pedido-one-choice .pedido-choice{min-height:94px;text-align:left;padding:22px 52px 22px 22px}
 .pedido-one-choice .pedido-choice:has(.pedido-choice-img){display:grid;grid-template-columns:78px minmax(0,1fr);grid-template-rows:1fr 1fr;column-gap:18px;padding:12px 52px 12px 12px}
 .pedido-one-choice .pedido-choice .pedido-choice-img{grid-row:1/3;width:78px;height:78px;object-fit:cover;margin:0;border-radius:10px}
 .pedido-one-choice .pedido-choice strong{font-size:18px;align-self:end;margin:0 0 5px}
 .pedido-one-choice .pedido-choice>span:not(.pedido-choice-check){color:var(--pedido-green);align-self:start;margin:0;font-size:13px}
 .pedido-one-choice .pedido-choice .pedido-choice-check{top:50%;right:18px;transform:translateY(-50%)}
-.pedido-one-choice .pedido-choice.is-selected{box-shadow:inset 0 0 0 1px var(--pedido-green);background:#b7dd7910}
 .pedido-roster-single .pedido-player{grid-template-columns:42px minmax(0,1fr);gap:16px;padding:22px;border:1px solid var(--pedido-line);border-radius:16px;background:#102219}
 .pedido-roster-single .pedido-player-index{grid-row:1/4;padding-top:27px}
 .pedido-roster-single .pedido-player .pedido-field{grid-column:2}
 .pedido-roster-single .pedido-player .pedido-field-label>span{font-size:13px}
 @media(max-width:480px){.pedido-wizard-progress{margin:20px 0}.pedido-wizard-progress strong{font-size:11px}.pedido-one-choice .pedido-choice:has(.pedido-choice-img){grid-template-columns:60px minmax(0,1fr);column-gap:13px;padding-right:40px}.pedido-one-choice .pedido-choice .pedido-choice-img{width:60px;height:68px}.pedido-one-choice .pedido-choice strong{font-size:16px}.pedido-one-choice .pedido-choice>span:not(.pedido-choice-check){font-size:11px}.pedido-one-choice .pedido-choice .pedido-choice-check{right:12px}}
 .pedido-prices .pedido-unit-price dd strong{font-size:26px;color:var(--pedido-green)}.pedido-prices .pedido-price-pending dd{font-size:13px;font-weight:400;white-space:normal;text-align:right}
+/* Each sub-screen and its title slide in from the side the customer came from (Continuar: right, Anterior: left). Never replays on scroll or typing: the key only changes with the step. Reduced motion and the effects switch already stop every animation on the page. */
+.pedido-screen,.pedido-screen-title{display:block;animation:pedido-screen-in 380ms var(--ease) both}
+.pedido-screen{animation-delay:40ms}
+.pedido-screen-title{animation-duration:420ms}
+.pedido-screen[data-dir="-1"],.pedido-screen-title[data-dir="-1"]{animation-name:pedido-screen-back}
+@keyframes pedido-screen-in{from{opacity:0;transform:translate3d(28px,0,0)}to{opacity:1;transform:none}}
+@keyframes pedido-screen-back{from{opacity:0;transform:translate3d(-28px,0,0)}to{opacity:1;transform:none}}

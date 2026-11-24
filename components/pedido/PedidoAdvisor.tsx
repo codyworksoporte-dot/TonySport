@@ -7,6 +7,8 @@ import './advisor-experience.css';
 const Experience = dynamic(() => import('./AdvisorExperience'), {ssr: false, loading: () => <p role="status">Preparando a tu asesora…</p>});
 const KEY = 'tony:pedido:quality:v1';
 type Quality = 'low' | 'high';
+/** The portrait stage stands beside every step except the welcome, the design editor (which needs the width) and the confirmation. */
+const guidedStep = (step: number) => step > 0 && step < 12 && step !== 6;
 
 export default function PedidoAdvisor({cue, step, ready = true, children}: {cue: AdvisorCue; step: number; ready?: boolean; children?: ReactNode}) {
   const [quality, setQuality] = useState<Quality>('low');
@@ -14,12 +16,14 @@ export default function PedidoAdvisor({cue, step, ready = true, children}: {cue:
     try {
       const saved = localStorage.getItem(KEY);
       if (saved === 'low' || saved === 'high') {setQuality(saved); return;}
+      // The portrait is one textured quad, so any current phone or laptop can run it; only data saving or reduced motion keep the light version.
       const device = navigator as Navigator & {deviceMemory?: number; connection?: {saveData?: boolean}};
-      if (!device.connection?.saveData && !matchMedia('(prefers-reduced-motion: reduce)').matches && (device.deviceMemory || 0) >= 8 && device.hardwareConcurrency >= 8) setQuality('high');
+      const memory = device.deviceMemory ?? 4, cores = device.hardwareConcurrency || 4;
+      if (!device.connection?.saveData && !matchMedia('(prefers-reduced-motion: reduce)').matches && memory >= 4 && cores >= 4) setQuality('high');
     } catch { /* The light version works without storage. */ }
   }, []);
   function select(value: Quality) {setQuality(value); try {localStorage.setItem(KEY, value);} catch { /* Visit-only preference. */ }}
-  return <section className={`advisor-experience mode-${quality}${step > 0 && step <= 5 ? ' is-guided-choice' : ''}`} aria-label="Guía del pedido">
+  return <section className={`advisor-experience mode-${quality}${guidedStep(step) ? ' is-guided-choice' : ''}${step === 0 ? ' is-welcome' : ''}`} aria-label="Guía del pedido">
     <div className="advisor-quality" role="group" aria-label="Rendimiento del pedido">
       <span>Tu experiencia</span>
       <button type="button" aria-pressed={quality === 'low'} onClick={() => select('low')}>Gama baja <small>Ligera · sin asesora</small></button>

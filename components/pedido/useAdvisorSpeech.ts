@@ -1,6 +1,7 @@
 'use client';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {advisorVoice, femaleVoice, spoken} from '@/lib/pedido/advisor';
+import {LipSync} from '@/lib/pedido/lipsync';
 
 type Availability = 'loading' | 'ready' | 'missing' | 'unsupported';
 type Playback = 'idle' | 'starting' | 'speaking' | 'blocked' | 'error';
@@ -12,6 +13,9 @@ export function useAdvisorSpeech() {
   const [playback, setPlayback] = useState<Playback>('idle');
   const [deviceVoice, setDeviceVoice] = useState(false);
   const run = useRef(0), watchdog = useRef(0);
+  // The mouth follows the words: one shared timeline the 3D stage samples every frame.
+  const lipsync = useRef<LipSync | null>(null);
+  if (!lipsync.current) lipsync.current = new LipSync();
   // Keep utterances alive until completion, including in engines that don't retain the JS wrapper.
   const utterances = useRef<SpeechSynthesisUtterance[]>([]);
   const cancel = useCallback(() => {
@@ -19,6 +23,7 @@ export function useAdvisorSpeech() {
     clearTimeout(watchdog.current);
     window.speechSynthesis?.cancel();
     utterances.current = [];
+    lipsync.current?.stop();
   }, []);
   const stop = useCallback(() => {cancel(); setPlayback('idle');}, [cancel]);
   const check = useCallback((settled = false) => {
@@ -51,6 +56,7 @@ export function useAdvisorSpeech() {
     const voice = check(true);
     if (!voice) return;
     const token = run.current;
+    const lips = lipsync.current!;
     const fail = (blocked = false) => {
       if (token !== run.current) return;
       cancel();
@@ -69,10 +75,18 @@ export function useAdvisorSpeech() {
       utterance.onstart = () => {
         if (token !== run.current) return;
         clearTimeout(watchdog.current);
+        lips.start(sentence, performance.now());
         setPlayback('speaking');
       };
+      // Word boundaries keep the lips in step with the real voice; engines without them use the estimate.
+      utterance.onboundary = event => {
+        if (token !== run.current || (event.name && event.name !== 'word')) return;
+        lips.boundary(event.charIndex, performance.now());
+      };
       utterance.onend = () => {
-        if (token !== run.current || index !== sentences.length - 1) return;
+        if (token !== run.current) return;
+        lips.stop();
+        if (index !== sentences.length - 1) return;
         clearTimeout(watchdog.current);
         utterances.current = [];
         setPlayback('idle');
@@ -90,5 +104,5 @@ export function useAdvisorSpeech() {
     } catch {fail();}
   }, [cancel, check, stop]);
 
-  return {availability, playback, deviceVoice, speak, stop, canSpeak: availability === 'ready', speaking: playback === 'starting' || playback === 'speaking'};
+  return {availability, playback, deviceVoice, speak, stop, lipsync: lipsync.current, canSpeak: availability === 'ready', speaking: playback === 'starting' || playback === 'speaking'};
 }

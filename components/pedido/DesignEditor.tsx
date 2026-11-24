@@ -122,7 +122,12 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
   useEffect(() => { setSelectedId(id => current.current.design.layers.some(item => item.id === id && item.side === side) ? id : ''); setRegion(null); setFrame({ zoom: 1, x: 0, y: 0 }); setFraming(false); setEraseMode(false); }, [side]);
   useEffect(() => () => cancelAnimationFrame(dragFrame.current), []);
 
-  function selectLayer(id: string) {setSelectedId(id); setMobilePanel('adjust');}
+  function selectLayer(id: string, reveal = true) {
+    setSelectedId(id); setMobilePanel('adjust');
+    // Reveal the preview after the adjustment panel enters normal flow. Scrolling
+    // on pointer-down would move the coordinate origin during an active drag.
+    if (reveal && matchMedia('(max-width: 900px)').matches) requestAnimationFrame(() => stage.current?.scrollIntoView({block: 'start', behavior: 'instant'}));
+  }
   // During a gesture only the selected element moves. Persist once on release:
   // pricing, the advisor and the full order must not re-render for every pointer event.
   function moveLayer(event: PointerEvent<HTMLButtonElement>) {
@@ -245,7 +250,7 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
         }} onPointerMove={event => { if (!regionStart.current) return; const p = localPoint(event), start = regionStart.current; setRegion({ x: Math.min(start.x, p.x), y: Math.min(start.y, p.y), width: Math.abs(p.x - start.x), height: Math.abs(p.y - start.y) }); }} onPointerUp={event => { regionStart.current = null; if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); }} onPointerCancel={() => { regionStart.current = null; }}>
           {draft.design[side] ? <img className="pedido-design-base" src={resolveImage(draft.design[side]!)} alt={`Base ${side === 'front' ? 'frontal' : 'dorsal'} ${draft.design.catalogCode}`} draggable={false} style={framing ? { transform: `translate(${frame.x}%, ${frame.y}%) scale(${frame.zoom})` } : undefined} /> : <div className="pedido-design-placeholder"><span aria-hidden="true">＋</span><strong>{side === 'front' ? 'Empecemos por el frontal.' : 'Completa el dorsal.'}</strong><p>Selecciona un diseño oficial o sube tu imagen.</p></div>}
           {sideLayers.filter(item => item.visible).map(layer => <button type="button" key={layer.id} aria-label={`Mover ${layer.name}. Flechas para posicionar; Suprimir para eliminar.`} aria-pressed={selectedId === layer.id} disabled={disabled || eraseMode || framing} className={`pedido-design-layer${selectedId === layer.id ? ' is-selected' : ''}`} style={{ left: `${layer.x}%`, top: `${layer.y}%`, width: `${layer.width}%`, height: `${layer.height}%`, transform: `translate(-50%, -50%) rotate(${layer.rotation}deg)`, color: layer.color }} onClick={() => selectLayer(layer.id)} onPointerDown={event => {
-            if (event.button !== 0 || drag.current) return; event.stopPropagation(); selectLayer(layer.id); drag.current = {id: layer.id, pointerId: event.pointerId, x: event.clientX, y: event.clientY, startX: layer.x, startY: layer.y, nextX: layer.x, nextY: layer.y, rect: stage.current!.getBoundingClientRect(), element: event.currentTarget}; event.currentTarget.setPointerCapture(event.pointerId);
+            if (event.button !== 0 || drag.current) return; event.stopPropagation(); selectLayer(layer.id, false); drag.current = {id: layer.id, pointerId: event.pointerId, x: event.clientX, y: event.clientY, startX: layer.x, startY: layer.y, nextX: layer.x, nextY: layer.y, rect: stage.current!.getBoundingClientRect(), element: event.currentTarget}; event.currentTarget.setPointerCapture(event.pointerId);
           }} onPointerMove={moveLayer} onPointerUp={finishDrag} onPointerCancel={finishDrag} onLostPointerCapture={finishDrag} onKeyDown={event => {
             const step = event.shiftKey ? 5 : 1; const offset: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
             if (offset[event.key]) { event.preventDefault(); const [x, y] = offset[event.key]; patchLayer(layer.id, { x: clamp(layer.x + x, 0, 100), y: clamp(layer.y + y, 0, 100) }); }
