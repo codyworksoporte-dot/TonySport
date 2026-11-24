@@ -27,3 +27,18 @@
 .pedido-screen[data-dir="-1"],.pedido-screen-title[data-dir="-1"]{animation-name:pedido-screen-back}
 @keyframes pedido-screen-in{from{opacity:0;transform:translate3d(28px,0,0)}to{opacity:1;transform:none}}
 @keyframes pedido-screen-back{from{opacity:0;transform:translate3d(-28px,0,0)}to{opacity:1;transform:none}}
+
+/* A single downloaded image supplies all the small garment previews. */
+.pedido-one-choice .pedido-choice-img {
+  position: relative;
+  overflow: hidden;
+}
+.pedido-one-choice .pedido-choice-img img {
+  position: absolute;
+  display: block;
+  max-width: none;
+}
+@media (max-width: 480px) {
+  .pedido-one-choice .pedido-choice .pedido-choice-img { height: 60px; }
+}
+.pedido-screen[data-photo-step] { animation: none; }

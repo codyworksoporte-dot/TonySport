@@ -1,5 +1,6 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { extname, join } from 'node:path';
+import sharp from 'sharp';
 
 // Check the catalogue manifests before publishing: Next can otherwise build
 // successfully even when the files referenced by the site are missing.
@@ -13,12 +14,28 @@ for (const file of manifests) collect(JSON.parse(await readFile(file, 'utf8')));
 
 const guides = JSON.parse(await readFile('data/pedido/guides.json', 'utf8'));
 for (const guide of guides.guides) {
-  if (!['welcome', 'uniform', 'shirt'].includes(guide.id)) {
+  if (['welcome', 'uniform', 'shirt'].includes(guide.id)) {
+    for (const width of [360, 720]) references.add(`/assets/pedido/guides/${guide.id}-${width}.webp`);
+  } else {
     references.add(`/assets/pedido/guides/${guide.id}-thumb.webp`);
+    if (guide.id !== 'advisor') references.add(`/assets/pedido/guides/${guide.id}-640.webp`);
   }
 }
 
 const errors = [];
+const sheet = JSON.parse(await readFile('data/pedido/option-thumbnails.json', 'utf8'));
+const options = guides.guides.filter(guide => /^(mold|fabric|collar|sleeve|brand|crest)-/.test(guide.id));
+if (sheet.ids.length !== options.length || options.some(guide => !sheet.ids.includes(guide.id))
+  || !Number.isInteger(sheet.columns) || sheet.columns <= 0 || sheet.rows !== Math.ceil(sheet.ids.length / sheet.columns)) {
+  errors.push('Las miniaturas del configurador no coinciden con sus guías. Ejecuta node scripts/prepare-pedido-previews.mjs.');
+}
+for (const size of [96, 192]) {
+  const file = `public/assets/pedido/guides/options-${size}.webp`;
+  try {
+    const { info } = await sharp(file).raw().toBuffer({ resolveWithObject: true });
+    if (info.width !== size * sheet.columns || info.height !== size * sheet.rows) errors.push(`Dimensiones incorrectas: ${file}`);
+  } catch { errors.push(`No se pudo leer la hoja de miniaturas: ${file}`); }
+}
 for (const reference of references) {
   try { await readFile(join('public', reference.slice(1))); }
   catch { errors.push(`Falta ${reference}`); }

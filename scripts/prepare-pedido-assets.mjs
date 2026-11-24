@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
+import { prepareGuidePreviews } from './prepare-pedido-previews.mjs';
 
 const root = process.cwd();
 const source = path.join(root, 'output/tony-v279-assets');
@@ -58,6 +59,13 @@ for (const fabric of fabrics) {
   guides.push({ id: fabric.id, title: fabric.title, description: fabric.description, image: `/assets/pedido/guides/${fabric.id}.webp`, width: info.width, height: info.height, sourceRole: fabric.title, sourceSha256: fabric.sourceSha256, source: fabric.source });
 }
 await fs.mkdir(path.join(root, 'data/pedido'), { recursive: true });
+// These two configurator illustrations are maintained directly in the repo.
+for (const [id, title] of [['sleeve-short', 'Manga corta'], ['sleeve-long', 'Manga larga']]) {
+  const image = `/assets/pedido/guides/${id}.webp`;
+  const { width, height } = await sharp(path.join(root, 'public', image.slice(1))).metadata();
+  guides.push({ id, title, image, width, height });
+}
 await fs.writeFile(path.join(root, 'data/pedido/catalog.json'), `${JSON.stringify({ source: manifest.sources[1].source, verifiedAt: manifest.createdAt, cropDefinition, designs }, null, 2)}\n`);
 await fs.writeFile(path.join(root, 'data/pedido/guides.json'), `${JSON.stringify({ source: manifest.sources[1].source, guides }, null, 2)}\n`);
+await prepareGuidePreviews();
 console.log(`Prepared ${designs.length} verified catalog designs and ${guides.length} guides.`);

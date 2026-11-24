@@ -201,6 +201,20 @@
       "sourceRole": "Slim Pro",
       "sourceSha256": "8ac02825625b08faaf0b238ed0fe27052e11cdfb803e5dca277c38f723eada6e",
       "source": "https://tonysportselsalvador.com/mockup-prueba/telas%20tony/slim-pro.jpg"
+    },
+    {
+      "id": "sleeve-short",
+      "title": "Manga corta",
+      "image": "/assets/pedido/guides/sleeve-short.webp",
+      "width": 800,
+      "height": 800
+    },
+    {
+      "id": "sleeve-long",
+      "title": "Manga larga",
+      "image": "/assets/pedido/guides/sleeve-long.webp",
+      "width": 800,
+      "height": 800
     }
   ]
 }

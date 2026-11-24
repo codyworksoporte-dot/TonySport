@@ -1,0 +1,25 @@
+{
+  "columns": 5,
+  "rows": 4,
+  "ids": [
+    "mold-standard",
+    "mold-raglan",
+    "mold-first-division",
+    "fabric-dry-fit",
+    "fabric-drycool",
+    "fabric-modern-carving",
+    "fabric-premier",
+    "fabric-slim-fit",
+    "fabric-slim-pro",
+    "collar-v",
+    "collar-round",
+    "collar-chinese",
+    "collar-polo",
+    "sleeve-short",
+    "sleeve-long",
+    "brand-sublimated",
+    "brand-3d",
+    "crest-sublimated",
+    "crest-3d"
+  ]
+}
