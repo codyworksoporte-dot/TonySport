@@ -29,7 +29,13 @@ function tony_auth_mail(string $email, string $subject, string $message): void {
 }
 function tony_auth_link(string $emailKey, string $kind, string $version, string $email): void {
     $token = bin2hex(random_bytes(32));
-    pedido_put('auth_link', hash('sha256',$token), ['key'=>$emailKey,'kind'=>$kind,'version'=>$version,'expiresAt'=>time()+($kind==='verify'?86400:1800)]);
+    $created = pedido_atomic(function() use ($emailKey,$kind,$version,$token) {
+        $owner = pedido_get($kind==='verify'?'auth_pending':'auth_user',$emailKey);
+        if (!$owner || $owner['version']!==$version) return false;
+        pedido_put('auth_link', hash('sha256',$token), ['key'=>$emailKey,'kind'=>$kind,'version'=>$version,'expiresAt'=>time()+($kind==='verify'?86400:1800)]);
+        return true;
+    });
+    if (!$created) return;
     $label = $kind==='verify' ? 'Confirma tu correo' : 'Recupera tu contraseña';
     // Fixed configured origin; fragment avoids including the secret in HTTP requests/referrers.
     $url = pedido_frontend().'/cuenta/#accion='.$kind.'&token='.$token;
@@ -114,16 +120,29 @@ function tony_auth_dispatch(array $data): array {
             return ['ok'=>true,'message'=>'Contraseña actualizada. Las sesiones anteriores se cerraron. Inicia sesión con tu nueva contraseña.'];
         });
     }
-    if (in_array($action,['session','logout','change'],true)) {
+    if (in_array($action,['session','logout','change','delete'],true)) {
         $identity=tony_auth_require();
         if ($action==='session') return ['ok'=>true,'user'=>tony_auth_public($identity['user']),'expiresAt'=>$identity['expiresAt']];
         if ($action==='logout') {
             $delete=pedido_db()->prepare('DELETE FROM records WHERE bucket=? AND id=?');$delete->execute(['auth_session',$identity['sessionId']]);
             return ['ok'=>true];
         }
-        $password=(string)($data['password']??'');tony_auth_password($password);
+        if ($action==='delete') pedido_rate('auth:delete:'.$identity['key'],5,900);
         $currentPassword=(string)($data['currentPassword']??'');
         if (strlen($currentPassword)>72 || !password_verify($currentPassword,$identity['user']['hash'])) pedido_fail('invalid_credentials','La contraseña actual no es correcta.',422);
+        if ($action==='delete') {
+            pedido_atomic(function() {
+                // Recheck the bearer session under the write lock in case a logout
+                // or password change raced the password check.
+                $owner=tony_auth_require();
+                $authRows=pedido_db()->prepare("DELETE FROM records WHERE bucket IN ('auth_session','auth_link') AND json_extract(payload,'$.key')=?");
+                $authRows->execute([$owner['key']]);
+                $account=pedido_db()->prepare("DELETE FROM records WHERE bucket IN ('auth_user','auth_pending') AND id=?");
+                $account->execute([$owner['key']]);
+            });
+            return ['ok'=>true,'message'=>'Cuenta eliminada. Se han cerrado todas sus sesiones.'];
+        }
+        $password=(string)($data['password']??'');tony_auth_password($password);
         $hash=tony_auth_hash($password);
         pedido_atomic(function() use ($identity,$hash) {
             $user=pedido_get('auth_user',$identity['key']);

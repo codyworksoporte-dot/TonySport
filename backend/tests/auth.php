@@ -53,6 +53,29 @@ try {
     rejects(function()use($stale){call_auth('verify',['token'=>$stale]);},'invalid_link');call_auth('verify',['token'=>$latest]);
     $other=call_auth('login',['email'=>'new@example.test','password'=>'second synthetic passphrase']);$_SERVER['HTTP_AUTHORIZATION']='Bearer '.$other['token'];check(pedido_session()!==$owner,'different accounts never share order ownership');
     $session=pedido_get('auth_session',hash('sha256',$other['token']));$session['expiresAt']=time()-1;pedido_put('auth_session',hash('sha256',$other['token']),$session);rejects(function(){tony_auth_require();},'session_expired');
+    // All identities, messages, payments and sessions here are local fixtures.
+    $left=call_auth('login',['email'=>'new@example.test','password'=>'second synthetic passphrase']);
+    $first=call_auth('login',['email'=>$email,'password'=>$password]);
+    $second=call_auth('login',['email'=>$email,'password'=>$password]);
+    $recovery=mailed(function()use($email){call_auth('recover',['email'=>$email]);});
+    $otherReset=mailed(function(){call_auth('recover',['email'=>'new@example.test']);});
+    $order=['owner'=>$owner,'status'=>'submitted'];pedido_put('order','ERASURE-TEST',$order);
+    unset($_SERVER['HTTP_AUTHORIZATION']);rejects(function()use($password){call_auth('delete',['currentPassword'=>$password]);},'login_required');
+    $_SERVER['HTTP_AUTHORIZATION']='Bearer '.$first['token'];
+    rejects(function(){call_auth('delete',['currentPassword'=>'wrong']);},'invalid_credentials');
+    check(call_auth('session')['user']===$first['user'],'wrong confirmation leaves account intact');
+    call_auth('delete',['currentPassword'=>$password]);
+    check(pedido_get('auth_user',$key)===null && pedido_get('auth_pending',$key)===null,'credentials erased');
+    foreach ([$first['token'],$second['token']] as $revoked) {
+        check(pedido_get('auth_session',hash('sha256',$revoked))===null,'session record erased');
+        $_SERVER['HTTP_AUTHORIZATION']='Bearer '.$revoked;rejects(function(){call_auth('session');},'session_expired');
+    }
+    check(pedido_get('auth_link',hash('sha256',$verify))===null && pedido_get('auth_link',hash('sha256',$recovery))===null,'verification and recovery records erased');
+    rejects(function()use($recovery,$password){call_auth('reset',['token'=>$recovery,'password'=>$password]);},'invalid_link');
+    rejects(function()use($email,$password){call_auth('login',['email'=>$email,'password'=>$password]);},'invalid_credentials');
+    $_SERVER['HTTP_AUTHORIZATION']='Bearer '.$left['token'];
+    check(call_auth('session')['user']===$left['user'] && pedido_get('auth_link',hash('sha256',$otherReset))!==null,'other account, session and recovery link preserved');
+    check(pedido_get('order','ERASURE-TEST')===$order,'transactional order preserved for separate handling');
     for($i=0;$i<4;$i++)call_auth('recover',['email'=>'limited@example.test']);rejects(function(){call_auth('recover',['email'=>'limited@example.test']);},'rate_limit');
     putenv('TONY_AUTH_ENABLED=false');rejects(function(){call_auth('session');},'auth_unavailable');
     $guest=pedido_session_create();$_SERVER['HTTP_AUTHORIZATION']='Bearer '.$guest['sessionToken'];check(strlen(pedido_session())===64,'legacy order mode preserved until activation');

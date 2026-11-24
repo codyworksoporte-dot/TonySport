@@ -1,0 +1,13 @@
+# Cómo atender una solicitud de privacidad
+
+Los clientes pueden escribir a info@tonysportselsalvador.com o al WhatsApp oficial de Tony, incluso si nunca crearon una cuenta. El botón de borrado del navegador actúa sobre ese dispositivo. Una solicitud recibida por correo o WhatsApp requiere actuación del equipo.
+
+1. Registra en un sistema de acceso restringido la fecha de recepción, el canal de respuesta, el derecho que la persona quiere ejercer y la referencia mínima para localizar el registro. Confirma la recepción, asigna una persona responsable y controla el plazo aplicable desde la fecha de recepción. Mantén los expedientes y documentos personales fuera de GitHub.
+2. Comprueba la identidad o representación de forma proporcional. Empieza por el canal asociado al pedido o la cuenta. Pide por un canal privado solo la prueba adicional necesaria y evita reproducir el DUI, la firma o comprobantes en la respuesta.
+3. Ubica la información en los sistemas que realmente intervinieron. Revisa, según el caso, el pedido en el servicio de Tony y su panel, imágenes o comprobantes, reseñas publicadas, correo y conversaciones comerciales. Identifica los proveedores a los que se comunicaron datos y tramita con ellos la solicitud que corresponda. El borrado de una cuenta revoca el acceso, pero por sí solo no resuelve estos otros registros.
+4. Elimina o anonimiza los datos cuya supresión proceda y comprueba el resultado en cada sistema. Para una reseña, verifica también su retirada de la página publicada. Si hay una obligación aplicable que justifique conservar algo, determina los campos imprescindibles, la base y el plazo de conservación. Restringe su uso. Revisa las copias de seguridad y cómo se evitará reintroducir registros eliminados al restaurarlas.
+5. Responde por el canal verificado. Indica qué se eliminó, qué queda pendiente de terceros y, para lo que deba conservarse, por qué y hasta cuándo o con qué criterio. Registra solo la evidencia mínima del trámite y da seguimiento a lo pendiente antes de cerrar el caso.
+
+Antes de habilitar cuentas, cobros o IA en un alojamiento nuevo, Tony debe confirmar el nombre legal y domicilio del responsable, los proveedores efectivos de alojamiento y correo, sus canales de contacto y los períodos de conservación aplicables a cada sistema y a sus respaldos. Refleja esos datos en la política publicada.
+
+Para tramitar los derechos y comprobar los plazos y excepciones, consulta la [Ley para la Protección de Datos Personales de El Salvador](https://ace.gob.sv/documentos/decretos/decreto_144_proteccion_datos.pdf) y los [formularios de la Agencia de Ciberseguridad del Estado](https://ace.gob.sv/formularios.php).

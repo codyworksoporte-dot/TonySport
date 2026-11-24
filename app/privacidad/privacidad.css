@@ -11,6 +11,7 @@
 .privacy-related a{display:inline-flex;align-items:center;min-height:44px;font-size:14px;color:var(--venom);text-decoration:underline;text-underline-offset:4px}
 .privacy-page h1{overflow-wrap:anywhere}
 .privacy-body article>div{min-width:0;overflow-wrap:anywhere}
+.privacy-body article[id]{scroll-margin-top:100px}
 @media(max-width:600px){.privacy-body article{grid-template-columns:1fr;gap:8px;padding:20px 18px}.privacy-body p,.privacy-body li{font-size:14px}}
 @media print{
   body:has(.privacy-page){background:#fff!important;color:#111!important;overflow:visible!important}

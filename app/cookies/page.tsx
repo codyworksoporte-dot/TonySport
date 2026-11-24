@@ -19,7 +19,11 @@ const SECTIONS: {title: string; body: React.ReactNode}[] = [
     <li><strong>IA del editor:</strong> si está habilitada, solicita las imágenes y elementos necesarios para la operación que elijas a Google Gemini. Revisa qué archivos incluyes antes de utilizarla.</li>
     <li><strong>WhatsApp, correo y pago:</strong> se abren cuando eliges el enlace o la acción correspondiente. El mensaje preparado o los datos necesarios para el pago pasan al servicio elegido, que aplica sus propias condiciones.</li>
   </ul>},
-  {title: 'Cómo controlarlo', body: <><p>En la configuración de privacidad de tu navegador, busca los datos guardados por este sitio y elimina sus cookies y datos de almacenamiento. Para retirar también las imágenes y diseños, elige borrar los datos del sitio; borrar solo cookies puede dejar intactos los borradores.</p><p>Guarda una copia de los diseños y documentos que necesites antes de hacerlo: perderás los borradores y preferencias locales y puede cerrarse tu sesión. Si bloqueas el almacenamiento, algunas funciones de guardado o recuperación de pagos pueden no funcionar. Puedes evitar las conexiones opcionales sin abrir las vistas sociales, el mapa o las herramientas con IA.</p><p>Borrar datos locales no retira mensajes enviados por WhatsApp o correo, ni elimina cuentas o pedidos del servicio. Para una solicitud sobre esa información, consulta los contactos de la <Link href="/privacidad">política de privacidad</Link>.</p></>},
+  {title: 'Cómo controlarlo', body: <>
+    <p>Puedes <Link href="/privacidad#borrar-datos-locales">borrar tus borradores, carrito y referencias de pedidos</Link> desde TonySport. Si quieres retirar también las preferencias compartidas y los diseños de todas las cuentas de este navegador, elimina las cookies y los datos de almacenamiento del sitio desde la configuración del navegador.</p>
+    <p>Descarga una copia de los diseños que quieras conservar. Si tienes un pago en curso, termina de revisarlo antes de borrar todos los datos del sitio desde el navegador.</p>
+    <p>Si ya enviaste información por WhatsApp, por correo o al servicio de pedidos, puedes <Link href="/privacidad#solicitudes">solicitar su eliminación a Tony</Link>.</p>
+  </>},
 ];
 
 export default function Cookies() {
@@ -29,7 +33,7 @@ export default function Cookies() {
       <p className="eyebrow orange">TÚ CONTROLAS LO QUE GUARDAS</p>
       <h1>COOKIES Y<br/><span>ALMACENAMIENTO.</span></h1>
       <p className="lead">Cómo se conservan tus borradores y preferencias, y qué ocurre al cargar servicios externos.</p>
-      <p className="privacy-updated">Actualizada el <time dateTime="2026-09-30">30 de septiembre de 2026</time>.</p>
+      <p className="privacy-updated">Actualizada el <time dateTime="2026-11-24">24 de noviembre de 2026</time>.</p>
       <nav className="privacy-related" aria-label="Información relacionada"><Link href="/privacidad">Política de privacidad ↗</Link><Link href="/terminos">Condiciones de pedidos ↗</Link></nav>
     </section>
     <section className="section-wrap privacy-body" aria-label="Almacenamiento y controles">

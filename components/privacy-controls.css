@@ -1,0 +1,5 @@
+.privacy-controls { scroll-margin-top: 100px; }
+.privacy-controls > button, .privacy-controls-actions { margin-top: 14px; }
+.privacy-controls-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.privacy-controls p[role="status"]:not(:empty) { margin-top: 12px; }
+@media print { .privacy-controls button { display: none; } }

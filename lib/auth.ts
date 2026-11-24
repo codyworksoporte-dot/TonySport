@@ -43,7 +43,7 @@ export async function accountRequest(action:string, data:Record<string,string> =
     }
     notify({user:result.user,status:'authenticated',error:'',expiresAt:result.expiresAt});
   }
-  if(['logout','change','reset'].includes(action))forgetAccount();
+  if(['logout','change','reset','delete'].includes(action))forgetAccount();
   return result;
 }
 export function restoreAccount():Promise<void> {

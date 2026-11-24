@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import type { ChangeEvent, PointerEvent } from 'react';
 import type { PedidoDesign, PedidoDraft, PedidoLayer } from '@/lib/pedido/types';
 import { siteAsset } from '@/lib/asset-path';
@@ -284,7 +285,18 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
           <p className="pedido-editor-note">Para moverlo, arrástralo sobre la camiseta.</p>
           <div className="pedido-editor-toolbar"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => { const patch = resetToZone(current.current.design, selected, imageRatio(selected)); patchLayer(selected.id, patch); if (patch.side) setSide(patch.side); setMessage('De vuelta a su lugar.'); }}>↺ Volver a su lugar</button><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => { const target: Side = side === 'front' ? 'back' : 'front'; change({ ...current.current.design, layers: [...current.current.design.layers, { ...selected, id: crypto.randomUUID(), side: target }] }); setMessage(`También en ${target === 'front' ? 'el frente' : 'la espalda'}.`); }}>Poner también {side === 'front' ? 'atrás' : 'adelante'}</button><button type="button" className="pedido-tool-button is-danger" disabled={disabled} onClick={() => removeLayer(selected.id)}>Quitar</button></div>
         </div>}
-        <details className="pedido-image-tools"><summary>Elementos impresos e IA</summary><p className="pedido-editor-note">Los escudos, nombres y números que ya están impresos en una lámina no son capas independientes. Para quitarlos, selecciona su área y solicita el borrado de la imagen base. Las capas agregadas arriba se eliminan directamente.</p><button type="button" className="pedido-tool-button" disabled={disabled || !draft.design[side]} aria-pressed={eraseMode} onClick={() => { setEraseMode(value => !value); setFraming(false); setRegion(null); setSelectedId(''); }}>{eraseMode ? 'Cancelar selección' : 'Seleccionar área para borrar'}</button>{eraseMode && <><p className="pedido-editor-note">Arrastra sobre la imagen para delimitar el área. Revisa la selección antes de solicitar el cambio.</p><button type="button" className="pedido-primary-button" disabled={disabled || !region || region.width < 1 || region.height < 1} onClick={() => askAI('erase')}>Borrar área con IA</button></>}<button type="button" className="pedido-tool-button" disabled={disabled || !draft.design.front} onClick={() => askAI('mockup')}>Generar mockup con IA</button><p className="pedido-editor-note">Estas herramientas requieren conexión con el servicio de Tony. Siempre podrás revisar el resultado y deshacerlo.</p></details>
+        <details className="pedido-image-tools">
+          <summary>Elementos impresos e IA</summary>
+          <p className="pedido-editor-note" id="pedido-editor-ai-info">Al generar un mockup o borrar un área, Tony envía la imagen base y las indicaciones a la inteligencia artificial de Google (Gemini). Para el borrado se envía la cara completa de la prenda y la zona marcada. Usa imágenes que puedas compartir. <Link href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad ↗</Link></p>
+          <p className="pedido-editor-note">Puedes quitar directamente las capas que agregaste. Para quitar un nombre o escudo que ya viene impreso en la imagen, selecciona su área.</p>
+          <button type="button" className="pedido-tool-button" disabled={disabled || !onAI || !draft.design[side]} aria-pressed={eraseMode} onClick={() => { setEraseMode(value => !value); setFraming(false); setRegion(null); setSelectedId(''); }}>{eraseMode ? 'Cancelar selección' : 'Seleccionar área para borrar'}</button>
+          {eraseMode && <>
+            <p className="pedido-editor-note">Arrastra sobre la imagen para delimitar el área.</p>
+            <button type="button" className="pedido-primary-button" aria-describedby="pedido-editor-ai-info" disabled={disabled || !onAI || !region || region.width < 1 || region.height < 1} onClick={() => askAI('erase')}>Borrar área con IA</button>
+          </>}
+          <button type="button" className="pedido-tool-button" aria-describedby="pedido-editor-ai-info" disabled={disabled || !onAI || !draft.design.front} onClick={() => askAI('mockup')}>Generar mockup con IA</button>
+          {!onAI && <p className="pedido-editor-note">La edición con IA estará disponible cuando se conecte el servicio de Tony. Puedes seguir editando las capas en este dispositivo.</p>}
+        </details>
       </aside>
     </div>
     {error && <p className="pedido-editor-message is-error" role="alert">{error}</p>}{message && !error && <p className="pedido-editor-message is-success" role="status">✓ {message}</p>}
