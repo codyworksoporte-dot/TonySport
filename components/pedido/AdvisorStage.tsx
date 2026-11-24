@@ -6,11 +6,12 @@ import {createPortraitRig, type Framing} from '@/lib/pedido/advisor-portrait';
 import type {MouthSource} from '@/lib/pedido/lipsync';
 
 export const ADVISOR_PORTRAIT = '/assets/advisor/tony-advisor-portrait.webp';
+const EXPRESSION_POSES = '/assets/advisor/tony-advisor-expressions.webp';
 
 /**
  * Mounted only in high mode. Owns and releases its complete WebGL lifecycle.
  * The portrait follows the visitor's pointer anywhere on the page, breathes,
- * blinks, shifts her weight and moves her lips with the voice (`mouth`).
+ * shifts her weight and moves her lips with the voice (`mouth`).
  */
 export default function AdvisorStage({speaking, paused, mouth, framing = 'full'}: {speaking: boolean; paused: boolean; mouth?: MouthSource; framing?: Framing}) {
   const host = useRef<HTMLDivElement>(null), state = useRef({speaking, paused, framing, mouth}), wake = useRef<() => void>(() => {});
@@ -46,12 +47,19 @@ export default function AdvisorStage({speaking, paused, mouth, framing = 'full'}
       framed = state.current.framing;
       if (ready) renderer.render(scene, camera);
     }
-    new THREE.TextureLoader().load(siteAsset(ADVISOR_PORTRAIT), texture => {
+    const loader = new THREE.TextureLoader();
+    loader.load(siteAsset(ADVISOR_PORTRAIT), texture => {
       if (!alive) {texture.dispose(); return;}
       rig.setTexture(texture);
       ready = true;
       rig.update({dt: .016, now: performance.now(), speaking: false, mouth: {open: 0, wide: 0}, reduced: true, pointer});
       setStatus('ready'); size(); schedule();
+      // The portrait can already animate while its expression detail loads.
+      loader.load(siteAsset(EXPRESSION_POSES), pose => {
+        if (!alive) {pose.dispose(); return;}
+        rig.setExpressions(pose);
+        schedule();
+      });
     }, undefined, () => {if (alive) setStatus('error');});
     const resize = new ResizeObserver(size); resize.observe(mount); size();
     const observer = new IntersectionObserver(([entry]) => {visible = entry.isIntersecting; schedule();}); observer.observe(mount);
@@ -78,7 +86,7 @@ export default function AdvisorStage({speaking, paused, mouth, framing = 'full'}
       rig.update({dt, now, speaking, mouth: mouth?.sample(now) ?? {open: 0, wide: 0}, reduced, pointer});
       renderer.render(scene, camera);
       // With reduced motion only the lips move, and only while she speaks.
-      if (!reduced || (speaking && mouth?.active)) schedule();
+      if (!reduced || speaking) schedule();
     }
     function schedule() {if (alive && !frame && visible && !document.hidden) {last = performance.now(); frame = requestAnimationFrame(draw);}}
     wake.current = schedule;

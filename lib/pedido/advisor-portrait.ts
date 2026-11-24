@@ -2,26 +2,17 @@ import {Mesh, OrthographicCamera, PlaneGeometry, ShaderMaterial, SRGBColorSpace,
 import type {Viseme} from './lipsync';
 
 /**
- * Tony's advisor as a living portrait. The photo of the advisor is one dense
- * quad; a vertex shader bends her body, head, hair and jaw from a handful of
- * physical values (springs for weight, lean and hair follow-through, a breath
- * cycle, gaze and talking gestures), and a fragment shader paints what a warp
- * cannot: the dark of an open mouth, blinking lids, pupils that follow the
- * visitor and a lime rim light from the stage. Everything runs on the GPU;
- * the CPU only integrates a few springs per frame.
- *
- * Landmarks are pixel coordinates of `tony-advisor-portrait` at 1× (547×609).
+ * The head moves as a unit. Registered photos supply the parted lips and
+ * closed eyelids. Shader coordinates are in logical pixels (the art is 2×).
  */
-export const PORTRAIT = {width: 547, height: 609, centerX: 273, face: {x: 283, y: 135}, neck: {x: 283, y: 222}, eyes: [{x: 258, y: 113}, {x: 306, y: 113}], mouth: {x: 283, y: 161}, chin: 184} as const;
+const PORTRAIT = {width: 547, height: 609} as const;
 
 const VERT = /* glsl */`
-uniform float uLean, uSway, uWeight, uBreath, uHeadRoll, uHeadYaw, uHeadPitch, uJaw, uWide, uShoulder;
+uniform float uLean, uSway, uWeight, uBreath, uHeadRoll, uHeadYaw, uHeadPitch, uShoulder;
 uniform vec2 uHairLag;
-varying vec2 vUv;
 varying vec2 vPix;
 vec2 rot(vec2 v, float a){float c=cos(a), s=sin(a); return vec2(v.x*c - v.y*s, v.x*s + v.y*c);}
 void main(){
-  vUv = uv;
   float x = position.x, y = -position.y;
   vPix = vec2(x, y);
   vec2 p = vec2(x, y);
@@ -38,60 +29,81 @@ void main(){
   // Shoulders can shrug on a spoken beat.
   float shoulderW = smoothstep(190.0, 235.0, y) * (1.0 - smoothstep(235.0, 300.0, y)) * smoothstep(40.0, 90.0, abs(x - 273.0));
   p.y -= uShoulder * shoulderW;
-  // The head turns on the neck; the face slides more than the outline, which reads as yaw.
+  // Carry the eyes, nose and cheeks together as the head turns on the neck.
   float headW = 1.0 - smoothstep(190.0, 238.0, y);
   p = vec2(283.0, 222.0) + rot(p - vec2(283.0, 222.0), uHeadRoll * headW);
-  float faceW = (1.0 - smoothstep(38.0, 54.0, abs(x - 283.0))) * smoothstep(66.0, 90.0, y) * (1.0 - smoothstep(186.0, 202.0, y));
-  p.x += uHeadYaw * (5.0 * faceW + 2.5 * headW);
-  p.y += uHeadPitch * (3.0 * faceW + 1.5 * headW);
+  p += vec2(3.5 * uHeadYaw, 2.0 * uHeadPitch) * headW;
   // Hair: the long strands follow the head late and swing more at the ends.
-  float hairW = smoothstep(36.0, 60.0, abs(x - 283.0)) * (1.0 - smoothstep(120.0, 150.0, abs(x - 283.0))) * (1.0 - smoothstep(420.0, 470.0, y)) * smoothstep(0.0, 30.0, y);
+  float hairW = smoothstep(48.0, 70.0, abs(x - 283.0)) * (1.0 - smoothstep(120.0, 150.0, abs(x - 283.0))) * (1.0 - smoothstep(420.0, 470.0, y)) * smoothstep(0.0, 30.0, y);
   hairW = max(hairW, (1.0 - smoothstep(60.0, 86.0, y)) * (1.0 - smoothstep(120.0, 150.0, abs(x - 283.0))));
   float hairLen = smoothstep(100.0, 440.0, y);
   p += uHairLag * hairW * (0.3 + 0.7 * hairLen);
-  // Jaw: the lower face drops while she talks; the neck stretches to meet it.
-  float jawW = smoothstep(150.0, 164.0, y) * (1.0 - smoothstep(184.0, 214.0, y)) * (1.0 - smoothstep(30.0, 46.0, abs(x - 283.0)));
-  p.y += uJaw * 6.5 * jawW;
-  // Lip corners: wide for "e"/"i", gathered for "o"/"u".
-  float dyM = (y - 161.0) / 9.0;
-  float mouthW = exp(-dyM * dyM) * (1.0 - smoothstep(14.0, 26.0, abs(x - 283.0)));
-  p.x += uWide * 2.4 * sign(x - 283.0) * mouthW;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(p.x, -p.y, 0.0, 1.0);
 }`;
 
 const FRAG = /* glsl */`
-uniform sampler2D uMap;
+uniform sampler2D uMap, uExpressions;
+uniform bool uHasExpressions;
 uniform vec2 uSize;
-uniform float uBlink, uJaw, uWide, uPupilX, uPupilY, uRim, uGlow;
-varying vec2 vUv;
+uniform float uJaw, uWide, uBlink, uRim, uGlow;
 varying vec2 vPix;
 vec2 toUv(vec2 p){return vec2(p.x / uSize.x, 1.0 - p.y / uSize.y);}
 vec4 tap(vec2 p){vec4 c = texture2D(uMap, toUv(p)); c.rgb /= max(c.a, 0.002); return c;}
+vec3 expressionAt(vec2 p){
+  vec2 uv = (p - vec2(235.0, 97.0)) / vec2(95.0, 80.0);
+  return texture2D(uExpressions, vec2(uv.x, 1.0 - uv.y)).rgb;
+}
+vec4 eyelid(vec2 p){
+  vec4 photo = tap(p);
+  bool left = p.x < 282.0;
+  // Signed distance from the lash center, positive toward the nose.
+  float x = (left ? p.x - 258.5 : 307.5 - p.x) / 13.0;
+  float mask = (1.0 - smoothstep(0.98, 1.45, abs(x)))
+             * smoothstep(98.0, 103.0, p.y) * (1.0 - smoothstep(122.0, 127.0, p.y));
+  if (mask == 0.0) return photo;
+  x = clamp(x, -1.0, 1.0);
+  float closedLash = 116.7 - 2.7*x*x + 0.55*x;
+  float remaining = (1.0 - uBlink) * 9.8 * (1.0 - x*x);
+  float lash = closedLash - remaining;
+  float lid = 1.0 - smoothstep(lash + 0.4, lash + 1.3, p.y);
+  // The lid passes in front of the stationary iris. Only its own texture
+  // moves. At full closure both lids meet in the photographed resting pose.
+  lid = mix(lid, 1.0, smoothstep(0.80, 1.0, uBlink));
+  float follow = smoothstep(99.0, lash, p.y);
+  vec3 skin = expressionAt(p + vec2(0.0, remaining * follow));
+  photo.rgb = mix(photo.rgb, skin, mask * lid * smoothstep(0.0, 0.22, uBlink));
+  return photo;
+}
+vec4 samplePortrait(vec2 p){
+  if (uHasExpressions && uBlink > 0.0 && p.y > 97.0 && p.y < 128.0) return eyelid(p);
+  // The open pose is a registered crop of this portrait at 2x resolution.
+  vec2 tileOrigin = vec2(257.0, 151.0), tileSize = vec2(52.0, 26.0);
+  vec2 local = p - tileOrigin;
+  if (local.x <= 0.0 || local.y <= 0.0 || local.x >= tileSize.x || local.y >= tileSize.y)
+    return tap(p);
+
+  // Align both lip contours before blending so the intermediate shapes
+  // retain a single lip line. The corners stay anchored to the portrait.
+  float x = (p.x - 282.5) / 20.5;
+  float seam = 161.6 - 1.9 * x * x - 0.25 * x;
+  float y = p.y - seam;
+  float corners = 1.0 - smoothstep(0.40, 1.0, abs(x));
+  float lip = corners * (1.0 - smoothstep(5.5, 14.0, abs(y)));
+  float lowerLip = smoothstep(-1.5, 3.0, y);
+  float opening = smoothstep(0.0, 0.74, uJaw);
+  float travel = lip * mix(-0.65, 1.85, lowerLip);
+  p.x -= lip * uWide * x * 1.8;
+  vec4 closed = tap(p - vec2(0.0, opening * travel));
+  if (!uHasExpressions || opening <= 0.0) return closed;
+  vec3 openColor = expressionAt(p + vec2(0.0, (1.0 - opening) * travel));
+  vec2 edge = min(local, tileSize - local);
+  closed.rgb = mix(closed.rgb, openColor, opening * smoothstep(0.0, 2.0, min(edge.x, edge.y)));
+  return closed;
+}
 void main(){
   vec2 p = vPix;
-  // Blink: the upper lid's skin is pulled down over each eye.
-  vec2 E1 = vec2(258.0, 113.0), E2 = vec2(306.0, 113.0);
-  for (int i = 0; i < 2; i++) {
-    vec2 E = i == 0 ? E1 : E2;
-    vec2 d = (p - E) / vec2(13.5, 8.0);
-    float inEye = 1.0 - smoothstep(0.7, 1.0, dot(d, d));
-    float lid = E.y - 12.0;
-    float shut = p.y - uBlink * (p.y - lid);
-    p.y = mix(p.y, shut, inEye);
-    // Pupils drift toward where the visitor is.
-    float iris = 1.0 - smoothstep(4.0, 6.5, length(vPix - E));
-    p -= vec2(uPupilX, uPupilY) * 1.7 * iris * (1.0 - uBlink);
-  }
-  vec4 c = tap(p);
-  // The inside of the mouth appears as the jaw opens.
-  vec2 m = vPix - vec2(283.0, 161.5 + 3.5 * uJaw);
-  float mw = 11.0 + 5.0 * max(uWide, 0.0) - 3.0 * max(-uWide, 0.0);
-  float mh = 0.9 + 5.6 * uJaw;
-  vec2 q = m / vec2(mw, mh);
-  float cav = (1.0 - smoothstep(0.72, 1.06, dot(q, q))) * smoothstep(0.06, 0.22, uJaw);
-  float teeth = cav * (1.0 - smoothstep(-mh * 0.15, mh * 0.42, m.y)) * smoothstep(0.32, 0.6, uJaw) * (1.0 - smoothstep(mw * 0.72, mw * 0.98, abs(m.x)));
-  vec3 col = mix(c.rgb, vec3(0.16, 0.05, 0.06), cav * 0.92);
-  col = mix(col, vec3(0.9, 0.86, 0.82), teeth * 0.8);
+  vec4 c = samplePortrait(p);
+  vec3 col = c.rgb;
   // Stage light: lime rim from the upper right, a cooler green from the left, and the floor glow.
   float aR = texture2D(uMap, toUv(p + vec2(2.6, -1.4))).a;
   float aL = texture2D(uMap, toUv(p + vec2(-2.4, 1.2))).a;
@@ -126,9 +138,10 @@ export function createPortraitRig() {
   geometry.translate(W / 2, -H / 2, 0);
   const uniforms = {
     uMap: {value: null as Texture | null}, uSize: {value: new Vector2(W, H)},
+    uExpressions: {value: null as Texture | null}, uHasExpressions: {value: false}, uBlink: {value: 0},
     uLean: {value: 0}, uSway: {value: 0}, uWeight: {value: 0}, uBreath: {value: 0}, uHeadRoll: {value: 0}, uHeadYaw: {value: 0}, uHeadPitch: {value: 0},
     uJaw: {value: 0}, uWide: {value: 0}, uShoulder: {value: 0}, uHairLag: {value: new Vector2()},
-    uBlink: {value: 0}, uPupilX: {value: 0}, uPupilY: {value: 0}, uRim: {value: 1}, uGlow: {value: 1},
+    uRim: {value: 1}, uGlow: {value: 1},
   };
   const material = new ShaderMaterial({uniforms, vertexShader: VERT, fragmentShader: FRAG, transparent: true, depthWrite: false, depthTest: false});
   const mesh = new Mesh(geometry, material);
@@ -138,18 +151,29 @@ export function createPortraitRig() {
   const lean = new Spring(18, 6), sway = new Spring(14, 5), weight = new Spring(3.5, 3), hairX = new Spring(60, 6.5), hairY = new Spring(80, 8);
   const yaw = new Spring(26, 7), pitch = new Spring(30, 8), roll = new Spring(34, 7), shoulder = new Spring(60, 9);
   const gazeX = new Spring(40, 10), gazeY = new Spring(40, 10), energy = new Spring(6, 4);
-  let time = 0, mouthOpen = 0, mouthWide = 0, weightSide = 1, nextShift = 8, blink = 0, blinkPhase = -1, nextBlink = 2.5, nextBeat = .8, beat = 0, lastHeadX = 0, lastHeadY = 0, lastPointer = 0;
+  let time = 0, weightSide = 1, nextShift = 8, nextBeat = .8, beat = 0, lastHeadX = 0, lastHeadY = 0, lastPointer = 0;
   const seed = Math.random() * 10;
+  let nextBlink = 3 + Math.random() * 2;
 
   function update(input: RigInput) {
     const dt = clamp(input.dt, .001, .05);
-    if (input.reduced) {
-      // Still, but her mouth may follow the voice so the words are visibly hers.
-      mouthOpen += (input.mouth.open * .7 - mouthOpen) * Math.min(1, dt * 18);
-      uniforms.uJaw.value = mouthOpen; uniforms.uWide.value = input.mouth.wide * .5;
-      return;
-    }
+    // Ease between syllables, and restore the exact resting portrait on the
+    // last speech frame (the reduced-motion renderer may sleep immediately).
+    const blend = 1 - Math.exp(-18 * dt);
+    const strength = input.reduced ? 0.7 : 1;
+    const jaw = uniforms.uJaw, width = uniforms.uWide;
+    jaw.value = input.speaking ? jaw.value + (clamp(input.mouth.open, 0, 1) * strength - jaw.value) * blend : 0;
+    width.value = input.speaking ? width.value + (clamp(input.mouth.wide, -1, 1) * strength - width.value) * blend : 0;
+    uniforms.uBlink.value = 0;
+    if (input.reduced) return;
     time += dt;
+    const blinkTime = time - nextBlink;
+    if (blinkTime >= 0) {
+      const close = Math.min(blinkTime / 0.085, 1);
+      const reopen = clamp((blinkTime - 0.11) / 0.13, 0, 1);
+      uniforms.uBlink.value = Math.sin(close * Math.PI / 2) * Math.cos(reopen * Math.PI / 2);
+      if (reopen === 1) nextBlink = time + 3 + Math.random() * 3;
+    }
     const talking = energy.step(input.speaking ? 1 : 0, dt);
     const pointer = input.pointer;
     if (pointer.active) lastPointer = time;
@@ -172,7 +196,6 @@ export function createPortraitRig() {
     const gxTarget = recentPointer ? pointer.x : wander(time * .6, seed + 5) * .5;
     const gyTarget = recentPointer ? pointer.y : wander(time * .5, seed + 8) * .3;
     const gx = gazeX.step(clamp(gxTarget, -1, 1), dt), gy = gazeY.step(clamp(gyTarget, -1, 1), dt);
-    uniforms.uPupilX.value = gx; uniforms.uPupilY.value = gy * .7;
 
     // Talking beats: small nods, tilts and shrugs on an irregular rhythm.
     if (time > nextBeat) {
@@ -193,21 +216,6 @@ export function createPortraitRig() {
     lastHeadX = headX; lastHeadY = headY;
     uniforms.uHairLag.value.set(hairX.step(clamp(-vx * .045, -9, 9), dt), hairY.step(clamp(-vy * .04, -5, 5) + 1.2 * (1 - Math.cos(uniforms.uLean.value * 4)) , dt));
 
-    // Blinks: quick close, slower open, now and then a double.
-    if (blinkPhase < 0 && time > nextBlink) {blinkPhase = 0; nextBlink = time + 2.2 + Math.random() * 4 + (Math.random() < .2 ? -2 : 0);}
-    if (blinkPhase >= 0) {
-      blinkPhase += dt;
-      blink = blinkPhase < .07 ? blinkPhase / .07 : blinkPhase < .19 ? 1 - (blinkPhase - .07) / .12 : 0;
-      if (blinkPhase >= .19) blinkPhase = -1;
-    }
-    uniforms.uBlink.value = clamp(blink, 0, 1);
-
-    // Mouth: fast attack, softer release, so consonants stay crisp and vowels blend.
-    const targetOpen = input.mouth.open, k = targetOpen > mouthOpen ? 26 : 14;
-    mouthOpen += (targetOpen - mouthOpen) * Math.min(1, dt * k);
-    mouthWide += (input.mouth.wide * .8 + (1 - talking) * .15 - mouthWide) * Math.min(1, dt * 16);
-    uniforms.uJaw.value = clamp(mouthOpen, 0, 1);
-    uniforms.uWide.value = clamp(mouthWide, -1, 1);
     uniforms.uGlow.value = .8 + talking * .5;
   }
 
@@ -234,6 +242,11 @@ export function createPortraitRig() {
     mesh,
     update,
     frame,
+    setExpressions(texture: Texture) {
+      texture.colorSpace = SRGBColorSpace;
+      uniforms.uExpressions.value = texture;
+      uniforms.uHasExpressions.value = true;
+    },
     setTexture(texture: Texture) {
       texture.colorSpace = SRGBColorSpace;
       texture.anisotropy = 4;
@@ -244,6 +257,7 @@ export function createPortraitRig() {
     setPointerMotion(active: boolean) {if (active) lastPointer = time;},
     dispose() {
       geometry.dispose(); material.dispose();
+      uniforms.uExpressions.value?.dispose();
       const texture = uniforms.uMap.value;
       if (texture) {const bitmap = texture.source?.data; if (typeof ImageBitmap !== 'undefined' && bitmap instanceof ImageBitmap) bitmap.close(); texture.dispose();}
     },
