@@ -15,9 +15,17 @@ export default function AdvisorExperience({cue, step, ready = true}: {cue: Advis
   const speech = useAdvisorSpeech();
   const [voice, setVoice] = useState(true);
   const [bust, setBust] = useState(false);
+  const [effectsPaused, setEffectsPaused] = useState(false);
   const said = useRef(''), gestureRetried = useRef('');
   const retry = voice && (speech.playback === 'blocked' || speech.playback === 'error');
   const label = retry ? 'Reintentar sonido de la asesora' : voice ? 'Silenciar asesora' : 'Activar sonido de la asesora';
+
+  useEffect(() => {
+    const sync = () => setEffectsPaused(document.documentElement.dataset.tonyEffects === 'off');
+    sync();
+    window.addEventListener('tony:effects-change', sync);
+    return () => window.removeEventListener('tony:effects-change', sync);
+  }, []);
 
   useEffect(() => {
     const query = matchMedia('(max-width: 700px)');
@@ -67,7 +75,7 @@ export default function AdvisorExperience({cue, step, ready = true}: {cue: Advis
       <span className="advisor-aura" aria-hidden="true"/>
       <span className="advisor-particles" aria-hidden="true">{PARTICLES.map(([x, delay, duration]) => <i key={x} style={{'--x': `${x}%`, '--delay': `${delay}s`, '--duration': `${duration}s`} as React.CSSProperties}/>)}</span>
       <span className="advisor-floor" aria-hidden="true"/>
-      {ready && <Stage speaking={speech.speaking} paused={false} mouth={speech.lipsync} framing={bust ? 'bust' : 'full'}/>}
+      {ready && <Stage speaking={speech.speaking} paused={effectsPaused} mouth={speech.lipsync} framing={bust ? 'bust' : 'full'}/>}
       <span className="advisor-stage-badge"><span className="advisor-live" aria-hidden="true"><i/><i/><i/><i/></span><span className="advisor-stage-badge-text">TONY · TU ASESORA</span></span>
     </div>
     <div className="advisor-studio-copy">

@@ -103,6 +103,18 @@
 }
 @media(max-width:380px){.advisor-studio,.is-guided-choice.mode-high .advisor-studio,.is-welcome.mode-high .advisor-studio{grid-template-columns:108px minmax(0,1fr)}.advisor-sound-toggle{right:6px;top:6px}}
 
+@media (max-width: 700px), (hover: none) and (pointer: coarse) {
+  /* Keep the portrait as the moving part of the stage during touch scrolling. */
+  .advisor-aura, .advisor-particles { display: none; }
+  .advisor-floor { animation: none; filter: none; }
+  .advisor-stage-wrap::before { mix-blend-mode: normal; opacity: .08; }
+  .advisor-sound-toggle, .advisor-stage-badge, .advisor-studio-copy {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .advisor-studio-message { animation: none; }
+}
+
 @keyframes advisor-aura{to{transform:rotate(360deg)}}
 @keyframes advisor-floor{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.08);opacity:1}}
 @keyframes advisor-particle{0%{transform:translate3d(0,0,0) scale(.6);opacity:0}12%{opacity:.9}60%{opacity:.6}100%{transform:translate3d(14px,-130px,0) scale(1);opacity:0}}

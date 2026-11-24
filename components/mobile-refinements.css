@@ -17,7 +17,7 @@
   .pedido-page .pedido-breadcrumb{margin-bottom:18px}
   .pedido-page .pedido-topline{padding-bottom:12px}
   .pedido-page .pedido-layout{margin-top:22px;gap:24px}
-  .pedido-page .pedido-heading h1,[data-advisor]{scroll-margin-top:82px}
+  .pedido-page .pedido-heading h1,.pedido-page [data-advisor]{scroll-margin-top:0}
   .pedido-page .pedido-progress{position:relative;scroll-snap-type:x proximity;margin-right:0;padding:12px 0 4px;gap:4px}
   .pedido-page .pedido-progress button{min-height:44px;font-size:12px;scroll-snap-align:center;padding:9px 10px}
   .pedido-page .pedido-progress button:disabled{opacity:.65}

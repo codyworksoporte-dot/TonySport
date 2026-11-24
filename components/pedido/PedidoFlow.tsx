@@ -2,7 +2,7 @@
 import {accountStorageKey} from '@/lib/auth';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {GuidePhoto, OptionThumbnail, OrderBanner, OrderImageHints} from './PedidoImages';
 import {createPedido, readPedido, resizePlayers, validateStep} from '@/lib/pedido/order';
 import {calculatePedido, isCatalogCode, money, PRICES, PRODUCTS, SOCK_COLORS} from '@/lib/pedido/pricing';
@@ -56,6 +56,7 @@ export default function PedidoFlow() {
   // Which way the last navigation went: the screen and its title slide in from that side.
   const [direction, setDirection] = useState<1 | -1>(1);
   const screenKey = `${step}:${configStep}:${rosterStep}`;
+  const previousScreen = useRef(screenKey);
   const [hasSavedDraft, setHasSavedDraft] = useState(false);
   const [cartState, setCartState] = useState<'idle'|'saving'|'saved'|'error'>('idle');
   const cartSaving = useRef(false);
@@ -112,7 +113,13 @@ export default function PedidoFlow() {
   }, []);
   useEffect(() => {setQuantityText(draft.choices?.quantity === false ? '' : String(draft.quantity));}, [draft.id]);
   useEffect(() => {if (!ready || !canSave || receipt || !picked.product) return; const timer = setTimeout(() => {void saveDraft(draft).then(() => setStorage('Borrador guardado en este navegador.')).catch(e => setStorage(errorText(e)));}, 650); return () => clearTimeout(timer);}, [draft, ready, canSave, receipt, picked.product]);
-  useEffect(() => {if (ready && step > 0) title.current?.focus({preventScroll: true});}, [step, configStep, rosterStep, ready]);
+  useLayoutEffect(() => {
+    if (!ready || previousScreen.current === screenKey) return;
+    previousScreen.current = screenKey;
+    // Position the new screen after its layout changes, before it is painted.
+    title.current?.focus({preventScroll: true});
+    title.current?.scrollIntoView({block: 'start', behavior: 'instant'});
+  }, [ready, screenKey]);
   const context = {delivery, payment, buyer, signature, termsAccepted: terms, wompiVerified: verified};
   function update(next: PedidoDraft) {if (verified || receipt || payment.reference) return; setCartState('idle'); setDraft(next); setErrors({}); setFailure(''); setPaymentUrl(''); setSignature(''); setTerms(false);}
   async function saveToCart(animate: boolean) {
@@ -125,11 +132,11 @@ export default function PedidoFlow() {
     finally {cartSaving.current = false;}
   }
   const saveButton = (className = '') => <button className={`button outline ${className}`} type="button" disabled={!!busy || cartState === 'saving'} onClick={event => void saveToCart(event.detail !== 0)}>{cartState === 'saving' ? 'Guardando…' : cartState === 'saved' ? 'Guardado en mi carrito ✓' : cartState === 'error' ? 'Reintentar guardar +' : 'Guardar en mi carrito +'}</button>;
-  function move(next: number) {setDirection(next < step ? -1 : 1); if (next === 4) setRosterStep(next < step ? rosterNotesStep : 0); if (next === 3) setConfigStep(next < step ? CONFIG_SCREENS.length - 1 : 0); setStep(next); setErrors({}); setFailure(''); title.current?.scrollIntoView({block: 'start', behavior: 'instant'});}
+  function move(next: number) {setDirection(next < step ? -1 : 1); if (next === 4) setRosterStep(next < step ? rosterNotesStep : 0); if (next === 3) setConfigStep(next < step ? CONFIG_SCREENS.length - 1 : 0); setStep(next); setErrors({}); setFailure('');}
   function validate() {const key = VALIDATIONS[step]; const found = key ? validateStep(draft, key, context) : {}; setErrors(found); if (Object.keys(found).length) {setTimeout(() => errorBox.current?.focus(), 0); return false;} return true;}
   async function run(label: string, action: () => Promise<void>) {if (submitting.current) return; submitting.current = true; setBusy(label); setFailure(''); setNotice(''); try {await action();} catch (e) {setFailure(errorText(e));} finally {setBusy(''); submitting.current = false;}}
-  function changeConfigScreen(next: number) {setConfigStep(next); setErrors({}); setFailure(''); title.current?.scrollIntoView({block: 'start', behavior: 'instant'});}
-  function changeRosterScreen(next: number) {setRosterStep(next); setErrors({}); setFailure(''); title.current?.scrollIntoView({block: 'start', behavior: 'instant'});}
+  function changeConfigScreen(next: number) {setConfigStep(next); setErrors({}); setFailure('');}
+  function changeRosterScreen(next: number) {setRosterStep(next); setErrors({}); setFailure('');}
   function back() {setDirection(-1); if (step === 3 && configStep > 0) changeConfigScreen(configStep - 1); else if (step === 4 && rosterStep > 0) changeRosterScreen(rosterStep - 1); else move(step - 1);}
   function next() {
     setDirection(1);

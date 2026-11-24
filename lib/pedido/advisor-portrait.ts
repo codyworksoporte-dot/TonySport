@@ -48,10 +48,18 @@ uniform vec2 uSize;
 uniform float uJaw, uWide, uBlink, uRim, uGlow;
 varying vec2 vPix;
 vec2 toUv(vec2 p){return vec2(p.x / uSize.x, 1.0 - p.y / uSize.y);}
-vec4 tap(vec2 p){vec4 c = texture2D(uMap, toUv(p)); c.rgb /= max(c.a, 0.002); return c;}
+// Both images are authored at 2x. Compute the footprint before any facial
+// branches so neighboring fragments agree on mip levels, including on mobile.
+mat2 footprint;
+vec4 tap(vec2 p){
+  vec4 c = textureGrad(uMap, toUv(p), footprint[0] / uSize, footprint[1] / uSize);
+  c.rgb /= max(c.a, 0.002);
+  return c;
+}
 vec3 expressionAt(vec2 p){
-  vec2 uv = (p - vec2(235.0, 97.0)) / vec2(95.0, 80.0);
-  return texture2D(uExpressions, vec2(uv.x, 1.0 - uv.y)).rgb;
+  vec2 size = vec2(95.0, 80.0);
+  vec2 uv = (p - vec2(235.0, 97.0)) / size;
+  return textureGrad(uExpressions, vec2(uv.x, 1.0 - uv.y), footprint[0] / size, footprint[1] / size).rgb;
 }
 vec4 eyelid(vec2 p){
   vec4 photo = tap(p);
@@ -76,19 +84,16 @@ vec4 eyelid(vec2 p){
 }
 vec4 samplePortrait(vec2 p){
   if (uHasExpressions && uBlink > 0.0 && p.y > 97.0 && p.y < 128.0) return eyelid(p);
-  // The open pose is a registered crop of this portrait at 2x resolution.
-  vec2 tileOrigin = vec2(257.0, 151.0), tileSize = vec2(52.0, 26.0);
-  vec2 local = p - tileOrigin;
-  if (local.x <= 0.0 || local.y <= 0.0 || local.x >= tileSize.x || local.y >= tileSize.y)
-    return tap(p);
-
-  // Align both lip contours before blending so the intermediate shapes
-  // retain a single lip line. The corners stay anchored to the portrait.
-  float x = (p.x - 282.5) / 20.5;
-  float seam = 161.6 - 1.9 * x * x - 0.25 * x;
-  float y = p.y - seam;
-  float corners = 1.0 - smoothstep(0.40, 1.0, abs(x));
-  float lip = corners * (1.0 - smoothstep(5.5, 14.0, abs(y)));
+  if (uJaw == 0.0 && uWide == 0.0) return tap(p);
+  // Trace the lip line and feather inward from its outline. Skin around it
+  // always comes from the portrait, even if a phone filters the atlas differently.
+  vec2 offset = p - vec2(282.5, 161.6);
+  if (abs(offset.x) > 23.0 || abs(offset.y) > 13.0) return tap(p);
+  float x = offset.x / 20.5;
+  float y = offset.y + 1.9 * x * x + 0.25 * x;
+  vec2 contour = vec2(offset.x / 23.0, (y - 1.0) / 10.0);
+  float lip = 1.0 - smoothstep(0.44, 1.0, dot(contour, contour));
+  if (lip == 0.0) return tap(p);
   float lowerLip = smoothstep(-1.5, 3.0, y);
   float opening = smoothstep(0.0, 0.74, uJaw);
   float travel = lip * mix(-0.65, 1.85, lowerLip);
@@ -96,12 +101,12 @@ vec4 samplePortrait(vec2 p){
   vec4 closed = tap(p - vec2(0.0, opening * travel));
   if (!uHasExpressions || opening <= 0.0) return closed;
   vec3 openColor = expressionAt(p + vec2(0.0, (1.0 - opening) * travel));
-  vec2 edge = min(local, tileSize - local);
-  closed.rgb = mix(closed.rgb, openColor, opening * smoothstep(0.0, 2.0, min(edge.x, edge.y)));
+  closed.rgb = mix(closed.rgb, openColor, opening * lip);
   return closed;
 }
 void main(){
   vec2 p = vPix;
+  footprint = mat2(dFdx(p) * vec2(1.0, -1.0), dFdy(p) * vec2(1.0, -1.0));
   vec4 c = samplePortrait(p);
   vec3 col = c.rgb;
   // Stage light: lime rim from the upper right, a cooler green from the left, and the floor glow.
@@ -244,6 +249,7 @@ export function createPortraitRig() {
     frame,
     setExpressions(texture: Texture) {
       texture.colorSpace = SRGBColorSpace;
+      texture.anisotropy = 4;
       uniforms.uExpressions.value = texture;
       uniforms.uHasExpressions.value = true;
     },

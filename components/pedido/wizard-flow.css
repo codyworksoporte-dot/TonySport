@@ -42,3 +42,21 @@
   .pedido-one-choice .pedido-choice .pedido-choice-img { height: 60px; }
 }
 .pedido-screen[data-photo-step] { animation: none; }
+
+@media (max-width: 700px), (hover: none) and (pointer: coarse) {
+  /* Show the choices immediately. A short press still acknowledges the tap. */
+  .pedido-screen, .pedido-screen-title { animation: none; }
+  .pedido-page :is(.button, .pedido-choice, .pedido-text-button, .advisor-quality button, .advisor-sound-toggle) {
+    touch-action: manipulation;
+  }
+  .pedido-page .pedido-choice,
+  .pedido-page .button:not(:disabled) { transition: transform 100ms ease-out; }
+  .pedido-page .button:not(:disabled):active { filter: none; }
+  .pedido-page .pedido-choice-check svg,
+  .pedido-page .pedido-choice.is-selected .pedido-choice-check svg {
+    transform: none;
+    transition: none;
+  }
+  .pedido-page .pedido-price-value, .pedido-page .pedido-price-value::after { animation: none; }
+  .pedido-page .pedido-welcome-art img { filter: none; }
+}
