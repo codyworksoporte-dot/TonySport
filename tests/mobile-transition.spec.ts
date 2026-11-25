@@ -19,13 +19,27 @@ async function news(page:Page) {
   await page.getByRole('button',{name:'Abrir menú'}).tap();
   await page.getByRole('dialog',{name:'Menú de Tony Sportswear'}).getByRole('link',{name:/Tony News/}).tap();
 }
+const NEWS=/\/tony-news(?:\?|$)/;
+/**
+ * Holds the next /tony-news navigation until the test releases it. The server builds the
+ * section meanwhile (route.fetch), so only its delivery waits: however slow the dev server is,
+ * the section lands right after release instead of past the 3.2 s safety reveal.
+ */
+async function holdNews(page:Page) {
+  let release!:()=>void;
+  const released=new Promise<void>(resolve=>{release=resolve;});
+  await page.route(NEWS,async route=>{const response=await route.fetch();await released;await route.fulfill({response});});
+  return release;
+}
 
 test('touch navigation shows Tony over the full viewport without delaying routing, including back and logo',async({page})=>{
+  // Compile the section up front: a first dev-server build must not run inside the timed cover.
+  expect((await page.request.get('/tony-news')).ok()).toBe(true);
   await observe(page);
   const transition=page.locator('.route-transition');
   await expect(transition.locator('.rt-panel,.rt-stage')).toHaveCount(0);
   await expect(page.locator('.tony-peek img')).toHaveCount(0);
-  await page.route(/\/tony-news(?:\?|$)/,async route=>{await new Promise(resolve=>setTimeout(resolve,900));await route.continue();});
+  const release=await holdNews(page);
   await news(page);
   await expect(transition).toHaveAttribute('data-phase','cover');
   await expect(transition.locator('.rt-mobile')).toHaveCSS('opacity','1');
@@ -37,7 +51,10 @@ test('touch navigation shows Tony over the full viewport without delaying routin
   expect(animated.filter(p=>!['offset','computedOffset','easing','composite'].includes(p)).sort()).toEqual(['opacity','transform']);
   await expect(transition).toHaveCSS('pointer-events','none');
   await page.screenshot({path:'output/mobile-transition-after.png'});
+  // The section arrives now; Tony winks and lets it through as soon as it does.
+  release();
   await expect(page).toHaveURL(/\/tony-news$/);
+  await page.unroute(NEWS);
   await expect.poll(()=>phases(page)).toBe('cover wink reveal idle');
   expect(await page.evaluate(()=>(window as unknown as {__transitions:Sample[]}).__transitions.some(s=>s.covered))).toBe(true);
   const timings=await page.evaluate(()=>(window as unknown as {__transitions:Sample[]}).__transitions);
@@ -57,7 +74,7 @@ test('touch navigation shows Tony over the full viewport without delaying routin
 
 test('motion changes interrupt the mobile transition and leave navigation usable',async({page})=>{
   await observe(page);
-  await page.route(/\/tony-news(?:\?|$)/,async route=>{await new Promise(resolve=>setTimeout(resolve,900));await route.continue();});
+  await page.route(NEWS,async route=>{await new Promise(resolve=>setTimeout(resolve,900));await route.continue();});
   await news(page);
   await expect(page.locator('.route-transition')).toHaveAttribute('data-phase','cover');
   await page.emulateMedia({reducedMotion:'reduce'});
@@ -86,7 +103,7 @@ test('rapid route changes restart one transition and clean up every animation',a
 
 for(const viewport of [{width:320,height:568},{width:768,height:1024},{width:844,height:390}])test(`transition covers the viewport at ${viewport.width}x${viewport.height}`,async({page})=>{
   await page.setViewportSize(viewport);await observe(page);
-  await page.route(/\/tony-news(?:\?|$)/,async route=>{await new Promise(resolve=>setTimeout(resolve,900));await route.continue();});
+  await page.route(NEWS,async route=>{await new Promise(resolve=>setTimeout(resolve,900));await route.continue();});
   await news(page);
   await expect(page.locator('.rt-mobile')).toHaveCSS('opacity','1');
   expect(await page.locator('.route-transition').boundingBox()).toEqual({x:0,y:0,...viewport});

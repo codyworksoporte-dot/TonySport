@@ -1,13 +1,48 @@
-import SectionImage from '@/components/SectionImage';
-import type { Metadata } from 'next';
+import type {Metadata} from 'next';
+import Icon from '@/components/Icon';
+import Link from 'next/link';
 import stores from '@/data/tony-stores.json';
-import { StoreDirectory } from '@/components/EditorialTools';
-import { EditorialShell, EditorialHero, EditorialLink, SectionLabel, SourceNote, whatsappLink } from '@/components/TonyEditorial';
-export const metadata: Metadata = {title:'Tiendas y ubicaciones',description:'Encuentra las tiendas publicadas por Tony Sportswear en El Salvador: dirección, teléfono, ubicación y consulta de atención.'};
+import {StoreDirectory} from '@/components/EditorialTools';
+import {EditorialShell, SourceNote, whatsappLink} from '@/components/TonyEditorial';
+import {rise} from '@/components/pages/rise';
+import {siteAsset} from '@/lib/asset-path';
+import {TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
+import '@/components/pages/pages.css';
+
+export const metadata: Metadata = {title: 'Tiendas y ubicaciones', description: 'Encuentra las tiendas de Tony Sportswear en El Salvador: dirección, teléfono, ubicación y consulta por WhatsApp.'};
+
 export default function StoresPage() {
-  return <EditorialShell className="te-stores-page"><EditorialHero label="Tiendas" eyebrow="CERCA DE TU EQUIPO" title={<>Encuentra<br /><em>tu punto.</em></>} description="Busca una tienda, revisa cómo llegar y conversa con el equipo de Tony antes de visitarla." aside={<div className="te-large-word"><SectionImage photo="tiendas" shade="bottom" /><div>EL<br />SALVADOR.<small>UNA IDENTIDAD. MUCHAS CANCHAS.</small></div></div>} />
-    <section className="te-wrap te-rule"><SectionLabel number="01">Directorio de tiendas</SectionLabel><StoreDirectory stores={stores} /><p className="te-address-note">Confirma el horario de atención y la disponibilidad antes de trasladarte. Cada tienda tiene su contacto directo.</p><SourceNote href="https://www.tonysportselsalvador.com/nuestras-tiendas/">Direcciones y contactos tomados del directorio publicado por Tony.</SourceNote></section>
-    <section className="te-wrap"><div className="te-info-strip"><div><h3>Si vas por tu uniforme.</h3><p>Lleva el nombre del equipo, la cantidad de prendas y una referencia de tu idea. Si ya tienes una solicitud, comparte también sus datos para coordinar la atención.</p></div><div><h3>Si necesitas recibirlo.</h3><p>Consulta cobertura, costo y coordinación del servicio a domicilio para tu pedido. La fecha y las condiciones se acuerdan con Tony.</p><div className="te-actions"><EditorialLink href="/entregas" outline>Ver cómo coordinar la entrega</EditorialLink></div></div></div></section>
-    <section className="te-cta te-wrap"><div><p className="te-eyebrow">TE AYUDAMOS A ENCONTRARNOS</p><h2>Hablemos de<br /><em>tu próxima visita.</em></h2><p>El canal central puede orientarte sobre la tienda y la atención que necesitas.</p></div><EditorialLink href={whatsappLink('Hola, Tony. Quiero que me orienten sobre una tienda para consultar mi uniforme. Mi ciudad es:')} external>Hablar con un asesor</EditorialLink></section>
+  return <EditorialShell className="te-stores-page tp tp-stores">
+    <header className="tc-wrap tp-stores-head">
+      <div className="tp-stores-title tc-rise" style={rise(1)}>
+        <p className="tp-kicker"><Icon name="pin"/>Ubicaciones</p>
+        <h1 className="tp-stores-h1">Tiendas</h1>
+        <p className="tp-stores-count"><b>{stores.length}</b>tiendas en El Salvador</p>
+      </div>
+      <div className="tc-tile tp-stores-photo tc-rise" aria-hidden="true">
+        <img src={siteAsset('/assets/sections/tiendas-tony.webp')} alt="" width={960} height={1200} loading="eager" decoding="async" fetchPriority="high"/>
+      </div>
+    </header>
+
+    <section className="tc-wrap tp-stores-dir" aria-labelledby="tp-stores-dir">
+      <h2 id="tp-stores-dir" className="tc-sr">Directorio de tiendas</h2>
+      <StoreDirectory stores={stores}/>
+      <p className="te-address-note">Confirma el horario y la disponibilidad antes de ir. Cada tienda tiene su contacto directo.</p>
+      <SourceNote href="https://www.tonysportselsalvador.com/nuestras-tiendas/">Direcciones y contactos del directorio publicado por Tony.</SourceNote>
+    </section>
+
+    <section className="tc-wrap tp-stores-end" aria-label="Tu pedido y ayuda">
+      <div className="tp-tiles">
+        <Link className="tc-tile tc-rise" href="/consulta">
+          <img className="tp-img-top" src={siteAsset('/assets/sections/entregas-tony.webp')} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+          <span className="tc-tile-label"><span><b>Consulta tu pedido</b><small>Con tu número de orden</small></span><span className="tc-go"><Icon name="package"/></span></span>
+        </Link>
+        <a className="tc-tile tp-tile-wa tc-rise" href={whatsappLink('Hola, Tony. Quiero que me orienten sobre una tienda. Mi ciudad es:')} target="_blank" rel="noopener noreferrer">
+          <Icon name="whatsapp-solid" className="tp-wa-mark"/>
+          <span className="tc-tile-label"><span><b>Hablar con un asesor</b><small>WhatsApp {TONY_WHATSAPP_NUMBER}</small></span><span className="tc-go tp-go-white"><Icon name="arrow"/></span></span>
+          <span className="tc-sr"> (se abre en otra pestaña)</span>
+        </a>
+      </div>
+    </section>
   </EditorialShell>;
 }

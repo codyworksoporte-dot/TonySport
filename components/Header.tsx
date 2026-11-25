@@ -1,83 +1,90 @@
 'use client';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import {useEffect,useRef,useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import Brand from './Brand';
 import CartLink from './CartLink';
 import Icon from './Icon';
-import {company,customer,SITE_DIRECTORY as searchEntries} from '@/lib/site-directory';
-import {PRODUCT_CATEGORIES,productHref} from '@/lib/products';
+import MenuDialog from './header/MenuDialog';
+import QuickNav from './header/QuickNav';
+import SearchDialog from './header/SearchDialog';
+import {CREATE_ORDER_HREF, SEARCH_LABEL} from '@/lib/nav';
+import {TONY_WHATSAPP, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
 import './site-navigation.css';
 
-type Panel='product'|'company'|'customer';
-const menus:{id:Panel;label:string}[]=[{id:'product',label:'Producto'},{id:'company',label:'Somos Tony'},{id:'customer',label:'Para ti'}];
-const normalize=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
-function Claw(){return <svg className="tony-nav-claw" viewBox="0 0 19 19" fill="none" aria-hidden="true"><path d="m7 2-4 15M12 2 8 17M17 2l-4 15" stroke="currentColor" strokeWidth="2"/></svg>}
+/** Any component can open the site search: window.dispatchEvent(new Event('tony:open-search')). */
+export const OPEN_SEARCH_EVENT = 'tony:open-search';
 
-export default function Header(){
-  const path=usePathname(),isHome=path==='/';
-  const header=useRef<HTMLElement>(null),panels=useRef<Partial<Record<Panel,HTMLDivElement>>>({});
-  const mobileBody=useRef<HTMLDivElement>(null);
-  const mobile=useRef<HTMLDialogElement>(null),search=useRef<HTMLDialogElement>(null),menuButton=useRef<HTMLButtonElement>(null),searchButton=useRef<HTMLButtonElement>(null),searchInput=useRef<HTMLInputElement>(null);
-  const [panel,setPanel]=useState<Panel|null>(null),[mobileOpen,setMobileOpen]=useState(false),[searchOpen,setSearchOpen]=useState(false),[accordion,setAccordion]=useState<Panel|null>(null),[query,setQuery]=useState(''),[top,setTop]=useState(118),[keyboard,setKeyboard]=useState(false);
-  const active=(id:Panel)=>id==='product'?['/producto','/lineas','/catalogo','/colecciones'].includes(path):(id==='company'?company:customer).some(([href])=>path===href);
-  function closePanels(){Object.values(panels.current).forEach(element=>{if(element?.matches(':popover-open'))element.hidePopover();});setPanel(null);}
-  function closeMobile(){mobile.current?.close();setMobileOpen(false);}
-  function openMobile(){
-    closePanels();setAccordion(null);setMobileOpen(true);mobile.current?.showModal();
-    // Opening always starts at the first action. The header never scrolls away.
-    if(mobileBody.current)mobileBody.current.scrollTop=0;
+export default function Header() {
+  const path = usePathname();
+  const onConfigurator = path === CREATE_ORDER_HREF || path.startsWith(`${CREATE_ORDER_HREF}/`);
+  const header = useRef<HTMLElement>(null), subbar = useRef<HTMLDivElement>(null);
+  const menuDialog = useRef<HTMLDialogElement>(null), searchDialog = useRef<HTMLDialogElement>(null);
+  const menuTrigger = useRef<HTMLButtonElement>(null), searchReturn = useRef<HTMLElement | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false), [searchOpen, setSearchOpen] = useState(false), [mac, setMac] = useState(false);
+
+  function closeAll() {
+    setMenuOpen(false); setSearchOpen(false);
+    // The App Tony dialog of the quick nav must not stay open (and modal) over a new page.
+    subbar.current?.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach(dialog => dialog.close());
   }
-  function closeSearch(){search.current?.close();setSearchOpen(false);}
-  useEffect(()=>{closePanels();closeMobile();closeSearch();},[path]);
-  useEffect(()=>{const replay=()=>{closePanels();closeMobile();closeSearch();};window.addEventListener('tony:intro-replay',replay);return()=>window.removeEventListener('tony:intro-replay',replay);},[]);
-  useEffect(()=>{let frame=0;const update=()=>{if(innerWidth>=1200&&mobile.current?.open)closeMobile();if(innerWidth<1200&&panel)closePanels();if(panel)setTop(Math.round(header.current?.getBoundingClientRect().bottom??86));};const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;update();});};addEventListener('resize',schedule);if(panel)addEventListener('scroll',schedule,{passive:true});return()=>{cancelAnimationFrame(frame);removeEventListener('resize',schedule);removeEventListener('scroll',schedule);};},[panel]);
-  // Scroll state lives on a DOM attribute (no React state, no re-render, no hydration mismatch): the header deepens its tint, shrinks the logo and shows the lime reading thread once the page has moved.
-  useEffect(()=>{let frame=0;const paint=()=>{frame=0;header.current?.toggleAttribute('data-scrolled',scrollY>24);};const schedule=()=>{if(!frame)frame=requestAnimationFrame(paint);};paint();addEventListener('scroll',schedule,{passive:true});return()=>{cancelAnimationFrame(frame);removeEventListener('scroll',schedule);};},[]);
-  function openPanel(which:Panel,fromKeyboard=false){setKeyboard(fromKeyboard);setTop(Math.round(header.current?.getBoundingClientRect().bottom??86));const element=panels.current[which];if(!element)return;if(element.matches(':popover-open'))element.hidePopover();else{closePanels();element.showPopover();if(fromKeyboard)requestAnimationFrame(()=>element.querySelector<HTMLAnchorElement>('a')?.focus());}}
-  function openSearch(){closePanels();closeMobile();setSearchOpen(true);search.current?.showModal();searchInput.current?.focus();}
-  const words=normalize(query).trim().split(/\s+/).filter(Boolean),availableEntries=searchEntries;
-  const results=words.length?availableEntries.filter(item=>words.every(word=>normalize(`${item.label} ${item.terms} ${item.group}`).includes(word))):availableEntries;
+  function openMenu() { setSearchOpen(false); setMenuOpen(true); }
+  function openSearch() {
+    if (searchDialog.current?.open) { searchDialog.current.querySelector<HTMLInputElement>('#site-search')?.focus(); return; }
+    const active = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null;
+    // Opened from the menu, focus later returns to the menu button (the menu closes on the way).
+    searchReturn.current = active && menuDialog.current?.contains(active) ? menuTrigger.current : active;
+    setMenuOpen(false); setSearchOpen(true);
+  }
+  const openSearchRef = useRef(openSearch);
+  openSearchRef.current = openSearch;
+
+  useEffect(() => { closeAll(); }, [path]);
+  useEffect(() => {
+    const replay = () => closeAll();
+    const open = () => openSearchRef.current();
+    const shortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'k') { event.preventDefault(); openSearchRef.current(); }
+    };
+    window.addEventListener('tony:intro-replay', replay);
+    window.addEventListener(OPEN_SEARCH_EVENT, open);
+    window.addEventListener('keydown', shortcut);
+    setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent));
+    return () => { window.removeEventListener('tony:intro-replay', replay); window.removeEventListener(OPEN_SEARCH_EVENT, open); window.removeEventListener('keydown', shortcut); };
+  }, []);
+  // Scroll state lives on a DOM attribute (no React state, no re-render): the glass deepens, the logo eases down and the lime reading thread shows.
+  useEffect(() => {
+    let frame = 0;
+    const paint = () => { frame = 0; header.current?.toggleAttribute('data-scrolled', scrollY > 24); };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(paint); };
+    paint(); addEventListener('scroll', schedule, {passive: true});
+    return () => { cancelAnimationFrame(frame); removeEventListener('scroll', schedule); };
+  }, []);
+
+  const searchButton = (wide = false) => <button type="button" className={`tony-search-pill${wide ? ' tony-search-pill--wide' : ''}`} aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" onClick={openSearch}><Icon name="search" size={26}/><span>{SEARCH_LABEL}</span></button>;
+
   return <>
-    <div className="tony-utility"><span><i aria-hidden="true"/> EL SALVADOR ES NUESTRA CANCHA.</span><div><Link href="/tiendas">Encuentra tu tienda</Link><Link href="/entregas">Entregas</Link><Link href="/contacto">Hablemos <Icon name="diagonal"/></Link></div></div>
-    <header ref={header} className="site-header tony-header" onKeyDownCapture={event=>{if(event.key==='Escape'&&panel){event.preventDefault();const trigger=header.current?.querySelector<HTMLButtonElement>(`button[aria-controls="tony-${panel}-menu"]`);closePanels();trigger?.focus();}}} onBlur={event=>{if(panel&&!event.currentTarget.contains(event.relatedTarget as Node|null))closePanels();}}>
-      <div className="tony-header-inner"><Brand/><nav className="tony-nav" aria-label="Navegación principal"><Link href="/" aria-current={isHome?'page':undefined}><Claw/>Inicio</Link>{menus.map(menu=><button key={menu.id} type="button" popoverTarget={`tony-${menu.id}-menu`} aria-expanded={panel===menu.id} aria-controls={`tony-${menu.id}-menu`} className={active(menu.id)?'is-current':''} onClick={event=>{event.preventDefault();openPanel(menu.id,event.detail===0);}} onKeyDown={event=>{if(event.key==='ArrowDown'){event.preventDefault();openPanel(menu.id,true);}}}><Claw/>{menu.label}<span className="tony-nav-plus" aria-hidden="true">{panel===menu.id?'−':'+'}</span></button>)}<Link href="/tony-news" aria-current={path==='/tony-news'?'page':undefined}><Claw/>Tony News</Link></nav><div className="tony-header-actions"><button ref={searchButton} type="button" className="tony-icon-button" aria-label="Buscar en el sitio" onClick={openSearch}><Icon name="search"/></button><CartLink/>{isHome&&<Link className="tony-header-cta" href="/configurador">CREA TU UNIFORME <span><Icon name="diagonal"/></span></Link>}<button ref={menuButton} type="button" className="tony-icon-button tony-menu-toggle" aria-label="Abrir menú" aria-controls="tony-mobile-menu" aria-expanded={mobileOpen} onClick={openMobile}><Icon name="menu"/><span className="tony-menu-label">Menú</span></button></div></div>
-      {menus.map(menu=><div id={`tony-${menu.id}-menu`} key={menu.id} ref={element=>{if(element)panels.current[menu.id]=element;else delete panels.current[menu.id];}} popover="auto" className={`tony-mega tony-mega-${menu.id}`} data-keyboard={keyboard} style={{top}} onToggle={event=>setPanel(event.currentTarget.matches(':popover-open')?menu.id:current=>current===menu.id?null:current)} aria-label={menu.label}>
-        {menu.id==='product'?<div className="tony-product-menu"><div className="tony-world-manifesto"><span className="tony-mega-kicker">DE LA CANCHA A TU EMPRESA.</span><strong>LA IDENTIDAD<br/><em>SE VISTE.</em></strong><p>Explora nuestras líneas, opciones de confección y complementos.</p><Link href="/producto" onClick={closePanels}>Explorar Producto <Icon name="diagonal"/></Link><Claw/></div><div className="tony-product-menu-links">{PRODUCT_CATEGORIES.map((category,index)=><Link href={productHref(category)} key={category.id} onClick={closePanels}><span>{String(index+1).padStart(2,'0')}</span><strong>{category.shortLabel}</strong><Icon name="diagonal"/></Link>)}</div><div className="tony-product-menu-foot"><Link href="/calidad" onClick={closePanels}>Técnicas y acabados <Icon name="diagonal"/></Link><Link href="/catalogo" onClick={closePanels}>Catálogo y diseños <Icon name="diagonal"/></Link></div></div>:<div className={`tony-info-menu tony-info-${menu.id}`}><div className="tony-world-manifesto"><span className="tony-mega-kicker">{menu.id==='company'?'DE EL SALVADOR, CON IDENTIDAD.':'TE ACOMPAÑAMOS EN CADA PASO.'}</span><strong>{menu.id==='company'?<>MÁS QUE<br/>UNA <em>CAMISA.</em></>:<>CERCA DE TI.<br/><em>DE VERDAD.</em></>}</strong><p>{menu.id==='company'?'Personas, una historia y una misma pasión. Así somos Tony.':'La información que necesitas, justo cuando la necesitas.'}</p><Link href={menu.id==='company'?'/nosotros':'/contacto'} onClick={closePanels}>{menu.id==='company'?'Conoce a Tony':'Habla con nosotros'} <Icon name="diagonal"/></Link><Claw/></div><div className="tony-world-links">{(menu.id==='company'?company:customer).map(([href,label,description],index)=><Link href={href} key={href} onClick={closePanels}><span>{String(index+1).padStart(2,'0')}</span><div><strong>{label}</strong><small>{description}</small></div><Icon name="diagonal"/></Link>)}</div></div>}
-      </div>)}
-    </header>
-    <nav className="tony-quick-directory" aria-label="Accesos rápidos"><button type="button" onClick={openSearch}><Icon name="search"/><span>¿Qué buscas en específico?</span></button><a href="#contactos">Contactos <Icon name="diagonal"/></a><Link href="/cuenta">Mi cuenta <Icon name="diagonal"/></Link></nav>
-    <dialog ref={mobile} id="tony-mobile-menu" className="tony-mobile" aria-label="Menú de Tony Sportswear" onClose={()=>{setMobileOpen(false);if(!search.current?.open)menuButton.current?.focus({preventScroll:true});}} onClick={event=>{if(event.target===event.currentTarget)closeMobile();}}>
-      <div className="tony-mobile-inner">
-        <div className="tony-mobile-top"><Brand/><button type="button" className="tony-mobile-close" aria-label="Cerrar menú" autoFocus onClick={closeMobile}>Cerrar <Icon name="close"/></button></div>
-        <div ref={mobileBody} className="tony-mobile-body">
-          <button className="tony-mobile-search" type="button" onClick={openSearch}><Icon name="search"/><span>Busca un producto, una tienda o una idea.</span><Icon name="arrow"/></button>
-          {isHome&&<Link href="/configurador" className="tony-mobile-create" onClick={closeMobile}>Crea tu uniforme <Icon name="diagonal"/></Link>}
-          <span className="tony-mega-kicker">EXPLORA TONY</span>
-          <nav aria-label="Navegación principal" className="tony-mobile-nav">
-            <Link href="/" onClick={closeMobile} aria-current={isHome?'page':undefined}>Inicio <Icon name="diagonal"/></Link>
-            {menus.map(menu=><div className="tony-mobile-group" key={menu.id}>
-              <button type="button" className={active(menu.id)?'is-current':undefined} aria-controls={'tony-mobile-'+menu.id} aria-expanded={accordion===menu.id} onClick={()=>setAccordion(accordion===menu.id?null:menu.id)}>{menu.label}<Icon name="plus"/></button>
-              <div id={'tony-mobile-'+menu.id} className="tony-mobile-sub" hidden={accordion!==menu.id}>
-                {menu.id==='product'?<>
-                  <Link href="/producto" onClick={closeMobile} aria-current={path==='/producto'?'page':undefined}>Explorar Producto <Icon name="arrow"/></Link>
-                  <Link href="/catalogo" onClick={closeMobile} aria-current={path==='/catalogo'?'page':undefined}>Catálogo y diseños <Icon name="diagonal"/></Link>
-                  <Link href="/colecciones" onClick={closeMobile} aria-current={path==='/colecciones'?'page':undefined}>Mundial, Anime y colecciones <Icon name="diagonal"/></Link>
-                  {PRODUCT_CATEGORIES.map(category=><Link href={productHref(category)} key={category.id} onClick={closeMobile}>{category.shortLabel}</Link>)}
-                </>:(menu.id==='company'?company:customer).map(([href,label])=><Link href={href} key={href} onClick={closeMobile} aria-current={path===href?'page':undefined}>{label}<Icon name="diagonal"/></Link>)}
-              </div>
-            </div>)}
-            <Link href="/tony-news" onClick={closeMobile} aria-current={path==='/tony-news'?'page':undefined}>Tony News <Icon name="diagonal"/></Link>
-          </nav>
-          <div className="tony-mobile-signature"><Claw/><span>TU EQUIPO. <strong>TU IDENTIDAD.</strong></span></div>
+    <header ref={header} className="site-header tony-header">
+      <div className="tony-header-inner">
+        <Brand/>
+        <div className="tony-search-trigger">{searchButton()}<kbd aria-hidden="true">{mac ? '⌘ K' : 'Ctrl K'}</kbd></div>
+        <div className="tony-header-actions">
+          <a className="tony-wa-pill" href={TONY_WHATSAPP} target="_blank" rel="noopener noreferrer" aria-label={`Contáctanos por WhatsApp al ${TONY_WHATSAPP_NUMBER}`}>
+            <Icon name="whatsapp-solid" size={28}/><span className="tony-wa-text"><small>Contáctanos</small><b>{TONY_WHATSAPP_NUMBER}</b></span>
+          </a>
+          <CartLink className="tony-header-cart"/>
+          {!onConfigurator && <Link className="tc-btn tc-btn--lime tony-header-create" href={CREATE_ORDER_HREF}>Crear pedido<Icon name="plus"/></Link>}
+          <button ref={menuTrigger} type="button" className="tony-menu-button" aria-label="Abrir menú" aria-haspopup="dialog" aria-controls="tony-mobile-menu" aria-expanded={menuOpen} onClick={openMenu}><Icon name="menu" size={26}/></button>
         </div>
-        <nav className="tony-mobile-support" aria-label="Accesos del menú">
-          <Link href="/carrito" onClick={closeMobile} aria-current={path==='/carrito'?'page':undefined}>Mi carrito <Icon name="diagonal"/></Link>
-          <Link href="/cuenta" onClick={closeMobile} aria-current={path==='/cuenta'?'page':undefined}>Mi cuenta <Icon name="diagonal"/></Link>
-          <a href="#contactos" onClick={closeMobile}>Contactos <Icon name="diagonal"/></a>
-        </nav>
       </div>
-    </dialog>
-    <dialog ref={search} className="tony-search" aria-labelledby="tony-search-title" onClose={()=>{setSearchOpen(false);searchButton.current?.focus();}} onClick={event=>{if(event.target===event.currentTarget)closeSearch();}}><div className="tony-search-inner"><div className="tony-search-heading"><span className="tony-mega-kicker">TE AYUDAMOS EN TU BÚSQUEDA</span><button className="tony-icon-button" type="button" aria-label="Cerrar búsqueda" onClick={closeSearch}><Icon name="close"/></button></div><h2 id="tony-search-title">¿QUÉ BUSCAS<br/><em>EN ESPECÍFICO?</em></h2><label htmlFor="site-search" className="sr-only">Buscar una sección</label><div className="tony-search-input"><Icon name="search"/><input ref={searchInput} id="site-search" type="search" autoFocus={searchOpen} value={query} onChange={event=>setQuery(event.target.value)} onKeyDown={event=>{if(event.key==='ArrowDown'){event.preventDefault();search.current?.querySelector<HTMLAnchorElement>('.tony-search-results>a')?.focus();}}} placeholder="Uniformes, fútbol, telas, tiendas…"/>{query&&<button type="button" className="tony-search-clear" aria-label="Limpiar búsqueda" onClick={()=>{setQuery('');searchInput.current?.focus();}}><Icon name="close"/></button>}</div><p className="tony-search-count" data-state={words.length?(results.length?'found':'empty'):'initial'} aria-live="polite">{words.length?`${results.length} ${results.length===1?'resultado encontrado':'resultados encontrados'}`:'TODOS LOS APARTADOS Y FUNCIONES'}</p><div className="tony-search-results">{searchOpen&&(results.length?results.map(item=>{return <Link href={item.href} key={item.href} prefetch={false} onClick={closeSearch} aria-label={item.label}><div><span>{item.group}</span><strong>{item.label}</strong></div><Icon name="diagonal"/></Link>;}):<div className="tony-search-empty"><span className="tony-search-empty-mark" aria-hidden="true"><Icon name="search"/></span><strong>Probemos otra palabra.</strong><p>No hay una sección que coincida con “{query}”. Prueba con una tienda, un producto o un material.</p><button type="button" onClick={()=>{setQuery('');searchInput.current?.focus();}}>Ver puntos de partida <Icon/></button><Link href="/contacto" onClick={closeSearch}>O habla con Tony <Icon/></Link></div>)}</div><p className="tony-search-hint"><kbd>Esc</kbd> para cerrar <span>↓ para explorar resultados</span></p></div></dialog>
+    </header>
+    <div ref={subbar} className="tony-subbar">
+      <QuickNav path={path}/>
+      <div className="tony-subbar-search">{searchButton(true)}</div>
+    </div>
+    <MenuDialog open={menuOpen} dialogRef={menuDialog} path={path} onDismiss={() => setMenuOpen(false)} onSearch={openSearch}
+      onClosed={() => { setMenuOpen(false); if (!searchDialog.current?.open) menuTrigger.current?.focus({preventScroll: true}); }}/>
+    <SearchDialog open={searchOpen} dialogRef={searchDialog} onDismiss={() => setSearchOpen(false)}
+      onClosed={() => { setSearchOpen(false); const target = searchReturn.current; searchReturn.current = null; if (target?.isConnected && !menuDialog.current?.open) target.focus({preventScroll: true}); }}/>
   </>;
 }

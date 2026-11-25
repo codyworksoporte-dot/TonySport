@@ -1,36 +1,35 @@
 'use client';
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { TonyClawInSvg, TonyFaceInSvg } from './TonyArt';
-import { siteAsset } from '@/lib/asset-path';
+import { TONY_ART, viewOf } from '@/lib/tony-art';
+import { TonyBadge, tonyArtVars } from './TonyArt';
 import './lagarto-intro.css';
 
 const SESSION_KEY = 'tony:intro:v2';
-const WORDMARK_SRC = siteAsset('/assets/tony-wordmark.webp');
 const INTRO_DURATION = 4200;
 type IntroBoot = { pending: boolean; cancelled: boolean; release: (cancelled?: boolean) => void };
 const introBoot = () => (window as Window & { __tonyIntroBoot?: IntroBoot }).__tonyIntroBoot;
+const BADGE_VIEW = viewOf(TONY_ART.badge);
+/** Drawn in the badge's own units over the space the logo takes, only if the logo file fails. */
+const FALLBACK_SHIELD = 'M300 690L1598 690L1660 1180L1700 1440L1330 1500L949 1690L568 1500L198 1440L238 1180Z';
 
 /**
- * The emblem: Tony peeks over the shield and grips its edges, as in the brand
- * logo. Head and claws are the logo artwork itself, shared with every mascot.
- * With `blink`, he blinks now and then, only while the emblem is on screen.
+ * The emblem: the complete logo, Tony roaring over the shield. His eye has a
+ * lid (shut while he lands in the intro, then he opens it) and a fire the intro
+ * lights. With `blink`, he blinks now and then, only while the emblem is on screen.
+ * `data-wordmark-status` reports whether the logo file drew (`loaded`) or the
+ * lettered fallback shield took its place (`fallback`).
  */
 export function LagartoMark({ className = '', animated = false, referenceFace = false, blink = false }: { className?: string; animated?: boolean; referenceFace?: boolean; blink?: boolean }) {
-  const id = useId().replace(/[^\w-]/g, '');
-  const [wordmarkReady, setWordmarkReady] = useState(false);
-  const mark = useRef<SVGSVGElement>(null);
-  const paint = (name: string) => `url(#${id}-${name})`;
+  const [status, setStatus] = useState<'loading' | 'loaded' | 'fallback'>('loading');
+  const mark = useRef<HTMLDivElement>(null);
+  const image = useRef<HTMLImageElement>(null);
 
-  // The wordmark can finish loading before hydration, when the <image> load event is lost: ask the cache.
+  // The logo can finish loading before hydration, when its load event is lost: ask the element.
   useEffect(() => {
-    const probe = new Image();
-    probe.onload = () => setWordmarkReady(true);
-    probe.onerror = () => setWordmarkReady(false);
-    probe.src = WORDMARK_SRC;
-    if (probe.complete && probe.naturalWidth) setWordmarkReady(true);
-    return () => { probe.onload = probe.onerror = null; };
+    const element = image.current;
+    if (element?.complete) setStatus(element.naturalWidth ? 'loaded' : 'fallback');
   }, []);
 
   useEffect(() => {
@@ -42,43 +41,17 @@ export function LagartoMark({ className = '', animated = false, referenceFace = 
   }, [blink]);
 
   return (
-    <svg ref={mark} className={`lagarto-mark ${animated ? 'lagarto-mark--enter' : ''} ${className}`} viewBox="0 0 640 600" fill="none" role="img" aria-label="Lagarto Tony: garra, carácter e identidad">
-      <defs>
-        <linearGradient id={`${id}-gold`} x1="194" y1="247" x2="443" y2="487" gradientUnits="userSpaceOnUse"><stop stopColor="#ff9a38"/><stop offset=".23" stopColor="#ff781e"/><stop offset=".66" stopColor="#ec570b"/><stop offset="1" stopColor="#ff9431"/></linearGradient>
-        <linearGradient id={`${id}-shield`} x1="223" y1="250" x2="395" y2="478" gradientUnits="userSpaceOnUse"><stop stopColor="#2b5940"/><stop offset=".3" stopColor="#143d2b"/><stop offset="1" stopColor="#09271e"/></linearGradient>
-        <linearGradient id={`${id}-letter`} x1="320" y1="302" x2="320" y2="397" gradientUnits="userSpaceOnUse"><stop stopColor="#e7ffa5"/><stop offset=".5" stopColor="#b4ff35"/><stop offset="1" stopColor="#74ce32"/></linearGradient>
-        <pattern id={`${id}-scale`} width="28" height="24" patternUnits="userSpaceOnUse"><path d="M0 4 8 0 19 2 27 10 23 19 10 24 1 18Z" stroke="#80bc57" strokeWidth=".7" opacity=".2"/></pattern>
-        <filter id={`${id}-shadow`} x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="18" stdDeviation="13" floodColor="#020f0a" floodOpacity=".45"/></filter>
-      </defs>
-
-      <g filter={paint('shadow')}>
-        <g className={`lagarto-head ${referenceFace ? 'lagarto-head--reference' : 'lagarto-head--tony'}`}>
-          <TonyFaceInSvg x="172" y="146" width="296" height="108.3"/>
-        </g>
-
-        <g className="lagarto-shield">
-          <path d="m174 247 146 7 146-7-10 178-136 86-136-86Z" fill="#061e17" stroke="#062018" strokeWidth="12" strokeLinejoin="round"/>
-          <path d="m180 253 140 1 140-1-10 168-130 83-130-83Z" fill={paint('gold')}/>
-          <path d="m190 264 130 1 130-1-10 151-120 77-120-77Z" fill={paint('shield')}/>
-          <path d="m196 270 124 6 124-6-10 141-114 72-114-72Z" fill={paint('scale')} stroke="#86b65c" strokeOpacity=".3" strokeWidth="1.5"/>
-          <path d="m197 276 123 5 123-5-2 27-242-1Z" fill="#a3ca60" opacity=".06"/>
-          <path d="m207 284 35 2m156 0 35-2" stroke="#cfe3a0" strokeWidth="2" strokeOpacity=".45"/>
-          {!wordmarkReady && <g data-wordmark-fallback="true" aria-hidden="true">
-            <text x="320" y="371" textAnchor="middle" fill={paint('letter')} stroke="#09271c" strokeWidth="4" paintOrder="stroke" fontFamily="var(--font-display), Impact, sans-serif" fontSize="94" fontWeight="700" fontStyle="italic" textLength="225" lengthAdjust="spacingAndGlyphs">TONY</text>
-            <text x="320" y="399" textAnchor="middle" fill="#ff8027" fontFamily="var(--font-body), Arial, sans-serif" fontSize="13" fontWeight="800" fontStyle="italic" letterSpacing="3">SPORTSWEAR</text>
-          </g>}
-          {/* The wordmark's own pixel space (1774 × 887 source), trimmed to its letters. */}
-          <svg x="197" y="293" width="246" height="128" viewBox="60 163 1654 567" aria-hidden="true" data-wordmark-status={wordmarkReady ? 'loaded' : 'fallback'}>
-            <image href={WORDMARK_SRC} x="25" y="34" width="1733" height="844" opacity={wordmarkReady ? 1 : 0} onLoad={() => setWordmarkReady(true)} onError={() => setWordmarkReady(false)}/>
-          </svg>
-          <path d="m280 442 40 23 40-23" stroke="#8ea964" strokeWidth="1.5" strokeOpacity=".65"/>
-          <path d="m314 438 6-11 6 11-6 11Z" fill="#b4ed56"/>
-        </g>
-
-        <g className="lagarto-hand lagarto-hand--left"><TonyClawInSvg x="70" y="300" width="132" height="138.4"/></g>
-        <g className="lagarto-hand lagarto-hand--right"><TonyClawInSvg x="438" y="300" width="132" height="138.4" flip/></g>
-      </g>
-    </svg>
+    <div ref={mark} className={`lagarto-mark ${animated ? 'lagarto-mark--enter' : ''} ${status === 'fallback' ? 'is-fallback' : ''} ${className}`} role="img" aria-label="Tony Sportswear: el lagarto Tony ruge sobre el escudo" style={tonyArtVars(TONY_ART.badge)}>
+      <TonyBadge className="lagarto-badge" sizes="min(560px, 76vw)"
+        eyesClassName={`lagarto-head ${referenceFace ? 'lagarto-head--reference' : 'lagarto-head--tony'}`}
+        imgRef={image}
+        imgProps={{ 'data-wordmark-status': status === 'loaded' ? 'loaded' : 'fallback', onLoad: () => setStatus('loaded'), onError: () => setStatus('fallback') }}/>
+      {status === 'fallback' && <svg className="lagarto-fallback" data-wordmark-fallback="true" viewBox={`${BADGE_VIEW.x} ${BADGE_VIEW.y} ${BADGE_VIEW.width} ${BADGE_VIEW.height}`} aria-hidden="true">
+        <path d={FALLBACK_SHIELD} fill="#050806" stroke="#ff7a1a" strokeWidth="30" strokeLinejoin="round"/>
+        <text x="949" y="1190" textAnchor="middle" fill="#3fd21f" stroke="#c6ff4a" strokeWidth="10" paintOrder="stroke" fontFamily="var(--font-display), Impact, sans-serif" fontSize="400" fontWeight="700" textLength="1080" lengthAdjust="spacingAndGlyphs">TONY</text>
+        <text x="949" y="1400" textAnchor="middle" fill="#6bf02a" fontFamily="var(--font-body), Arial, sans-serif" fontSize="120" fontWeight="800" fontStyle="italic" letterSpacing="14">SPORTSWEAR</text>
+      </svg>}
+    </div>
   );
 }
 
@@ -166,9 +139,26 @@ export default function LagartoIntro() {
       {playing && <dialog ref={dialog} className="lagarto-intro" aria-label="La entrada del lagarto Tony" onCancel={finish}>
         <div className="intro-atmosphere" aria-hidden="true"/>
         <div className="intro-light intro-light--one" aria-hidden="true"/><div className="intro-light intro-light--two" aria-hidden="true"/>
-        <div className="intro-mascot-scene" aria-hidden="true"><div className="intro-halo"/><LagartoMark animated referenceFace/><div className="intro-brand-caption"><span>NACIMOS PARA COMPETIR.</span><strong>HECHOS PARA IMPONER.</strong></div></div>
+        {/* The logo slams onto the ground, his eye catches fire and he roars once. */}
+        <div className="intro-mascot-scene" aria-hidden="true">
+          <div className="intro-stage">
+            <div className="intro-halo"/>
+            <span className="intro-ground"/>
+            <span className="intro-impact"/>
+            <LagartoMark animated referenceFace/>
+          </div>
+          <div className="intro-brand-caption"><span>NACIMOS PARA COMPETIR.</span><strong>HECHOS PARA IMPONER.</strong></div>
+        </div>
         <div className="intro-curtain intro-curtain--top" aria-hidden="true"/><div className="intro-curtain intro-curtain--bottom" aria-hidden="true"/>
-        <svg className="intro-watchful-eyes" viewBox="0 0 320 100" fill="none" aria-hidden="true"><defs><radialGradient id="intro-eye-fire"><stop stopColor="#fff9be"/><stop offset=".5" stopColor="#ffc13c"/><stop offset="1" stopColor="#c76c1d"/></radialGradient></defs><path d="M51 39c28-12 54-1 75 16-28 10-49 6-75-16Zm218 0c-28-12-54-1-75 16 28 10 49 6 75-16Z" fill="url(#intro-eye-fire)"/><path d="m90 38 5 21 6-17m123 0 6 17 5-21" fill="#0b2319"/></svg>
+        {/* Before the tear: his eyes in the dark, the logo's own eye (flat brow, slit pupil) as a pair. */}
+        <svg className="intro-watchful-eyes" viewBox="0 0 320 100" fill="none" aria-hidden="true">
+          <defs>
+            <radialGradient id="intro-eye-fire" cx=".45" cy=".55" r=".6"><stop stopColor="#fff7b2"/><stop offset=".32" stopColor="#ffd21c"/><stop offset=".68" stopColor="#ff8606"/><stop offset="1" stopColor="#d93a07"/></radialGradient>
+            <clipPath id="intro-eye-shape"><path d={WATCHFUL_EYES}/></clipPath>
+          </defs>
+          <path d={WATCHFUL_EYES} fill="url(#intro-eye-fire)" stroke="#1a0602" strokeWidth="2.4" strokeLinejoin="round"/>
+          <path d={WATCHFUL_PUPILS} fill="#0a0502" clipPath="url(#intro-eye-shape)"/>
+        </svg>
         <svg className="intro-rip" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
           <defs><linearGradient id="intro-rip-edge" x1="180" y1="670" x2="1210" y2="180" gradientUnits="userSpaceOnUse"><stop stopColor="#ff792a"/><stop offset=".25" stopColor="#d7ff6a"/><stop offset=".8" stopColor="#bfff48"/><stop offset="1" stopColor="#fff1a0"/></linearGradient></defs>
           <g className="intro-rip-stroke" strokeLinejoin="round">
@@ -193,3 +183,7 @@ export default function LagartoIntro() {
     </>
   );
 }
+
+/** The logo's eye outline (lib/tony-art.ts measurements), mirrored into an angry pair. */
+const WATCHFUL_EYES = 'M67.2 20.7L144 51.7C135.1 60.5 121.8 69.3 105.1 71.3C94.4 71.5 80.4 66.7 71.6 57.8C64 50.3 58.7 39.4 61.2 28.9C62.4 24.9 65 21.6 67.2 20.7ZM252.8 20.7L176 51.7C184.9 60.5 198.2 69.3 214.9 71.3C225.6 71.5 239.6 66.7 248.4 57.8C256 50.3 261.3 39.4 258.8 28.9C257.6 24.9 255 21.6 252.8 20.7Z';
+const WATCHFUL_PUPILS = 'M104 31C108.8 43 108.8 60 104 72C99.2 60 99.2 43 104 31ZM216 31C220.8 43 220.8 60 216 72C211.2 60 211.2 43 216 31Z';

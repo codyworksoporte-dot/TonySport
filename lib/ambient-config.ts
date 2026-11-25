@@ -28,8 +28,8 @@ export const AMBIENT = {
   peek: {
     /** Tony rises over the bottom edge after this long without clicks, taps, scroll or keys (pointer movement doesn't count). */
     idleMs: 5500,
-    /** Box width: clamp(min, vw, max). */
-    width: { min: 170, vw: 22, max: 330 },
+    /** Box width: clamp(min, vw, max). The height follows the art (lib/tony-art.ts). */
+    width: { min: 190, vw: 23, max: 360 },
     /** Candidate spots (fractions of the viewport width); he takes the one covering the least content. */
     stopCandidates: [.12, .25, .38, .5, .62, .75, .88],
     /** Time to climb into view before he stares, and to drop out of sight. */

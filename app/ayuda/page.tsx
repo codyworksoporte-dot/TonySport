@@ -1,19 +1,29 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
+import Icon from '@/components/Icon';
 import {EditorialShell, EditorialHero, EditorialLink, SectionLabel, whatsappLink} from '@/components/TonyEditorial';
+import {HELP_WHATSAPP, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
+import '@/components/pages/pages.css';
 
 export const metadata: Metadata = {
-  title: 'Ayuda y preguntas frecuentes',
-  description: 'Resuelve dudas sobre cotizaciones, tallas, diseños, archivos, entregas y atención de cambios, garantías y reclamos con Tony Sportswear.',
+  title: 'Preguntas frecuentes',
+  description: 'Respuestas sobre cotizaciones, tallas, diseños, archivos, consulta de pedidos y atención de cambios, garantías y reclamos con Tony Sportswear.',
 };
 
 export default function AyudaPage() {
-  return <EditorialShell>
+  return <EditorialShell className="tp tp-faq">
     <EditorialHero
-      label="Ayuda"
-      eyebrow="TE ACOMPAÑAMOS EN CADA PASO"
-      title={<>Tu pedido,<br/><em>con menos dudas.</em></>}
-      description="Encuentra respuestas para preparar tu uniforme, conservar tu diseño y conversar con Tony sobre tu pedido."
+      label="Preguntas frecuentes"
+      eyebrow="AYUDA"
+      title={<>Preguntas<br/><em>frecuentes.</em></>}
+      description="Respuestas cortas para tu pedido. Si no encuentras la tuya, escríbenos por WhatsApp."
+      aside={<a className="tp-help-wa" href={HELP_WHATSAPP} target="_blank" rel="noopener noreferrer">
+        <Icon name="whatsapp-solid" className="tp-wa-mark"/>
+        <small>¿Necesitas ayuda?</small>
+        <b>{TONY_WHATSAPP_NUMBER}</b>
+        <span className="tc-go tp-go-white"><Icon name="arrow"/></span>
+        <span className="tc-sr">Escribir por WhatsApp (se abre en otra pestaña)</span>
+      </a>}
     />
 
     <section className="te-wrap te-rule" style={{paddingTop: 0, borderTop: 0}} aria-labelledby="ayuda-pedido">
@@ -39,7 +49,7 @@ export default function AyudaPage() {
           </details>
           <details>
             <summary>¿Dónde quedan mis diseños guardados?</summary>
-            <div className="te-guide-content"><p>El borrador y el carrito se guardan en este navegador. No se sincronizan automáticamente entre dispositivos; borrar los datos del sitio o usar otro navegador puede dejarte sin acceso a esas copias locales.</p><p>Descarga tus diseños y los documentos disponibles del pedido para conservarlos. Puedes revisar lo guardado en <Link className="privacy-inline-link" href="/carrito">Mi carrito</Link> y consultar las referencias en <Link className="privacy-inline-link" href="/recientes">Recientes</Link>.</p></div>
+            <div className="te-guide-content"><p>El borrador y el carrito se guardan en este navegador. No se sincronizan automáticamente entre dispositivos; borrar los datos del sitio o usar otro navegador puede dejarte sin acceso a esas copias locales.</p><p>Descarga tus diseños y los documentos disponibles del pedido para conservarlos. Puedes revisar lo guardado en <Link className="privacy-inline-link" href="/carrito">Mi carrito</Link>.</p></div>
           </details>
           <details>
             <summary>¿Necesito una cuenta?</summary>
@@ -47,7 +57,11 @@ export default function AyudaPage() {
           </details>
           <details>
             <summary>¿Cuánto tarda y cómo recibo el pedido?</summary>
-            <div className="te-guide-content"><p>La fecha, el destino y el costo de entrega se acuerdan para cada pedido. Confirma esos detalles con tu asesor junto con la aprobación del diseño y las condiciones de pago.</p><p>Consulta las <Link className="privacy-inline-link" href="/entregas">opciones de entrega</Link> o busca una <Link className="privacy-inline-link" href="/tiendas">tienda cercana</Link>. Antes de visitarla, confirma la ubicación y el horario con la sucursal.</p></div>
+            <div className="te-guide-content"><p>La fecha, el destino y el costo de entrega se acuerdan para cada pedido. Confirma esos detalles con tu asesor junto con la aprobación del diseño y las condiciones de pago.</p><p>Para coordinar la entrega o el retiro, busca tu <Link className="privacy-inline-link" href="/tiendas">tienda cercana</Link>. Antes de visitarla, confirma la ubicación y el horario con la sucursal.</p></div>
+          </details>
+          <details>
+            <summary>¿Cómo veo el estado de mi pedido?</summary>
+            <div className="te-guide-content"><p>Entra a <Link className="privacy-inline-link" href="/consulta">Consulta tu pedido</Link> y escribe tu número de orden. Si no lo tienes a mano, <a className="privacy-inline-link" href={whatsappLink('Hola, Tony. Quiero consultar el estado de mi pedido.')} target="_blank" rel="noopener noreferrer">escríbenos por WhatsApp</a>.</p></div>
           </details>
         </div>
       </div>

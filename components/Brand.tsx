@@ -20,11 +20,11 @@ export default function Brand() {
       if (['/', '/TonySport', '/TonySport/'].includes(window.location.pathname)) window.scrollTo({ top: 0, behavior: 'instant' });
     }}>
       <Image
-        src={siteAsset('/assets/tony-wordmark-transparent-v1.webp')}
+        src={siteAsset('/assets/brand/tony-logo-480.webp')}
         alt="TONY Sportswear"
-        width={1774}
-        height={887}
-        sizes="150px"
+        width={480}
+        height={432}
+        sizes="(max-width: 900px) 56px, 72px"
         className="official-logo"
         preload
       />

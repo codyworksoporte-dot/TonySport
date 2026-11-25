@@ -1,59 +1,65 @@
 import {test,expect} from '@playwright/test';
-import stores from '../data/tony-stores.json';
+
+// "Consulta tu pedido" always sends the customer to Tony's official order lookup.
+const ORDER_LOOKUP='https://www.tonysportselsalvador.com/sistema/consulta_ts/';
 
 test.beforeEach(async({page})=>{await page.emulateMedia({reducedMotion:'reduce'});});
 
-test('entregas exige una sucursal y nunca reutiliza el contacto de una selección anterior',async({page})=>{
-  await page.goto('/entregas');
-  const store=page.locator('#te-delivery-store');
-  const prepare=page.getByRole('button',{name:'Preparar consulta'});
-  const whatsapp=page.getByRole('link',{name:'Consultar entrega en WhatsApp'});
-  await expect(store).toHaveValue('');
-  await expect(whatsapp).toHaveCount(0);
-  await prepare.click();
-  await expect(store).toBeFocused();
-  await expect(store).toHaveAttribute('aria-invalid','true');
-  await page.locator('#te-delivery-zone').selectOption('Oriente');
-  await expect(store.locator('option')).toHaveCount(stores.filter(item=>item.zone==='Oriente').length+1);
-  await expect(page.locator('#te-delivery-error')).toHaveCount(0);
-  await store.selectOption('San Miguel');
-  await page.locator('#te-delivery-destination').fill('San Miguel, centro');
-  await prepare.click();
-  await expect(page.getByRole('heading',{name:'Tony San Miguel',exact:true})).toBeFocused();
-  let url=new URL((await whatsapp.getAttribute('href'))!);
-  expect(url.pathname).toBe('/50376565837');
-  expect(url.searchParams.get('text')).toContain('San Miguel, centro');
-  await store.selectOption('Usulután');
-  await expect(whatsapp).toHaveCount(0);
-  await prepare.click();
-  url=new URL((await whatsapp.getAttribute('href'))!);
-  expect(url.pathname).toBe('/50370083267');
-  expect(url.searchParams.get('text')).toContain('Sucursal elegida: Usulután');
-  await page.locator('#te-delivery-destination').fill('Usulután');
-  await expect(whatsapp).toHaveCount(0);
-  await prepare.click();
-  url=new URL((await whatsapp.getAttribute('href'))!);
-  expect(url.searchParams.get('text')).not.toContain('San Miguel');
-  await page.locator('#te-delivery-zone').selectOption('Occidente');
-  await expect(store).toHaveValue('');
-  await expect(whatsapp).toHaveCount(0);
-  await expect(page.locator('.te-section-label>span')).toHaveText(['01','02']);
+test('consulta y entregas abren la consulta oficial del pedido en otra pestaña; el antiguo formulario de entregas ya no existe',async({page})=>{
+  // A stand-in for the official system: the test never reaches the live lookup.
+  await page.context().route(ORDER_LOOKUP,route=>route.fulfill({status:200,contentType:'text/html',body:'<!doctype html><title>Consulta simulada</title><h1>Consulta simulada</h1>'}));
+  for(const route of ['/consulta','/entregas']){
+    await page.goto(route);
+    const main=page.getByRole('main');
+    await expect(main.getByRole('heading',{level:1,name:'Consulta tu pedido',exact:true}),route).toBeVisible();
+    const lookup=main.getByRole('link',{name:/^Consultar mi pedido/});
+    await expect(lookup,route).toBeVisible();
+    await expect(lookup,route).toHaveAttribute('href',ORDER_LOOKUP);
+    await expect(lookup,route).toHaveAttribute('target','_blank');
+    await expect(lookup,route).toHaveAttribute('rel',/(^|\s)noopener(\s|$)/);
+    const noNumber=main.getByRole('link',{name:/No tienes tu número/});
+    await expect(noNumber,route).toHaveAttribute('href',/^https:\/\/wa\.me\/50370155571\?text=/);
+    await expect(noNumber,route).toHaveAttribute('target','_blank');
+    // The delivery form (zone, branch and WhatsApp draft) was replaced by the lookup.
+    await expect(page.locator('#te-delivery-zone, #te-delivery-store, #te-delivery-destination'),route).toHaveCount(0);
+    await expect(page.getByRole('button',{name:'Preparar consulta'}),route).toHaveCount(0);
+  }
+  // The lookup opens in its own tab without access back to the site, which stays where it was.
+  const [popup]=await Promise.all([page.waitForEvent('popup'),page.getByRole('main').getByRole('link',{name:/^Consultar mi pedido/}).click()]);
+  await expect(popup).toHaveURL(ORDER_LOOKUP);
+  expect(await popup.evaluate(()=>window.opener)).toBeNull();
+  await expect(page).toHaveURL(/\/entregas\/?$/);
+  await popup.close();
 });
 
-test('las páginas internas conservan sus acciones y el directorio completo permite abrir el creador',async({page})=>{
-  for(const route of ['/lineas','/calidad','/tiendas','/entregas','/patrocinio','/comunidad','/actualidad','/tony-news','/catalogo','/nosotros','/contacto']){
+test('las páginas internas no repiten el creador en su contenido y el encabezado lo ofrece en todas',async({page})=>{
+  for(const route of ['/lineas','/calidad','/tiendas','/entregas','/consulta','/patrocinio','/comunidad','/actualidad','/tony-news','/catalogo','/nosotros','/contacto']){
     await page.goto(route);
-    await expect(page.locator('main h1')).toBeVisible();
-    await expect(page.locator('a[href^="/configurador"]'),route).toHaveCount(0);
+    await expect(page.locator('main h1'),route).toBeVisible();
+    await expect(page.locator('main a[href^="/configurador"]'),route).toHaveCount(0);
+    const create=page.getByRole('banner').getByRole('link',{name:'Crear pedido',exact:true});
+    await expect(create,route).toBeVisible();
+    await expect(create,route).toHaveAttribute('href','/configurador');
     await expect(page.locator('.tony-footer-invitation'),route).toHaveCount(0);
   }
-  await page.getByRole('button',{name:'Buscar en el sitio'}).click();
-  await page.getByRole('searchbox').fill('uniforme');
-  await expect(page.getByRole('dialog').locator('a[href^="/configurador"]')).toBeVisible();
-  await page.keyboard.press('Escape');
+});
+
+test('la búsqueda del sitio abre el creador, comunidad ya no muestra TonyPlay y el pie conserva la bandera',async({page})=>{
+  await page.goto('/contacto');
+  await page.getByRole('banner').getByRole('button',{name:'¿Qué buscas en específico?',exact:true}).click();
+  const search=page.getByRole('dialog',{name:'¿QUÉ BUSCAS EN ESPECÍFICO?'});
+  const field=search.getByRole('searchbox',{name:'Buscar una sección'});
+  await expect(field).toBeFocused();
+  await field.fill('uniforme');
+  const create=search.getByRole('link',{name:'Crear mi pedido',exact:true});
+  await expect(create).toHaveAttribute('href','/configurador');
+  await create.click();
+  await expect(page).toHaveURL(/\/configurador\/?$/);
+  await expect(search).toBeHidden();
   await page.goto('/comunidad');
-  await expect(page.locator('#tonyplay')).toContainText('EN DESARROLLO');
-  await expect(page.locator('#tonyplay').locator('a,button')).toHaveCount(0);
+  await expect(page.locator('main h1')).toBeVisible();
+  await expect(page.locator('#tonyplay')).toHaveCount(0);
+  await expect(page.locator('main')).not.toContainText('TonyPlay',{ignoreCase:true});
   await page.setViewportSize({width:390,height:844});
   await expect(page.getByRole('img',{name:'Bandera de El Salvador'})).toBeVisible();
 });

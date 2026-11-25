@@ -1,6 +1,25 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
-import LineExplorer from '@/components/LineExplorer';
 import Icon from '@/components/Icon';
-export const metadata:Metadata={title:'Líneas deportivas y empresariales'};
-export default function Lineas(){return <main id="contenido" className="internal-page line-page"><header className="section-wrap internal-hero line-page-heading"><div className="internal-breadcrumb"><Link href="/">Inicio</Link><span>/</span><span>Líneas Tony</span></div><p className="eyebrow">NUEVE FORMAS DE LLEVAR TU IDENTIDAD.</p><h1>UN MUNDO.<br/><em>MUCHOS EQUIPOS.</em></h1><p className="lead">Fútbol, cancha, ruta o empresa. Explora la línea que se parece a tu equipo y cuéntanos qué quieres crear.</p></header><LineExplorer full/><section className="line-page-followup"><div><p className="eyebrow">DEL USO AL ÚLTIMO DETALLE</p><h2>TU IDEA MERECE<br/>UNA BUENA BASE.</h2><p>La técnica, la tela y el corte forman parte de la propuesta. Conoce qué conviene definir antes de preparar tu solicitud.</p><nav aria-label="Siguientes pasos"><Link href="/calidad" className="button outline">Técnicas y acabados <Icon name="diagonal"/></Link><Link href="/tiendas" className="button outline">Encuentra una tienda <Icon name="diagonal"/></Link><Link href="/entregas" className="button outline">Cómo recibir tu pedido <Icon name="diagonal"/></Link></nav></div><div className="line-catalog-note"><strong>El catálogo nuevo está en preparación.</strong><p>Este explorador presenta las líneas de Tony. Los diseños, las existencias y los precios se confirman al consultar.</p><Link href="/catalogo" className="text-link">Ver el estado del catálogo <Icon name="diagonal"/></Link></div></section></main>}
+import DisciplineGrid from '@/components/product/DisciplineGrid';
+import {DISCIPLINES_TITLE} from '@/lib/disciplines';
+import '@/components/product/product.css';
+
+export const metadata:Metadata={
+  title:DISCIPLINES_TITLE,
+  description:'Escoge tu disciplina deportiva y mira los productos de Tony Sportswear.',
+};
+
+// The old "Líneas" page now shows the same picture buttons; each one opens its section on /producto.
+export default function Lineas(){
+  return <main id="contenido" className="tc-page pd-page">
+    <div className="tc-wrap">
+      <header className="tc-head pd-head">
+        <Link className="tc-back" href="/"><Icon name="left"/>Inicio</Link>
+        <h1>{DISCIPLINES_TITLE}</h1>
+        <p>Toca una disciplina y mira sus productos.</p>
+      </header>
+      <DisciplineGrid/>
+    </div>
+  </main>;
+}

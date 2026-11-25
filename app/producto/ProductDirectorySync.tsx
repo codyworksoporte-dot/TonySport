@@ -1,16 +1,10 @@
-'use client';
-import {useEffect} from 'react';
+import HashFocus from '@/components/product/HashFocus';
+import {LEGACY_PRODUCT_HASHES} from '@/lib/product-menu';
 
+const PREFIXES=['categoria-','opcion-'];
+const IDS=['directorio-producto'];
+
+/** /producto#categoria-<id> and #opcion-<id> land on their section or card and light it up briefly. */
 export default function ProductDirectorySync(){
-  useEffect(()=>{
-    const reveal=()=>{
-      const id=window.location.hash.slice(1);
-      if(!id.startsWith('categoria-')&&!id.startsWith('opcion-'))return;
-      const target=document.getElementById(id),category=target?.closest('details');
-      if(category){category.open=true;requestAnimationFrame(()=>target?.scrollIntoView({block:'start',behavior:'instant'}));}
-    };
-    reveal();window.addEventListener('hashchange',reveal);window.addEventListener('popstate',reveal);
-    return()=>{window.removeEventListener('hashchange',reveal);window.removeEventListener('popstate',reveal);};
-  },[]);
-  return null;
+  return <HashFocus prefixes={PREFIXES} ids={IDS} aliases={LEGACY_PRODUCT_HASHES}/>;
 }

@@ -1,0 +1,112 @@
+/* Product pages (Tony C): discipline tiles, picture-card sections and the hash highlight.
+   Shared by /producto, /lineas and /implementos. Builds on app/tony-c.css. */
+
+.pd-head h1{max-width:17ch;text-wrap:balance}
+
+/* "Escoge tu disciplina deportiva": giant picture buttons. */
+.pd-grid{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:clamp(250px,21vw,300px);grid-auto-flow:row dense;gap:16px}
+.pd-grid>li{display:grid;min-width:0}
+.pd-grid>.is-wide{grid-column:span 2}
+.pd-tile{height:100%;min-height:0;transition:transform 260ms var(--tc-ease),box-shadow 220ms ease}
+.pd-tile:active{transform:scale(.985);transition-duration:90ms}
+@media(hover:hover) and (pointer:fine){.pd-tile:hover{box-shadow:inset 0 0 0 1px var(--tc-line-strong),var(--tc-shadow)}}
+.pd-tile>img{object-position:50% 20%}
+.pd-tile.is-product>img{object-position:50% 35%}
+.pd-tile .tc-tile-label{left:20px;right:16px;bottom:16px}
+.pd-tile .tc-tile-label b{min-width:0;font-size:clamp(22px,1.8vw,30px)}
+.pd-tile .tc-go{width:42px;height:42px}
+.pd-tile .tc-go svg{width:20px;height:20px}
+.pd-grid>.is-wide .tc-go{width:48px;height:48px}
+.pd-grid>.is-wide .tc-tile-label b{font-size:clamp(28px,2.5vw,38px)}
+.pd-grid>.is-lead .tc-tile-label b{font-size:clamp(34px,3.6vw,52px)}
+@media(max-width:1099px){
+  .pd-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:clamp(200px,24vw,250px);gap:14px}
+  .pd-grid>.is-wide{grid-column:span 1}
+  .pd-grid>.is-wide:not(.is-lead) .tc-go{width:42px;height:42px}
+  .pd-tile .tc-tile-label b,.pd-grid>.is-wide:not(.is-lead) .tc-tile-label b{font-size:clamp(20px,2.5vw,26px)}
+  .pd-grid>.is-lead{grid-column:span 2;grid-row:span 2}
+}
+@media(max-width:639px){
+  .pd-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:clamp(168px,47vw,240px);gap:10px}
+  .pd-grid>.is-lead{grid-column:span 2;grid-row:span 1}
+  .pd-tile .tc-tile-label{left:14px;right:10px;bottom:12px;gap:8px}
+  .pd-tile .tc-tile-label b,.pd-grid>.is-wide:not(.is-lead) .tc-tile-label b{font-size:clamp(19px,5.6vw,24px)}
+  .pd-grid>.is-wide:not(.is-lead) .tc-go{width:36px;height:36px}
+  .pd-grid>.is-lead .tc-tile-label b{font-size:clamp(30px,9vw,40px)}
+  .pd-tile .tc-go{width:36px;height:36px}
+  .pd-tile .tc-go svg{width:18px;height:18px}
+  .pd-grid>.is-lead .tc-go{width:44px;height:44px}
+}
+
+/* Sections: a round photo and a big name, then picture cards. */
+/* scroll-margin adds to the global scroll-padding-top (globals.css); HashFocus measures the header instead. */
+.pd-sec{padding-top:0;margin-top:64px;border-radius:var(--tc-r);scroll-margin-top:24px}
+.pd-card{scroll-margin-top:24px}
+.pd-sec-h{align-items:center;flex-wrap:wrap;row-gap:4px}
+.pd-sec-title{display:flex;align-items:center;gap:16px;min-width:0}
+.pd-sec-title h2{min-width:0;overflow-wrap:break-word}
+.pd-sec-avatar{display:block;width:64px;height:64px;flex:none;border-radius:50%;object-fit:cover;object-position:50% 18%;background:var(--tc-tile);box-shadow:0 0 0 2px var(--tc-bg),0 0 0 4px var(--tc-line-strong)}
+.pd-sec-h>a{min-height:44px;padding-inline:4px}
+.pd-sec-h>a svg{width:18px;height:18px}
+.pd-cards{list-style:none;margin:0;padding:0}
+.pd-cards>li{display:grid;min-width:0}
+.pd-card img{display:block}
+.pd-card .tc-card-name{font-size:clamp(17px,1.45vw,21px)}
+.pd-card .tc-card-name>span{min-width:0;overflow-wrap:anywhere}
+.pd-card .tc-card-name svg{transition:transform 320ms var(--tc-ease)}
+.pd-card:active{transform:scale(.98);transition-duration:90ms}
+@media(hover:hover) and (pointer:fine){.pd-card:hover .tc-card-name svg{transform:translateX(3px)}}
+
+/* Art direction (imageFocus in lib/product-menu.ts): covers with a price strip on one edge are zoomed a
+   little, anchored away from it. `scale` composes with the hover zoom, which uses `transform`. */
+.pd-card .tc-card-media img,.pd-tile>img{scale:var(--fz,1);transform-origin:var(--fx,50%) var(--fy,50%)}
+@media(max-width:899px){.pd-sec{margin-top:44px;scroll-margin-top:12px}.pd-card{scroll-margin-top:12px}}
+@media(max-width:599px){
+  .pd-sec-title{gap:12px}
+  .pd-sec-avatar{width:48px;height:48px}
+  .pd-card .tc-card-name{min-height:58px;padding:10px 12px;font-size:16px;gap:8px}
+  .pd-card .tc-card-name svg{width:18px;height:18px}
+}
+
+/* Hash links: the section (or card) a link points to lights up for a moment. */
+.pd-sec{outline:2px solid transparent;outline-offset:14px}
+.pd-sec.is-hash-target{outline-color:rgb(180 255 53 / .85);background-color:rgb(180 255 53 / .05);box-shadow:0 0 0 14px rgb(180 255 53 / .05);animation:pd-sec-flash 2.4s var(--tc-ease) both}
+.pd-sec.is-hash-target .pd-sec-title h2{color:var(--tc-lime);animation:pd-title-flash 2.4s var(--tc-ease) both}
+.pd-card.is-hash-target{box-shadow:inset 0 0 0 2px var(--tc-lime),0 0 0 5px rgb(180 255 53 / .22);animation:pd-card-flash 2.4s var(--tc-ease) both}
+@keyframes pd-sec-flash{
+  0%{outline-color:rgb(180 255 53 / 0);background-color:rgb(180 255 53 / 0);box-shadow:0 0 0 14px rgb(180 255 53 / 0)}
+  14%,50%{outline-color:rgb(180 255 53 / .85);background-color:rgb(180 255 53 / .05);box-shadow:0 0 0 14px rgb(180 255 53 / .05)}
+  100%{outline-color:rgb(180 255 53 / 0);background-color:rgb(180 255 53 / 0);box-shadow:0 0 0 14px rgb(180 255 53 / 0)}
+}
+@keyframes pd-title-flash{0%{color:var(--tc-ink)}14%,50%{color:var(--tc-lime)}100%{color:var(--tc-ink)}}
+@keyframes pd-card-flash{
+  0%{box-shadow:inset 0 0 0 1px var(--tc-line),0 0 0 0 rgb(180 255 53 / 0)}
+  14%,55%{box-shadow:inset 0 0 0 2px var(--tc-lime),0 0 0 5px rgb(180 255 53 / .22)}
+  100%{box-shadow:inset 0 0 0 1px var(--tc-line),0 0 0 0 rgb(180 255 53 / 0)}
+}
+@media(max-width:599px){
+  .pd-sec{outline-offset:9px}
+  .pd-sec.is-hash-target{box-shadow:0 0 0 9px rgb(180 255 53 / .05)}
+  @keyframes pd-sec-flash{
+    0%{outline-color:rgb(180 255 53 / 0);background-color:rgb(180 255 53 / 0);box-shadow:0 0 0 9px rgb(180 255 53 / 0)}
+    14%,50%{outline-color:rgb(180 255 53 / .85);background-color:rgb(180 255 53 / .05);box-shadow:0 0 0 9px rgb(180 255 53 / .05)}
+    100%{outline-color:rgb(180 255 53 / 0);background-color:rgb(180 255 53 / 0);box-shadow:0 0 0 9px rgb(180 255 53 / 0)}
+  }
+}
+/* Calm modes keep the highlight but without motion (it simply appears, then goes). */
+html[data-tony-effects=off] :is(.pd-sec,.pd-card).is-hash-target,
+html[data-tony-effects=off] .pd-sec.is-hash-target .pd-sec-title h2{animation:none}
+@media(prefers-reduced-motion:reduce){
+  :is(.pd-sec,.pd-card).is-hash-target,.pd-sec.is-hash-target .pd-sec-title h2{animation:none}
+  .pd-tile,.pd-card .tc-card-name svg{transition:none}
+  .pd-tile:active,.pd-card:active{transform:none}
+}
+html[data-tony-effects=off] :is(.pd-tile,.pd-card .tc-card-name svg){transition:none}
+
+/* Cards settle into place as they scroll in (transform only: nothing is ever hidden). */
+@keyframes pd-settle{from{transform:translateY(28px) scale(.965)}to{transform:none}}
+@supports (animation-timeline:view()){
+  @media(prefers-reduced-motion:no-preference){
+    html:not([data-tony-effects=off]) .pd-cards>li{animation:pd-settle linear both;animation-timeline:view();animation-range:entry 0% entry 55%}
+  }
+}

@@ -46,7 +46,8 @@ async function prepareRoutes(folder) {
 await prepareRoutes(fileURLToPath(directory));
 const homepage = await readFile(new URL('../out/index.html', import.meta.url), 'utf8');
 const product = await readFile(new URL('../out/producto/index.html', import.meta.url), 'utf8');
-if (!homepage.includes(`${basePath}/_next/`) || !homepage.includes(`${basePath}/assets/`) || !product.includes('PRODUCTO')) {
+// Heading of /producto: DISCIPLINES_TITLE in lib/disciplines.ts.
+if (!homepage.includes(`${basePath}/_next/`) || !homepage.includes(`${basePath}/assets/`) || !product.includes('Escoge tu disciplina deportiva')) {
   throw new Error('La exportación de GitHub Pages no contiene rutas y recursos válidos.');
 }
 await writeFile(new URL('../out/.nojekyll', import.meta.url), '');

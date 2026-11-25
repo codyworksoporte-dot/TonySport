@@ -1,30 +1,71 @@
+import type {CSSProperties} from 'react';
 import type {Metadata} from 'next';
 import Link from 'next/link';
-import LineExplorer from '@/components/LineExplorer';
 import Icon from '@/components/Icon';
-import {PRODUCT_CATEGORIES,productInquiry} from '@/lib/products';
-import {sourceCollectionHref} from '@/lib/collections';
+import DisciplineGrid from '@/components/product/DisciplineGrid';
+import PictureCard from '@/components/product/PictureCard';
+import SearchButton from '@/components/product/SearchButton';
+import {DISCIPLINES_TITLE} from '@/lib/disciplines';
+import {PRODUCT_MENU} from '@/lib/product-menu';
+import {siteAsset} from '@/lib/asset-path';
+import {TONY_WHATSAPP_NUMBER,whatsappLink} from '@/lib/site-links';
 import ProductDirectorySync from './ProductDirectorySync';
+import '@/components/product/product.css';
 import './producto.css';
 
-export const metadata:Metadata={title:'Producto · líneas y confección Tony',description:'Explora las líneas deportivas y empresariales de Tony, sus opciones de confección, réplicas, moldes, logos e implementos.'};
+export const metadata:Metadata={
+  title:DISCIPLINES_TITLE,
+  description:'Fútbol, baloncesto, voleibol, ciclismo, running, racing, empresarial, réplicas, hoddies e implementos: escoge tu disciplina y mira los productos de Tony Sportswear.',
+};
 
-export default function Producto(){return <main id="contenido" className="internal-page product-page"><ProductDirectorySync/>
-  <header className="section-wrap internal-hero product-heading">
-    <div className="internal-breadcrumb"><Link href="/">Inicio</Link><span>/</span><span>Producto</span></div>
-    <div className="product-heading-main"><div><p className="eyebrow"><span className="section-index">01</span> UNA IDENTIDAD. MUCHAS FORMAS DE LLEVARLA.</p><h1>ENCUENTRA<br/><em>TU TERRENO.</em></h1></div><div className="product-heading-aside"><p>De la cancha a tu empresa. Explora cada línea y encuentra la base para lo que tienes en mente.</p><a href="#directorio-producto" className="text-link">Ver todas las categorías <Icon name="arrow"/></a></div></div>
-  </header>
-  <LineExplorer full/>
-  <section id="directorio-producto" className="product-directory" aria-labelledby="product-directory-title">
-    <header><div><p className="eyebrow"><span className="section-index">02</span> EL UNIVERSO DEL PRODUCTO.</p><h2 id="product-directory-title">CADA DETALLE.<br/><em>CADA POSIBILIDAD.</em></h2></div><p>Confección, acabados y complementos. Abre una categoría para conocer todas sus opciones.</p></header>
-    <div className="product-category-grid">{PRODUCT_CATEGORIES.map((category,index)=><details className="product-category" id={`categoria-${category.id}`} data-index={String(index+1).padStart(2,'0')} key={category.id}>
-      <summary><span className="product-category-index">{String(index+1).padStart(2,'0')}</span><h3>{category.label}</h3><span className="product-category-toggle" aria-hidden="true">+</span></summary>
-      <div className="product-category-body"><p>{category.description}</p>
-        {category.children.length>0&&<ul>{category.children.map(child=><li id={`opcion-${child.id}`} key={child.id}><span>{sourceCollectionHref(child.sourceHref)?<Link href={sourceCollectionHref(child.sourceHref)!}>{child.label} · Ver diseños ↗</Link>:child.label}</span><a href={productInquiry(child.label)} target="_blank" rel="noopener noreferrer" aria-label={`Consultar ${child.label} por WhatsApp`}><Icon name="diagonal"/><span className="sr-only">Consultar</span></a></li>)}</ul>}
-        <div className="product-category-actions"><Link className="text-link" href={category.line==='calidad'?'/calidad':`/producto#${category.line}`}>{category.line==='calidad'?'Conoce los acabados':'Explorar esta línea'} <Icon name="arrow"/></Link><a className="text-link" href={productInquiry(category.label)} target="_blank" rel="noopener noreferrer">Consultar con Tony <Icon name="diagonal"/></a></div>
+// How many card columns a section takes on a 5-, 4- and 3-column page (producto.css): short lines share a
+// row with the next ones, so the page has no half-empty rows, and every card has the same size.
+const spans=(cards:number)=>({'--s5':Math.min(cards,5),'--s4':Math.min(cards,4),'--s3':Math.min(cards,3)}) as CSSProperties;
+
+export default function Producto(){
+  return <main id="contenido" className="tc-page pd-page">
+    <ProductDirectorySync/>
+    <div className="tc-wrap">
+      <header className="tc-head pd-head">
+        <Link className="tc-back" href="/"><Icon name="left"/>Inicio</Link>
+        <h1>{DISCIPLINES_TITLE}</h1>
+        <p>Toca una disciplina y mira sus productos.</p>
+      </header>
+
+      <div id="directorio-producto" className="pd-directory">
+        <DisciplineGrid/>
       </div>
-    </details>)}</div>
-    <div className="product-availability"><Icon name="shield"/><div><strong>Las colecciones de Tony ya están aquí.</strong><p>Recorre Mundial, Anime y todas las líneas. Confirma precios y disponibilidad con Tony.</p></div><Link className="text-link" href="/colecciones">Ver colecciones <Icon name="diagonal"/></Link></div>
-  </section>
-  <section className="product-next" aria-label="Ayuda para elegir"><div><p className="eyebrow">TU IDEA MERECE UNA BUENA BASE.</p><h2>DEL USO,<br/><em>AL ÚLTIMO DETALLE.</em></h2></div><nav><Link href="/calidad"><span>01</span><div><strong>Técnicas y confección</strong><small>Conoce los acabados para tu prenda.</small></div><Icon name="diagonal"/></Link><Link href="/tiendas"><span>02</span><div><strong>Encuentra tu tienda</strong><small>Conversa con la sucursal más cercana.</small></div><Icon name="diagonal"/></Link><Link href="/entregas"><span>03</span><div><strong>Recibe tu pedido</strong><small>Consulta las opciones de entrega.</small></div><Icon name="diagonal"/></Link></nav></section>
-</main>}
+
+      <div className="pd-sections">
+      {PRODUCT_MENU.map(section=><section key={section.id} id={`categoria-${section.id}`} className="tc-sec pd-sec" style={spans(section.cards.length)} aria-labelledby={`titulo-${section.id}`}>
+        <header className="tc-sec-h pd-sec-h">
+          <div className="pd-sec-title">
+            <img className="pd-sec-avatar" src={siteAsset(section.image)} alt="" width={64} height={64} loading="lazy" decoding="async"/>
+            <h2 id={`titulo-${section.id}`}>{section.name}</h2>
+          </div>
+          {section.more&&<Link href={section.more.href}>{section.more.label}<Icon name="arrow"/></Link>}
+        </header>
+        <ul className={`tc-cards pd-cards${section.featured?' has-feature':''}`} role="list">
+          {section.cards.map(card=><li key={card.id}>
+            <PictureCard id={card.id} name={card.name} image={card.image} href={card.href} kind={card.whatsapp?'whatsapp':'page'}/>
+          </li>)}
+          {section.more&&<li className="pd-more">
+            <Link href={section.more.href} className="tc-tile pd-more-tile">
+              <img src={siteAsset(section.image)} alt="" width={440} height={550} loading="lazy" decoding="async"/>
+              <span className="tc-tile-label"><b>{section.more.cta}</b><span className="tc-go"><Icon name="arrow"/></span></span>
+            </Link>
+          </li>}
+        </ul>
+      </section>)}
+      </div>
+
+      <aside className="pd-help" aria-labelledby="pd-help-title">
+        <h2 id="pd-help-title" className="tc-display">¿Buscas algo en específico?</h2>
+        <div className="pd-help-actions">
+          <SearchButton className="tc-pill pd-help-search"><Icon name="search"/><span>Buscar en Tony</span></SearchButton>
+          <a className="tc-btn tc-btn--wa tc-btn--lg pd-help-wa" href={whatsappLink('Hola, Tony. Busco un producto y quisiera ayuda.')} target="_blank" rel="noopener noreferrer"><Icon name="whatsapp-solid"/>{TONY_WHATSAPP_NUMBER}<span className="tc-sr"> · escribir por WhatsApp (se abre en otra pestaña)</span></a>
+        </div>
+      </aside>
+    </div>
+  </main>;
+}

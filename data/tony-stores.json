@@ -11,5 +11,6 @@
   { "name": "Chapeltique", "address": "1.ª avenida Sur, Plaza Centro, segundo nivel, Chapeltique, San Miguel.", "phone": "7950-5764", "mapUrl": "https://maps.app.goo.gl/79g92NUuW8WzLLv6A", "zone": "Oriente" },
   { "name": "San Vicente", "address": "Plaza San Carlos, primer nivel, frente a Centro Judicial.", "phone": "6075-0354", "mapUrl": "https://maps.app.goo.gl/TdCMJRfihiiDTWro8", "zone": "Paracentral" },
   { "name": "San Francisco Gotera", "address": "2.ª calle Poniente, Plaza La Merced, segundo nivel, frente a Banco Cuscatlán.", "phone": "7604-8172", "mapUrl": "https://maps.app.goo.gl/XVYwnQ7ntWRDcYEM7", "zone": "Oriente" },
-  { "name": "Chalatenango", "address": "Carretera Troncal del Norte, Plaza El Coyolito.", "phone": "7015-5571", "mapUrl": "https://maps.app.goo.gl/1cxG8giT9EnZEsCQA", "zone": "Centro" }
+  { "name": "Chalatenango", "address": "Carretera Troncal del Norte, Plaza El Coyolito.", "phone": "7015-5571", "mapUrl": "https://maps.app.goo.gl/1cxG8giT9EnZEsCQA", "zone": "Centro" },
+  { "name": "Lourdes", "address": "Carretera Panamericana, Plaza Lourdes, segundo nivel, a un costado de Café Lourdes.", "phone": "7015-5571", "mapUrl": "https://www.google.com/maps/search/13.723901,+-89.369489", "zone": "Centro" }
 ]

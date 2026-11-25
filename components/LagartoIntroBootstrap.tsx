@@ -36,6 +36,7 @@ const bootstrap = `(() => {
   sheet.insertRule('@keyframes tony-intro-boot-failsafe { to { visibility: hidden; pointer-events: none; } }');
   sheet.insertRule('@media (prefers-reduced-motion: reduce) { html::before { display: none !important; } }');
   sheet.insertRule('body { overflow: hidden !important; }');
+  sheet.insertRule('.tc-rise { animation-play-state: paused !important; }');
   addEventListener('keydown', escape);
   preference.addEventListener('change', reduce);
   timer = setTimeout(() => state.release(true), 8000);

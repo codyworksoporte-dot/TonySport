@@ -4,7 +4,8 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { usePathname } from 'next/navigation';
 import { AMBIENT } from '@/lib/ambient-config';
 import { siteAsset } from '@/lib/asset-path';
-import { TonyClaw, TonyFace } from './TonyArt';
+import { TONY_ART } from '@/lib/tony-art';
+import { TonyBadge, tonyArtVars } from './TonyArt';
 import './route-transition.css';
 
 type Phase = 'idle' | 'cover' | 'wink' | 'reveal';
@@ -13,8 +14,8 @@ const MOBILE = '(max-width: 900px), (pointer: coarse)';
 
 /**
  * Changing section: the scales close over the page, a ring spreading from the
- * link you clicked; Tony comes up holding the Tony shield, winks once the new
- * section is ready, then lets you in. Every moving part is a transform or an
+ * link you clicked; the Tony logo slams in, he winks (his eye flashes) once the
+ * new section is ready, then lets you in. Every moving part is a transform or an
  * opacity, so the compositor keeps it smooth while the new page renders.
  * Purely decorative: it never takes clicks or focus and skips when motion is off.
  */
@@ -148,10 +149,8 @@ export default function RouteTransition() {
   } as CSSProperties}>
     {art === 'mobile' && <div className="rt-mobile">
       <div className="rt-mobile-content">
-        <div className="rt-mobile-emblem">
-          <TonyFace className="rt-mobile-head"/>
-          <div className="rt-mobile-brand"><img src={siteAsset('/assets/tony-wordmark.webp')} alt="" width="720" height="351" decoding="async" draggable={false}/></div>
-          <TonyClaw className="rt-mobile-claw rt-mobile-claw--left"/><TonyClaw className="rt-mobile-claw rt-mobile-claw--right" flip/>
+        <div className="rt-mobile-emblem" style={tonyArtVars(TONY_ART.badge)}>
+          <TonyBadge className="rt-mobile-badge" sizes="min(72vw, 290px)"/>
         </div>
         <span className="rt-mobile-label">Cambiando apartado</span>
         <span className="rt-mobile-track"><i className="rt-mobile-progress"/></span>
@@ -161,12 +160,9 @@ export default function RouteTransition() {
     <div className="rt-panel"/>
     <span className="rt-ring"/>
     <div className="rt-stage">
-      <div className="rt-emblem">
+      <div className="rt-emblem" style={tonyArtVars(TONY_ART.badge)}>
         <span className="rt-shadow"/>
-        <TonyFace className="rt-head"/>
-        <div className="rt-plaque"><img src={siteAsset('/assets/tony-wordmark.webp')} alt="" width="720" height="351" decoding="async" draggable={false}/></div>
-        <div className="rt-claw rt-claw--left"><TonyClaw/></div>
-        <div className="rt-claw rt-claw--right"><TonyClaw flip/></div>
+        <TonyBadge className="rt-badge" sizes="min(72vmin, 500px)"/>
       </div>
     </div></>}
   </div>;

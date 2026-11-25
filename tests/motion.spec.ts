@@ -18,7 +18,8 @@ test('el logo abre la intro inmediatamente y vuelve a Inicio desde una página i
   await expect(page.locator('.lagarto-intro[open]')).toBeVisible();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.locator('.lagarto-intro .lagarto-head--reference')).toHaveCount(1);
-  await expect(page.locator('.tribe-mascot .lagarto-head--reference')).toHaveCount(0);
+  // The intro's mark is the only one on the page with the reference face.
+  await expect(page.locator('.lagarto-head--reference')).toHaveCount(1);
   await page.keyboard.press('Escape');
   await expect(page.locator('.lagarto-intro')).toHaveCount(0);
   await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
@@ -81,13 +82,18 @@ test('cada clic deja un rasguño breve y limitado, nunca al arrastrar, con clic 
   await ready(page, '/contacto');
   const scratches = () => page.evaluate(() => (window as unknown as { __scratches: number[] }).__scratches.length);
   // Client-side navigation must not duplicate listeners: one click, one scratch.
-  for (const name of ['Tony News', 'Inicio']) await page.locator('.tony-nav').getByRole('link', { name, exact: true }).click();
-  await page.locator('.tony-utility').getByRole('link', { name: /Hablemos/ }).click();
+  const quickNav = page.getByRole('navigation', { name: 'Accesos rápidos', exact: true });
+  for (const [name, url] of [['Tony News', /\/tony-news$/], ['Promociones', /\/promociones$/]] as const) {
+    await quickNav.getByRole('link', { name, exact: true }).click();
+    await expect(page).toHaveURL(url);
+  }
+  // Contacto is linked from the footer only.
+  await page.getByRole('contentinfo').getByRole('link', { name: 'Contacto', exact: true }).click();
   await expect(page).toHaveURL(/\/contacto$/);
   const stage = page.locator('.tony-scratch-stage');
   await expect(stage.locator('svg')).toHaveCount(4);
   const heading = page.locator('main h1').first();
-  await expect(heading).toContainText('TÚ PONES LA IDEA');
+  await expect(heading).toContainText('Contáctanos');
   const before = await scratches();
   await heading.click({ position: { x: 20, y: 20 } });
   expect(await scratches()).toBe(before + 1);
@@ -170,7 +176,8 @@ test('al cambiar de apartado Tony se acerca, guiña y deja pasar sin bloquear cl
   await expect(overlay).toHaveClass(/is-armed/, { timeout: 5000 });
   const phases = () => page.evaluate(() => (window as unknown as { __phases: string[] }).__phases.join(' '));
   expect(await phases()).toBe('');
-  const link = (await page.locator('.tony-nav').getByRole('link', { name: 'Tony News', exact: true }).boundingBox())!;
+  const quickNav = page.getByRole('navigation', { name: 'Accesos rápidos', exact: true });
+  const link = (await quickNav.getByRole('link', { name: 'Tony News', exact: true }).boundingBox())!;
   await page.mouse.click(link.x + link.width / 2, link.y + link.height / 2);
   await expect(overlay).toHaveAttribute('data-phase', 'cover');
   await expect(page.locator('html')).toHaveAttribute('data-route-cover', 'true');
@@ -180,29 +187,50 @@ test('al cambiar de apartado Tony se acerca, guiña y deja pasar sin bloquear cl
   await expect(page).toHaveURL(/\/tony-news$/);
   await expect.poll(phases, { timeout: 10000 }).toBe('cover wink reveal idle');
   await expect(page.locator('html')).not.toHaveAttribute('data-route-cover', /.*/);
-  // The heading of the section arriving waits under the scales and rises as they open.
-  // Observe at animation start. Separate Playwright round trips can outlast the
-  // short cover/wink and incorrectly inspect a heading that is already revealed.
-  await page.evaluate(() => {
-    const starts: boolean[] = [];
-    (window as unknown as {__headingStarts: boolean[]}).__headingStarts = starts;
-    const animate = Element.prototype.animate;
-    Element.prototype.animate = function(keyframes, options) {
-      if (this.closest('main h1')) starts.push(document.documentElement.dataset.routeCover === 'true');
-      return animate.call(this, keyframes, options);
-    };
-  });
-  const back = (await page.locator('.tony-nav').getByRole('link', { name: 'Inicio', exact: true }).boundingBox())!;
-  await page.mouse.click(back.x + back.width / 2, back.y + back.height / 2);
-  await expect(page).toHaveURL(/\/$/);
+  const next = (await quickNav.getByRole('link', { name: 'Promociones', exact: true }).boundingBox())!;
+  await page.mouse.click(next.x + next.width / 2, next.y + next.height / 2);
+  await expect(page).toHaveURL(/\/promociones$/);
   await expect.poll(phases, { timeout: 10000 }).toBe('cover wink reveal idle cover wink reveal idle');
-  const starts = await page.evaluate(() => (window as unknown as {__headingStarts: boolean[]}).__headingStarts);
-  expect(starts.length).toBeGreaterThan(0);
-  expect(starts.every(covered => !covered)).toBe(true);
+  await expect(page.locator('html')).not.toHaveAttribute('data-route-cover', /.*/);
   // The logo opens the intro instead of the section wink.
   await page.locator('.tony-header-inner .brand').click();
   await expect(page.locator('.lagarto-intro[open]')).toBeVisible();
   expect(await phases()).toBe('cover wink reveal idle cover wink reveal idle');
+});
+
+test('el título del apartado que llega espera bajo las escamas y sube cuando se abren', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await ready(page, '/contacto');
+  // Observe at the moment the scales lift. Separate Playwright round trips can outlast the
+  // short cover/wink and incorrectly inspect a heading that is already revealed.
+  // Any entrance counts (a CSS animation or a script one, on the heading or on the block that carries it).
+  await page.evaluate(() => {
+    const reveals: { heading: string; progressed: number[] }[] = [];
+    (window as unknown as { __reveals: typeof reveals }).__reveals = reveals;
+    new MutationObserver(() => {
+      if (document.documentElement.dataset.routeCover) return;
+      const heading = document.querySelector('main h1'), main = heading?.closest('main');
+      if (!heading || !main) return;
+      const progressed = document.getAnimations().filter(animation => {
+        const target = (animation.effect as KeyframeEffect | null)?.target;
+        return !!target && main.contains(target) && (target.contains(heading) || heading.contains(target));
+      }).map(animation => Number(animation.currentTime ?? 0));
+      reveals.push({ heading: heading.textContent!.trim(), progressed });
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-route-cover'] });
+  });
+  const link = (await page.getByRole('navigation', { name: 'Accesos rápidos', exact: true }).getByRole('link', { name: 'Promociones', exact: true }).boundingBox())!;
+  await page.mouse.click(link.x + link.width / 2, link.y + link.height / 2);
+  await expect(page).toHaveURL(/\/promociones$/);
+  await expect(page.locator('.route-transition')).toHaveAttribute('data-phase', 'idle');
+  await expect(page.locator('html')).not.toHaveAttribute('data-route-cover', /.*/);
+  const reveals = await page.evaluate(() => (window as unknown as { __reveals: { heading: string; progressed: number[] }[] }).__reveals);
+  const arrival = reveals.find(reveal => reveal.heading === 'Promociones');
+  // The section's heading was in place when the scales opened, and it has an entrance...
+  expect(arrival, JSON.stringify(reveals)).toBeTruthy();
+  expect(arrival!.progressed.length).toBeGreaterThan(0);
+  // ...that had not played yet: it starts as they open instead of finishing out of sight.
+  expect(Math.max(...arrival!.progressed), JSON.stringify(reveals)).toBeLessThan(50);
 });
 
 test('el control de pausa se recuerda y retira brillo, rasguños y lagartos', async ({ page }) => {
@@ -248,7 +276,10 @@ test('movimiento reducido conserva texto y navegación sin intro ni mascotas', a
   await page.locator('.tony-header-inner .brand').click();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.locator('.lagarto-intro')).toHaveCount(0);
-  const word = page.locator('main h1 .tony-reveal-word').first();
-  await expect(word).toHaveCSS('opacity', '1');
-  await expect(word).toHaveCSS('transform', 'none');
+  // The home heading arrives already in place: no entrance, fully opaque, untransformed.
+  const heading = page.locator('main.home-page h1');
+  await expect(heading).toBeVisible();
+  await expect(heading).toHaveCSS('opacity', '1');
+  await expect(heading).toHaveCSS('transform', 'none');
+  expect(await heading.evaluate(element => element.getAnimations({ subtree: true }).length)).toBe(0);
 });

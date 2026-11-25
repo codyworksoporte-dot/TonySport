@@ -13,5 +13,7 @@ export default function CartLink({className = '', onClick}: {className?: string;
   const {count, loading, error} = useCartCount();
   const pedido = usePedidoCart();
   const total = count + pedido.items.length, busy = loading || pedido.loading, failure = error || pedido.error;
-  return <Link href="/carrito" className={`cart-link ${className}`} onClick={onClick} aria-label={busy ? 'Abrir carrito' : failure ? 'Abrir carrito; requiere revisión' : `Carrito, ${total} ${total === 1 ? 'diseño' : 'diseños'}`} title="Tu carrito"><CartIcon/><span className="cart-link-count" aria-hidden="true">{failure ? '!' : busy ? '·' : total}</span></Link>;
+  // The badge only shows when there is something to tell: designs in the cart, or a problem. An empty cart stays a clean icon.
+  const quiet = !failure && (busy || total === 0);
+  return <Link href="/carrito" className={`cart-link ${className}`} data-badge={quiet ? 'off' : 'on'} onClick={onClick} aria-label={busy ? 'Abrir carrito' : failure ? 'Abrir carrito; requiere revisión' : `Carrito, ${total} ${total === 1 ? 'diseño' : 'diseños'}`} title="Tu carrito"><CartIcon/><span className="cart-link-count" aria-hidden="true">{failure ? '!' : busy ? '·' : total}</span></Link>;
 }

@@ -1,0 +1,38 @@
+/* /implementos: family chips that stick under the header, then one picture-card section per family.
+   Sections and cards come from components/product/product.css. */
+.im-chips{position:sticky;top:var(--im-top,var(--tc-header));z-index:30;margin-top:4px;padding:6px 0;background:rgb(5 10 7 / .9);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-block:1px solid var(--tc-line)}
+.im-chips-row{position:relative;display:flex;gap:8px;width:min(var(--tc-wrap),calc(100% - 64px));margin-inline:auto;padding:6px 2px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;scroll-snap-type:x proximity}
+.im-chips-row::-webkit-scrollbar{display:none}
+.im-chips-row[data-fade=end]{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 56px),transparent)}
+.im-chips-row[data-fade=start]{-webkit-mask-image:linear-gradient(90deg,transparent,#000 56px);mask-image:linear-gradient(90deg,transparent,#000 56px)}
+.im-chips-row[data-fade=both]{-webkit-mask-image:linear-gradient(90deg,transparent,#000 56px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(90deg,transparent,#000 56px,#000 calc(100% - 56px),transparent)}
+.im-chip{display:inline-flex;align-items:center;gap:10px;flex:none;min-height:52px;padding:6px 16px 6px 6px;border-radius:999px;background:var(--tc-tile-2);box-shadow:inset 0 0 0 1px var(--tc-line);color:var(--tc-ink);font:700 15px/1 var(--font-body),Arial,sans-serif;white-space:nowrap;text-decoration:none;scroll-snap-align:start;transition:background 200ms ease,color 200ms ease,box-shadow 200ms ease,transform 160ms var(--tc-ease)}
+.im-chip img{display:block;width:40px;height:40px;flex:none;border-radius:50%;object-fit:cover;background:#0a140e}
+.im-chip[aria-current]{background:var(--tc-lime);color:var(--tc-on-lime);box-shadow:none}
+.im-chip:focus-visible{outline:3px solid #e8ffb0;outline-offset:1px}
+.im-chip:active{transform:scale(.97)}
+@media(hover:hover) and (pointer:fine){.im-chip:not([aria-current]):hover{box-shadow:inset 0 0 0 1px var(--tc-line-strong);color:var(--tc-lime)}}
+
+.im-sec.pd-sec{scroll-margin-top:calc(var(--im-chips,78px) + 12px)}
+/* Keyboard focus moving up the page must not hide a card under the sticky chips. */
+.im-page .pd-card{scroll-margin-top:calc(var(--im-chips,78px) + 16px)}
+.im-chips+.tc-wrap>.im-sec:first-child{margin-top:40px}
+.im-avatar{object-position:50% 50%}
+
+.im-more{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px 28px;margin-top:72px;padding:28px 32px;border-radius:var(--tc-r);background:linear-gradient(120deg,var(--tc-tile-2),var(--tc-tile));box-shadow:inset 0 0 0 1px var(--tc-line)}
+.im-more h2{font-size:clamp(30px,3vw,42px)}
+
+@media(max-width:899px){
+  .im-chips-row{width:100%;padding-inline:16px;scroll-padding-inline:16px}
+  .im-chip{min-height:48px;font-size:14px;padding-right:16px}
+  .im-chip img{width:36px;height:36px}
+  .im-sec.pd-sec{scroll-margin-top:calc(var(--im-chips,70px) + 8px)}
+  .im-page .pd-card{scroll-margin-top:calc(var(--im-chips,70px) + 12px)}
+  .im-chips+.tc-wrap>.im-sec:first-child{margin-top:32px}
+}
+@media(max-width:599px){
+  .im-more{margin-top:52px;padding:22px 18px}
+  .im-more>a{width:100%;padding-inline:18px;white-space:normal;text-align:center}
+}
+@media(prefers-reduced-motion:reduce){.im-chip{transition:none}}
+html[data-tony-effects=off] .im-chip{transition:none}

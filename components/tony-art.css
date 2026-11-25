@@ -1,12 +1,21 @@
-.tony-face{position:relative;display:block;aspect-ratio:194/71;pointer-events:none}
-.tony-face>img{position:absolute;inset:0;display:block;width:100%;height:100%;user-select:none;-webkit-user-drag:none}
-.tony-claw{display:block;width:100%;height:auto;pointer-events:none;user-select:none;-webkit-user-drag:none}
-.tony-claw--flip{scale:-1 1}
-/* Each lid hangs from the top of its eye and drops over it. On the HTML head the
-   lid is its own box, so blinking runs on the compositor. */
+/* Every Tony is one raster from the logo master (lib/tony-art.ts) in a box with
+   the proportions of what it shows (set inline from the data, never here). */
+.tony-art{position:relative;display:block;overflow:hidden;isolation:isolate;pointer-events:none;user-select:none;-webkit-user-select:none}
+.tony-art>img{position:absolute;display:block;max-width:none;user-select:none;-webkit-user-drag:none}
+.tf-eyes{position:absolute;inset:0;display:block}
+/* Each lid hangs from the brow and drops over the eye along the eye's own slant:
+   its frame is turned to match, so the lid only ever scales vertically. On HTML
+   each lid is its own box and a blink runs on the compositor. */
+.tf-lid-frame{position:absolute;display:block}
+.tf-lid-frame--absent{visibility:hidden;width:0;height:0}
 .tf-lid{transform-box:fill-box;transform-origin:50% 0;transform:scaleY(0)}
-span.tf-lid{position:absolute;display:block}
+span.tf-lid{position:absolute;inset:0;display:block}
 span.tf-lid>svg{display:block;width:100%;height:100%;overflow:visible}
+/* The eye's fire, screened over the art, and a star glint for a wink. Both stay
+   hidden until a composition animates them (opacity and transform only). */
+.tf-glow{position:absolute;display:block;border-radius:50%;opacity:0;background:radial-gradient(closest-side,rgb(255 248 196 / .96),rgb(255 196 56 / .82) 20%,rgb(255 124 12 / .46) 46%,rgb(255 84 0 / .16) 72%,rgb(255 84 0 / 0));mix-blend-mode:screen}
+.tf-glow::after{content:'';position:absolute;inset:14%;background:radial-gradient(closest-side,#fff,#fff6cc 38%,rgb(255 224 130 / 0));clip-path:polygon(50% 0,54.5% 45.5%,100% 50%,54.5% 54.5%,50% 100%,45.5% 54.5%,0 50%,45.5% 45.5%);opacity:0;transform:scale(.2)}
 @keyframes tf-blink{0%,100%{transform:scaleY(0)}1.6%{transform:scaleY(1)}3.4%{transform:scaleY(0)}}
 @keyframes tf-wink{0%{transform:scaleY(0)}30%,64%{transform:scaleY(1)}100%{transform:scaleY(0)}}
-@media(prefers-reduced-motion:reduce){.tf-lid{animation:none!important}}
+@keyframes tf-glint{0%{opacity:0;transform:scale(.2) rotate(0deg)}35%{opacity:1;transform:scale(1.1) rotate(40deg)}100%{opacity:0;transform:scale(.5) rotate(90deg)}}
+@media(prefers-reduced-motion:reduce){.tf-lid,.tf-glow,.tf-glow::after{animation:none!important}}

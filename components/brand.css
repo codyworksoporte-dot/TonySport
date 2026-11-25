@@ -1,2 +1,7 @@
-/* Alpha artwork lets the actual page surface continue behind every logo edge. */
-.brand>.official-logo{object-fit:contain;object-position:center;mix-blend-mode:normal;filter:drop-shadow(0 2px 2px #080a0955);border:0;border-radius:0;background:none;}
+/* The 2026 badge (crocodile over the shield) keeps its own proportions: containers set the height, width follows. */
+.brand>.official-logo{object-fit:contain;object-position:left center;mix-blend-mode:normal;filter:drop-shadow(0 3px 6px rgb(0 0 0 / .45));border:0;border-radius:0;background:none}
+html .brand>.official-logo{width:auto;aspect-ratio:1200/1079}
+html .tony-header .brand>.official-logo{height:62px}
+html .tony-footer .brand>.official-logo,html .tony-mobile-top .brand>.official-logo{height:64px}
+@media(max-width:1099px){html .tony-header .brand>.official-logo{height:52px}}
+@media(max-width:370px){html .tony-header .brand>.official-logo{height:46px}}

@@ -3,8 +3,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import '@/app/editorial.css';
 
-export const TONY_WHATSAPP = 'https://wa.me/50370155571';
-export function whatsappLink(message: string) { return `${TONY_WHATSAPP}?text=${encodeURIComponent(message)}`; }
+export { TONY_WHATSAPP, whatsappLink } from '@/lib/site-links';
 export function EditorialShell({ children, className = '' }: { children: ReactNode; className?: string }) { return <main id="contenido" className={`te ${className}`}>{children}</main>; }
 export function EditorialHero({ label, eyebrow, title, description, aside }: { label: string; eyebrow: string; title: ReactNode; description: string; aside?: ReactNode }) {
   return <header className={`te-hero${aside ? ' te-hero-split' : ''}`}><nav className="te-breadcrumb" aria-label="Ruta de navegación"><Link href="/">Inicio</Link><span aria-hidden="true">/</span><span>{label}</span></nav><div className="te-hero-copy"><p className="te-eyebrow">{eyebrow}</p><h1>{title}</h1><p className="te-lead">{description}</p></div>{aside && <div className="te-hero-aside">{aside}</div>}</header>;

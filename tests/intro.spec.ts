@@ -42,7 +42,8 @@ test('la entrada del lagarto se reproduce una vez por sesión y se puede repetir
   await expect(skip).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(skip).toBeHidden();
-  await page.getByRole('button',{name:'Buscar en el sitio',exact:true}).click();
+  // The page is usable right after: the header's search pill opens the site search.
+  await page.getByRole('banner').getByRole('button',{name:'¿Qué buscas en específico?',exact:true}).click();
   await expect(page.getByRole('searchbox')).toBeVisible();
 });
 
@@ -52,6 +53,8 @@ test('móvil permite usar la página inmediatamente sin esperar la intro',async(
   await page.goto('/',{waitUntil:'domcontentloaded'});
   await expect(page.getByRole('button',{name:'Saltar intro',exact:true})).toBeHidden();
   await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.documentElement,'::before').content)).toBe('none');
+  // No curtain on phones, so the poll passes before React hydrates; the menu button only works once it has.
+  await expect(page.locator('html')).toHaveAttribute('data-tony-effects','on');
   await page.getByRole('button',{name:'Abrir menú',exact:true}).click();
   await expect(page.getByRole('dialog',{name:'Menú de Tony Sportswear'}).getByRole('navigation',{name:'Navegación principal',exact:true})).toBeVisible();
   await expect(page.locator('body')).not.toHaveCSS('overflow','hidden');
@@ -67,7 +70,8 @@ test('movimiento reducido y las páginas internas no muestran la intro',async({p
 
 test('el escudo mantiene el nombre aunque falle la imagen del logo',async({page})=>{
   await page.emulateMedia({reducedMotion:'no-preference'});
-  await page.route('**/assets/tony-wordmark.webp',route=>route.abort('failed'));
+  // The emblem is the logo file (srcset: tony-logo-480.webp and tony-logo.webp); losing it must still show the name.
+  await page.route('**/assets/brand/tony-logo*.webp',route=>route.abort('failed'));
   await page.goto('/',{waitUntil:'domcontentloaded'});
   const intro=page.locator('.lagarto-intro');
   await expect(intro).toBeVisible();
@@ -78,13 +82,18 @@ test('el escudo mantiene el nombre aunque falle la imagen del logo',async({page}
   await expect(intro).toBeHidden();
 });
 
-test('el emblema de la portada muestra el logo aunque la imagen llegue antes de hidratar',async({page})=>{
-  await page.addInitScript(()=>sessionStorage.setItem('tony:intro:v2','seen'));
-  await page.goto('/');
-  // Second visit: the wordmark now comes from the cache, before React can hear its load event.
-  await page.reload();
-  const emblem=page.locator('.tribe-mascot');
-  await emblem.scrollIntoViewIfNeeded();
-  await expect(emblem.locator('[data-wordmark-status]')).toHaveAttribute('data-wordmark-status','loaded');
-  await expect(emblem.locator('[data-wordmark-fallback]')).toHaveCount(0);
+test('el escudo de la intro muestra el logo también cuando la imagen ya está en caché',async({page})=>{
+  // The home no longer renders the emblem: it only lives in the intro, so the cached logo is met on a replay.
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.goto('/',{waitUntil:'domcontentloaded'});
+  const intro=page.locator('.lagarto-intro');
+  const logo=intro.locator('[data-wordmark-status]');
+  await expect(logo).toHaveAttribute('data-wordmark-status','loaded');
+  await page.getByRole('button',{name:'Saltar intro',exact:true}).click();
+  await expect(intro).toHaveCount(0);
+  // Second entrance: the logo now comes from the cache and must still count as drawn, never as the fallback.
+  await page.getByRole('button',{name:'Repetir entrada del lagarto',exact:true}).click();
+  await expect(intro).toBeVisible();
+  await expect(logo).toHaveAttribute('data-wordmark-status','loaded');
+  await expect(intro.locator('[data-wordmark-fallback]')).toHaveCount(0);
 });
