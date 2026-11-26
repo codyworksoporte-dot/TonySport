@@ -1,3 +1,4 @@
+import {mockupProvider} from '@/lib/pedido/mockup-config';
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import '../privacidad/privacidad.css';
@@ -16,7 +17,7 @@ const SECTIONS: {title: string; body: React.ReactNode}[] = [
   {title: 'Contenido externo que tú eliges', body: <ul>
     <li><strong>Instagram y TikTok:</strong> las vistas de Tony News se cargan al pulsar su botón. Desde ese momento la plataforma puede recibir datos de conexión y utilizar su propio almacenamiento; sus políticas rigen ese contenido.</li>
     <li><strong>Mapa de entrega:</strong> se conecta a OpenStreetMap al abrirlo y solicita las imágenes de la zona mostrada. Puedes escribir la dirección sin abrirlo. La opción de usar tu ubicación requiere el permiso del navegador.</li>
-    <li><strong>IA del editor:</strong> si está habilitada, envía las imágenes y elementos necesarios para la operación que elijas a Google Gemini a través de Vercel AI Gateway. Revisa qué archivos incluyes antes de utilizarla.</li>
+    <li><strong>IA del editor:</strong> si está habilitada, envía las imágenes y elementos necesarios para la operación que elijas a {mockupProvider}. Revisa qué archivos incluyes antes de utilizarla.</li>
     <li><strong>WhatsApp, correo y pago:</strong> se abren cuando eliges el enlace o la acción correspondiente. El mensaje preparado o los datos necesarios para el pago pasan al servicio elegido, que aplica sus propias condiciones.</li>
   </ul>},
   {title: 'Cómo controlarlo', body: <>

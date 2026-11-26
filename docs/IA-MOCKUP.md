@@ -1,10 +1,12 @@
 # Mockup con IA en «Crea tu pedido»
 
-Cómo funciona la IA del editor, cómo se despliega en un clic, cómo se conecta con la web, qué cuesta y qué límites tiene. El servidor está en `ia-servidor/` y su guía rápida en `ia-servidor/README.md`.
+El editor puede usar el generador oficial de Tony en StackCP o un servicio de IA independiente. El generador oficial procesa únicamente las imágenes y las instrucciones de la prenda.
 
-## Por qué no funcionaba
+## Conexión de pruebas con el generador oficial
 
-La web se publica en GitHub Pages, que solo sirve archivos estáticos. El backend PHP (`backend/pedido-api/`) nunca se desplegó, y `NEXT_PUBLIC_TONY_API_BASE` estaba vacía. Por eso los botones de IA aparecían desactivados. `ia-servidor/` es un backend serverless para Vercel que cumple el mismo contrato del cliente, así que la web no cambia de arquitectura.
+La publicación de TonySport apunta `NEXT_PUBLIC_TONY_MOCKUP_BASE` a `https://tonysportselsalvador.com/mockup-pruebas`. En el alojamiento, `public_html/mockup-pruebas/` contiene los archivos de `backend/mockup-pruebas/`. Estos validan el origen, el archivo y la cuota de pruebas y ejecutan el PHP correspondiente de la carpeta hermana `mockup-prueba/`. La configuración y las claves oficiales permanecen en el servidor. Las operaciones de IA utilizan los créditos del proveedor configurado por Tony.
+
+Las cuentas, las cotizaciones, los pagos y los pedidos continúan usando su propia variable, `NEXT_PUBLIC_TONY_API_BASE`. Para desconectar el generador oficial de la web de pruebas, configura la variable de Actions `NEXT_PUBLIC_TONY_MOCKUP_BASE` como `off` y vuelve a publicar. Si se ha configurado otro servicio de pedidos con IA, el editor volverá a ese servicio. La URL predeterminada del generador oficial se aplica solo en el repositorio de Tony.
 
 ## Cómo funciona
 
@@ -29,7 +31,7 @@ La web se publica en GitHub Pages, que solo sirve archivos estáticos. El backen
    - **Acabado**: cada logo se identifica con su archivo original, pierde la caja de fondo, se endereza, se acomoda en su zona y se imprime en la tela como sublimación, o en 3D alto relieve si se eligió. Quedan exactamente una camisa y una calzoneta (o solo la camisa).
    - **Borrador mágico**: edición local estricta dentro de la región marcada.
 
-## Desplegar en un clic
+## Desplegar la alternativa de Vercel
 
 https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcodyworksoporte-dot%2FTonySport%2Ftree%2Fmain%2Fia-servidor&project-name=tony-mockup-ia
 
@@ -37,9 +39,9 @@ https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fcodyworks
 - Pulsa **Deploy**. AI Gateway se autentica con OIDC, así que no hay claves que configurar.
 - Comprueba la URL del proyecto: `GET /` responde `{"ok":true, ...}`.
 
-## Conectar la web
+## Conectar la alternativa de Vercel
 
-1. GitHub → **Settings** → **Secrets and variables** → **Actions** → **Variables**. Crea `NEXT_PUBLIC_TONY_API_BASE` con la URL del proyecto de Vercel, sin barra final.
+1. En las variables de Actions, establece `NEXT_PUBLIC_TONY_MOCKUP_BASE` en `off` y `NEXT_PUBLIC_TONY_API_BASE` en la URL del proyecto de Vercel, sin barra final.
 2. Vuelve a ejecutar el flujo «Publicar Tony Sportswear»: `.github/workflows/pages.yml` ya pasa esa variable al compilar.
 
 Con la variable definida, los botones de IA se activan. Los pasos de envío y pago responden «El envío de pedidos en línea se activará pronto. Tu diseño queda guardado.»; el diseño se conserva igual que antes.
@@ -68,5 +70,5 @@ Cada imagen consume créditos de AI Gateway de la cuenta de Vercel. Hay un créd
 
 ## Pendiente
 
-- La generación real con Gemini solo se puede ver después del despliegue en Vercel; aquí se verificó con el modelo simulado.
+- La prueba simulada de la alternativa de Vercel comprueba el contrato del servicio. Para generar imágenes reales por esa vía se requiere su despliegue y disponibilidad de crédito.
 - `backend/pedido-api/ai.php` (PHP) ya usa los nuevos prompts, pero no pasa `placementRules` al acabado. Si alguna vez se despliega el PHP, conviene pasarle `$extra` a `pedido_prompt_finalize`.

@@ -11,6 +11,7 @@ import { autofitImage, type AutofitResult } from '@/lib/pedido/autofit';
 import catalog from '@/data/pedido/catalog.json';
 import CatalogPicker, { type CatalogDesign } from './CatalogPicker';
 import { fitImage, resetToZone, roleOf, samplePlayer, scaleLayer, textLayer, zoneFor, type Role } from '@/lib/pedido/layout';
+import {mockupProvider} from '@/lib/pedido/mockup-config';
 import './editor.css';
 
 type Side = 'front' | 'back';
@@ -345,7 +346,7 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
         </div>}
         <details className="pedido-image-tools">
           <summary>Elementos impresos e IA</summary>
-          <p className="pedido-editor-note" id="pedido-editor-ai-info">Al generar un mockup o borrar un área, Tony envía la imagen base y las indicaciones de tu configuración (sin datos personales) a Google Gemini a través de Vercel AI Gateway. Para el borrado se envía la cara completa de la prenda y la zona marcada. Usa imágenes que puedas compartir. <Link href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad ↗</Link></p>
+          <p className="pedido-editor-note" id="pedido-editor-ai-info">Al generar un mockup o borrar un área, Tony envía la imagen base y las indicaciones de la prenda a {mockupProvider}. Las imágenes pueden contener nombres o escudos si los incluyes. Para el borrado se envía la cara completa de la prenda y la zona marcada. Usa imágenes que puedas compartir. <Link href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad ↗</Link></p>
           <p className="pedido-editor-note">Puedes quitar directamente las capas que agregaste. Para quitar un nombre o escudo que ya viene impreso en la imagen, selecciona su área.</p>
           <button type="button" className="pedido-tool-button" disabled={disabled || !onAI || !draft.design[side]} aria-pressed={eraseMode} onClick={() => { setEraseMode(value => !value); setFraming(false); setRegion(null); setSelectedId(''); }}>{eraseMode ? 'Cancelar selección' : 'Seleccionar área para borrar'}</button>
           {eraseMode && <>

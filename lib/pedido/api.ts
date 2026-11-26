@@ -1,6 +1,7 @@
 import {siteAsset} from '../asset-path';
 import {authEnabled, accountToken, accountTokenPersisted, forgetAccount} from '../auth';
 import {shrinkImage} from './autofit';
+import {officialMockupBase} from './mockup-config';
 import type {Buyer, Delivery, Payment, PedidoDraft, PedidoPricing} from './types';
 
 const BASE = (process.env.NEXT_PUBLIC_TONY_API_BASE || '').replace(/\/+$/, '');
@@ -29,26 +30,27 @@ let memoryToken = '';
 // Only public catalogue artwork is cached. Never cache buyer data, rosters, signatures or payment proofs.
 const catalogueImages = new Map<string, Promise<string>>();
 
-function endpoint(path: string) {
-  if (!BASE) throw new Error('El servicio de pedidos todavía no está conectado. Tu diseño se conserva; podrás continuar cuando Tony lo active.');
-  const url = new URL(`${BASE}/${path}`);
+function endpoint(path: string, base: string) {
+  if (!base) throw new Error('El servicio de pedidos todavía no está conectado. Tu diseño se conserva; podrás continuar cuando Tony lo active.');
+  const url = new URL(`${base}/${path}`);
   if (url.username || url.password || (url.protocol !== 'https:' && !(url.protocol === 'http:' && ['127.0.0.1', 'localhost', '[::1]'].includes(url.hostname)))) throw new Error('La conexión del servicio debe ser segura.');
   return url.href;
 }
 function clearToken() {memoryToken = ''; try {sessionStorage.removeItem(TOKEN_KEY);} catch { /* Memory-only sessions still work when storage is disabled. */ }}
 function storedToken() {try {return sessionStorage.getItem(TOKEN_KEY) || memoryToken;} catch {return memoryToken;}}
-async function request<T extends ResponseObject>(path: string, init: RequestInit = {}, token?: string, timeoutMs = 110_000): Promise<T> {
+async function request<T extends ResponseObject>(path: string, init: RequestInit = {}, token?: string, timeoutMs = 110_000, service: 'order' | 'official-mockup' = 'order'): Promise<T> {
   const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const official = service === 'official-mockup';
   try {
     const headers = new Headers(init.headers);
     if (init.body && !(init.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
-    if (token) headers.set('Authorization', `Bearer ${token}`);
-    const response = await fetch(endpoint(path), {...init, credentials: 'omit', cache: 'no-store', redirect: 'error', signal: controller.signal, headers});
+    if (token && !official) headers.set('Authorization', `Bearer ${token}`);
+    const response = await fetch(endpoint(path, official ? officialMockupBase : BASE), {...init, credentials: 'omit', cache: 'no-store', redirect: 'error', signal: controller.signal, headers});
     let result: T;
     try {result = await response.json();} catch {throw new Error('El servicio no respondió correctamente. Tu pedido sigue aquí; verifica su estado antes de volver a enviarlo.');}
     if (!result || typeof result !== 'object' || Array.isArray(result)) throw new Error('El servicio devolvió una respuesta no válida.');
     if (!response.ok || result.ok === false || result.success === false) {
-      if (response.status === 401) {clearToken(); if(authEnabled)forgetAccount();}
+      if (!official && response.status === 401) {clearToken(); if(authEnabled)forgetAccount();}
       throw new Error(result.message || result.error || 'No pudimos completar esta acción. Vuelve a intentarlo.');
     }
     if (result.ok !== true && result.success !== true) throw new Error('El servicio no confirmó esta acción. Verifica su estado antes de repetirla.');
@@ -256,7 +258,12 @@ export async function aiImage(operation: 'generate' | 'magic_eraser' | 'finalize
   if (operation === 'finalize') form.set('assets_meta', JSON.stringify(meta));
   let fileBytes = 0; for (const value of form.values()) if (value instanceof Blob) fileBytes += value.size;
   if (fileBytes > AI_FILES_BUDGET) throw new Error('El conjunto de imágenes supera 4 MB. Usa menos logos o archivos más livianos.');
-  const result = await request<ResponseObject & {image: string; mime: string; provider: string}>(`${operation}.php`, {method: 'POST', body: form}, await session(), 200_000);
+  // Tony's standalone generator uses multipart uploads directly. Account and payment
+  // session credentials belong exclusively to the order service.
+  const result = await request<ResponseObject & {image: string; mime: string}>(
+    `${operation}.php`, {method: 'POST', body: form}, officialMockupBase ? undefined : await session(),
+    200_000, officialMockupBase ? 'official-mockup' : 'order',
+  );
   if (!['image/png', 'image/jpeg', 'image/webp'].includes(result.mime) || typeof result.image !== 'string' || !result.image.startsWith(`data:${result.mime};base64,`)) throw new Error('No recibimos una imagen válida. Conservamos el diseño anterior.');
   return checkedDataImage(result.image, 12_000_000);
 }

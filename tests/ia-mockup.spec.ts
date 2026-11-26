@@ -1,5 +1,5 @@
 import {expect, test, type Locator, type Page} from '@playwright/test';
-import {completePedido} from './pedido/pricing.fixtures';
+import {completePedido, DEMO_IMAGE} from './pedido/pricing.fixtures';
 import {mockPedidoApi, openSeededEditor, seedPedido} from './pedido/helpers';
 
 test.beforeEach(async ({page}) => {await page.emulateMedia({reducedMotion: 'reduce'}); await seedPedido(page, completePedido());});
@@ -63,6 +63,7 @@ test('con el ajuste apagado el logo entra tal cual y «Ajustar automáticamente�
 });
 
 test('el mockup con IA envía imágenes comprimidas y la configuración obligatoria, sin datos del comprador', async ({page}) => {
+  test.skip(process.env.TONY_MOCKUP_TEST === 'true', 'Este caso cubre el servicio de pedidos con sesión.');
   const bodies: Buffer[] = [];
   await mockPedidoApi(page);
   await page.route('**/pedido-api/generate.php', async route => {bodies.push(route.request().postDataBuffer() ?? Buffer.alloc(0)); await route.fallback();});
@@ -79,4 +80,44 @@ test('el mockup con IA envía imágenes comprimidas y la configuración obligato
     for (const rule of ['CONFIGURACIÓN OBLIGATORIA DEL PEDIDO', '- Molde: Estándar', '- Cuello: V (cuello en V).', '- Manga: Corta', '- Tela: Slim Fit.', '- Corte: Hombre.', 'catálogo Tony TONY-001', '"catalogCode":"TONY-001"']) expect(text).toContain(rule);
     for (const privateData of ['EQUIPO DE PRUEBA', 'JUGADOR 1']) expect(text).not.toContain(privateData);
   }
+});
+
+test.describe('generador oficial independiente', () => {
+  test.skip(process.env.TONY_MOCKUP_TEST !== 'true', 'Ejecutar con TONY_MOCKUP_TEST=true para probar sin API de pedidos.');
+
+  test('prepara las dos vistas sin iniciar sesión, compartir credenciales ni llamar a pagos', async ({page, context}) => {
+    const pedido = await mockPedidoApi(page);
+    const paths: string[] = [], sides: string[] = [];
+    await context.addCookies([{name: 'sesion_de_prueba', value: 'solo-prueba', domain: '127.0.0.1', path: '/mockup-prueba'}]);
+    await page.addInitScript(() => sessionStorage.setItem('tony:pedido:session:v279', 'a'.repeat(64)));
+    await page.route('http://127.0.0.1:8791/mockup-prueba/**', async route => {
+      const request = route.request();
+      paths.push(new URL(request.url()).pathname);
+      const headers = await request.allHeaders();
+      expect(headers).not.toHaveProperty('authorization');
+      expect(headers).not.toHaveProperty('cookie');
+      const bytes = request.postDataBuffer();
+      expect(request.method()).toBe('POST');
+      expect(bytes).toBeTruthy();
+      const form = await new Response(new Uint8Array(bytes!), {headers: {'Content-Type': headers['content-type']}}).formData();
+      sides.push(String(form.get('side')));
+      expect(form.get('image')).toBeInstanceOf(File);
+      expect(String(form.get('placementRules'))).toContain('Cuello: V');
+      expect(bytes!.toString('utf8')).not.toMatch(/EQUIPO DE PRUEBA|JUGADOR 1/);
+      await route.fulfill({json: {success: true, image: DEMO_IMAGE, mime: 'image/png'}});
+    });
+
+    await openSeededEditor(page);
+    await page.locator('.pedido-image-tools summary').click();
+    const generate = page.getByRole('button', {name: 'Generar mockup con IA', exact: true});
+    await expect(generate).toBeEnabled();
+    expect(paths).toEqual([]);
+    await generate.click();
+    await expect(page.getByRole('status').filter({hasText: 'Mockup listo.'})).toBeVisible();
+    expect(sides.sort()).toEqual(['back', 'front']);
+    expect(paths).toEqual(['/mockup-prueba/generate.php', '/mockup-prueba/generate.php']);
+    expect(pedido.calls).toEqual([]);
+    await page.goto('/cuenta');
+    await expect(page.getByText(/El acceso con correo estará disponible/)).toBeVisible();
+  });
 });
