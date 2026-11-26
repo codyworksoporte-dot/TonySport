@@ -107,6 +107,35 @@ main.home-c{padding-top:clamp(18px,2.6vw,34px)}
   .home-chip{--chip:76px;gap:8px;font-size:12.5px}
 }
 
+/* Disciplines in motion: the top row drifts right, the bottom row left. Each track holds four equal copies
+   of its row and moves by one copy (25 %), so the loop never shows a seam. Hover pauses it; keyboard focus
+   stops it with the real chips in place; reduced motion or paused effects show a still, swipeable row. */
+.home-chips-rows{display:grid;gap:18px}
+.home-marquee{--speed:48s;position:relative;overflow:hidden;margin-inline:-8px;padding:6px 0 4px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent);mask-image:linear-gradient(90deg,transparent,#000 5%,#000 95%,transparent)}
+.home-marquee::-webkit-scrollbar{display:none}
+.home-marquee-track{display:flex;width:max-content;margin:0;padding:0;list-style:none;animation:home-marquee-left var(--speed) linear infinite;will-change:transform}
+.home-marquee[data-dir=right] .home-marquee-track{animation-name:home-marquee-right}
+.home-marquee-track>li{display:flex;flex:none;justify-content:center;width:172px}
+.home-marquee-track .home-chip{max-width:none}
+@keyframes home-marquee-left{from{transform:translateX(0)}to{transform:translateX(-25%)}}
+@keyframes home-marquee-right{from{transform:translateX(-25%)}to{transform:translateX(0)}}
+@media(hover:hover) and (pointer:fine){.home-marquee:hover .home-marquee-track{animation-play-state:paused}}
+.home-marquee:has(:focus-visible){overflow-x:auto;scrollbar-width:none;-webkit-mask-image:none;mask-image:none}
+.home-marquee:has(:focus-visible) .home-marquee-track{animation:none;transform:none}
+@media(max-width:899px){
+  .home-chips-rows{gap:12px}
+  .home-marquee{--speed:34s;margin-inline:-16px}
+  .home-marquee-track>li{width:96px}
+}
+@media(prefers-reduced-motion:reduce){
+  .home-marquee{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:none;mask-image:none}
+  .home-marquee-track{animation:none;transform:none}
+  .home-marquee-track>[data-copy]{display:none}
+}
+html[data-tony-effects=off] .home-marquee{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:none;mask-image:none}
+html[data-tony-effects=off] .home-marquee-track{animation:none;transform:none}
+html[data-tony-effects=off] .home-marquee-track>[data-copy]{display:none}
+
 /* Designs and implementos: just a picture and a name. */
 .tc-cards.home-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
 .home-grid>li{display:flex;min-width:0}

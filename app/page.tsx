@@ -45,6 +45,8 @@ const FAMILY_FRAME: Record<string, {pos: string; zoom: number}> = {
   mallas: {pos: '46% 57.5%', zoom: 1.77},
 };
 const frame = (spec?: {pos: string; zoom?: number}) => spec ? {objectPosition: spec.pos, transformOrigin: spec.pos, scale: String(spec.zoom ?? 1)} as CSSProperties : undefined;
+/** The real row (0) plus three decorative copies; home.css shifts each track by exactly one copy (25 %). */
+const MARQUEE_COPIES = [0, 1, 2, 3];
 
 type TileProps = {
   href: string; title: string; note?: ReactNode; image: Asset; size: [number, number]; position: string;
@@ -119,23 +121,33 @@ export default function Home() {
 
         <section className="tc-sec home-sec" aria-labelledby="home-disciplinas">
           <SectionHead id="home-disciplinas" title={DISCIPLINES_TITLE} href="/producto" more="Ver todas" what="las disciplinas"/>
-          <ul className="home-chips" role="list">
-            {DISCIPLINES.map(line => {
-              const portrait = line.image.includes('/sections/');
-              return <li key={line.id}>
-                <Link className="home-chip" href={disciplineHref(line.id)}>
-                  <span className="home-chip-ring"><span className="home-chip-photo"><img src={siteAsset(line.image)} alt="" width={portrait ? 960 : 440} height={portrait ? 1200 : 440} loading="lazy" decoding="async" style={portrait ? {objectPosition: '50% 18%'} : frame(CHIP_FRAME[line.id])}/></span></span>
-                  <span className="home-chip-name">{line.name}</span>
-                </Link>
-              </li>;
+          {/* Two rows in motion: the top one drifts right, the bottom one left. Each track repeats its row
+              (copies are aria-hidden and out of the tab order) and shifts by exactly one copy, so the loop is seamless. */}
+          <div className="home-chips-rows">
+            {[DISCIPLINES.slice(0, 7), DISCIPLINES.slice(7)].map((row, rowIndex) => {
+              const chips = [...row.map(line => ({key: line.id, line})), ...(rowIndex === 1 ? [{key: 'all', line: null}] : [])];
+              return <div key={rowIndex} className="home-marquee" data-dir={rowIndex === 0 ? 'right' : 'left'}>
+                <ul className="home-marquee-track" role="list">
+                  {MARQUEE_COPIES.flatMap(copy => chips.map(({key, line}) => {
+                    const copyProps = copy ? {tabIndex: -1} : {};
+                    if (!line) return <li key={`${copy}-${key}`} aria-hidden={copy ? true : undefined} data-copy={copy || undefined}>
+                      <Link className="home-chip home-chip--all" href="/producto" {...copyProps}>
+                        <span className="home-chip-ring"><span className="home-chip-photo home-chip-all"><Icon name="grid" size={30}/></span></span>
+                        <span className="home-chip-name">Ver todas<span className="tc-sr"> las disciplinas</span></span>
+                      </Link>
+                    </li>;
+                    const portrait = line.image.includes('/sections/');
+                    return <li key={`${copy}-${key}`} aria-hidden={copy ? true : undefined} data-copy={copy || undefined}>
+                      <Link className="home-chip" href={disciplineHref(line.id)} {...copyProps}>
+                        <span className="home-chip-ring"><span className="home-chip-photo"><img src={siteAsset(line.image)} alt="" width={portrait ? 960 : 440} height={portrait ? 1200 : 440} loading="lazy" decoding="async" style={portrait ? {objectPosition: '50% 18%'} : frame(CHIP_FRAME[line.id])}/></span></span>
+                        <span className="home-chip-name">{line.name}</span>
+                      </Link>
+                    </li>;
+                  }))}
+                </ul>
+              </div>;
             })}
-            <li>
-              <Link className="home-chip home-chip--all" href="/producto">
-                <span className="home-chip-ring"><span className="home-chip-photo home-chip-all"><Icon name="grid" size={30}/></span></span>
-                <span className="home-chip-name">Ver todas<span className="tc-sr"> las disciplinas</span></span>
-              </Link>
-            </li>
-          </ul>
+          </div>
         </section>
 
         <section className="tc-sec home-sec" aria-labelledby="home-disenos">
