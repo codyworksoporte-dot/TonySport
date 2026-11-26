@@ -1,6 +1,7 @@
 import {test,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import stores from '../data/tony-stores.json';
+import catalog from '../data/pedido/catalog.json';
 
 // La entrada animada se prueba por separado (intro.spec.ts); aquí se revisa el contenido estable.
 // La burbuja de bienvenida del asistente (solo en la primera visita) se da por vista para que no tape lo que se toca.
@@ -109,17 +110,23 @@ test('la portada pregunta «¿Qué necesitas hoy?» y responde con botones gigan
   for(const [id,name] of DISCIPLINES)await expect(disciplines.getByRole('link',{name,exact:true})).toHaveAttribute('href',`/producto#categoria-${id}`);
   expect(await disciplines.getByRole('link',{name:'Ver todas las disciplinas',exact:true}).evaluateAll(links=>links.map(link=>link.getAttribute('href')))).toEqual(['/producto','/producto']);
 
-  // Ocho diseños reales que abren el pedido con ese diseño elegido.
-  const designs=main.getByRole('region',{name:'Diseños para tu equipo'}).getByRole('listitem').getByRole('link');
-  await expect(designs).toHaveCount(8);
-  const picked=await designs.evaluateAll(links=>links.map(link=>({href:link.getAttribute('href'),name:link.textContent?.trim()??'',image:link.querySelector('img')?.getAttribute('src')??''})));
-  for(const design of picked){
-    const code=/^Personalizar el diseño (TONY-(\d{3}))$/.exec(design.name);
+  // Siete diseños reales que abren el pedido con ese diseño elegido: cuatro de fútbol y luego uno de voleibol, uno de
+  // baloncesto y uno empresarial. La octava tarjeta completa la rejilla y lleva al catálogo completo.
+  const designCards=main.getByRole('region',{name:'Diseños para tu equipo'}).getByRole('listitem').getByRole('link');
+  await expect(designCards).toHaveCount(8);
+  const picked=await designCards.evaluateAll(links=>links.map(link=>({href:link.getAttribute('href'),name:link.textContent?.replace(/\s+/g,' ').trim()??'',image:link.querySelector('img')?.getAttribute('src')??''})));
+  const lines=picked.slice(0,7).map(design=>{
+    const code=/^Personalizar el diseño (TONY-(\d{3})) (Fútbol|Voleibol|Baloncesto|Empresarial)$/.exec(design.name);
     expect(code,design.name).not.toBeNull();
     expect(design.href).toBe(`/configurador?diseno=${code![1]}`);
     expect(design.image).toContain(`tony-${code![2]}`);
-  }
-  expect(new Set(picked.map(design=>design.href)).size).toBe(8);
+    expect(catalog.designs.find(item=>item.code===code![1])?.category).toBe(code![3]);
+    return code![3];
+  });
+  expect(lines).toEqual(['Fútbol','Fútbol','Fútbol','Fútbol','Voleibol','Baloncesto','Empresarial']);
+  expect(new Set(picked.slice(0,7).map(design=>design.href)).size).toBe(7);
+  expect(picked[7].href).toBe('/configurador');
+  expect(picked[7].name).toBe(`Ver los ${catalog.designs.length} diseños 4 líneas: Fútbol, Voleibol, Baloncesto, Empresarial`);
 
   // Las ocho familias de implementos, cada una en su sección de /implementos.
   const implementsRegion=main.getByRole('region',{name:'Implementos deportivos'});

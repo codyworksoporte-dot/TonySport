@@ -1,12 +1,17 @@
 import {preload} from 'react-dom';
+import guides from '@/data/pedido/guides.json';
 import thumbnails from '@/data/pedido/option-thumbnails.json';
 import {siteAsset} from '@/lib/asset-path';
 
-const guideFile = (id: string) => siteAsset(`/assets/pedido/guides/${id}.webp`);
+const asset = (path: string) => siteAsset(path as `/assets/${string}`);
+const guideFile = (id: string) => asset(`/assets/pedido/guides/${id}.webp`);
 const sheet = guideFile('options-96');
 const sheetSources = `${sheet} 1x, ${guideFile('options-192')} 2x`;
 const productSizes = '(max-width: 480px) calc(100vw - 64px), (max-width: 700px) calc(50vw - 54px), (max-width: 1100px) 46vw, 360px';
 const welcomeSizes = '(max-width: 800px) calc(100vw - 40px), (max-width: 1350px) 46vw, 600px';
+/** Single photos (1x, 2x) for options outside the sheet: Tony sleeve models and the brand choice. */
+const photos = guides.optionPhotos as Record<string, string[] | undefined>;
+const photoSources = (files: string[]) => files.map((file, index) => `${asset(file)} ${index + 1}x`).join(', ');
 
 type Banner = 'welcome' | 'uniform' | 'shirt';
 function bannerSources(id: Banner) {
@@ -23,6 +28,7 @@ export function OrderImageHints() {
       as: 'image', imageSrcSet: bannerSources(product), imageSizes: productSizes, fetchPriority: 'low',
     });
   }
+  for (const files of Object.values(photos)) if (files) preload(asset(files[0]), {as: 'image', imageSrcSet: photoSources(files), fetchPriority: 'low'});
   return null;
 }
 
@@ -36,6 +42,10 @@ export function OrderBanner({id}: {id: Banner}) {
 }
 
 export function OptionThumbnail({id}: {id: string}) {
+  const files = photos[id];
+  if (files) return <span className="pedido-choice-img" aria-hidden="true">
+    <img className="pedido-choice-photo" src={asset(files[0])} srcSet={photoSources(files)} alt="" width={96} height={96} decoding="async"/>
+  </span>;
   const index = thumbnails.ids.indexOf(id);
   if (index < 0) return null;
   const column = index % thumbnails.columns, row = Math.floor(index / thumbnails.columns);
@@ -47,9 +57,11 @@ export function OptionThumbnail({id}: {id: string}) {
   </span>;
 }
 
-export function GuidePhoto({item, first}: {item: {id: string; title: string; width: number; height: number}; first: boolean}) {
-  const thumb = guideFile(item.id + '-thumb');
-  return <img src={thumb} srcSet={`${thumb} 360w, ${guideFile(item.id + '-640')} 640w, ${guideFile(item.id)} ${item.width}w`}
+export function GuidePhoto({item, first}: {item: {id: string; title: string; image: string; width: number; height: number}; first: boolean}) {
+  // Smaller copies sit beside the full image: <name>-thumb.webp (360w) and, for large guides, <name>-640.webp.
+  const base = item.image.replace(/\.webp$/, ''), thumb = asset(`${base}-thumb.webp`);
+  const sources = [`${thumb} 360w`, ...(item.width > 640 ? [`${asset(`${base}-640.webp`)} 640w`] : []), `${asset(item.image)} ${item.width}w`];
+  return <img src={thumb} srcSet={sources.join(', ')}
     sizes="(max-width: 480px) calc(100vw - 74px), (max-width: 792px) calc(50vw - 53px), 342px"
     alt={item.title} width={item.width} height={item.height}
     loading={first ? 'eager' : 'lazy'} decoding="async"/>;

@@ -3,15 +3,41 @@ import AxeBuilder from '@axe-core/playwright';
 import fs from 'node:fs';
 import {completePedido} from './pedido/pricing.fixtures';
 import {expectNoOverflow,mockPedidoApi,openSeededEditor,pngFixture,seedPedido} from './pedido/helpers';
+import catalog from '../data/pedido/catalog.json';
 
 test.beforeEach(async({page})=>{await page.emulateMedia({reducedMotion:'reduce'});await seedPedido(page,completePedido());});
 
-test('los 70 diseños oficiales tienen búsqueda, vista completa y frontal/dorsal propios',async({page})=>{
+const LINES=['Fútbol','Voleibol','Baloncesto','Empresarial'];
+const inLine=(line:string)=>catalog.designs.filter(design=>design.category===line).length;
+
+test('el catálogo va por líneas: dos filas de cada una, "Ver más", filtros y búsqueda en todo el catálogo',async({page})=>{
+  test.setTimeout(90_000);
   await mockPedidoApi(page);await openSeededEditor(page);
-  await page.getByRole('button',{name:/Explorar 70 diseños/}).click();
-  await expect(page.getByRole('button',{name:/^Ver TONY-/})).toHaveCount(70);
+  await page.getByRole('button',{name:/Explorar \d+ diseños/}).click();
+  const picker=page.getByRole('region',{name:'Catálogo oficial Tony'});
+  await expect(picker.getByText(`${catalog.designs.length} diseños oficiales`,{exact:true})).toBeVisible();
+  await expect(picker.locator('.pedido-catalog-line h4')).toHaveText(LINES);
+  // Two rows of every line first; "Ver más" opens the rest of that line and focuses the first new design.
+  const columns=await picker.locator('.pedido-catalog-grid').first().evaluate(grid=>getComputedStyle(grid).gridTemplateColumns.split(' ').length);
+  for(const line of LINES)await expect(picker.locator('.pedido-catalog-line',{has:page.getByRole('heading',{name:line,exact:true})}).getByRole('button',{name:/^Ver TONY-/})).toHaveCount(Math.min(columns*2,inLine(line)));
+  const football=picker.locator('.pedido-catalog-line',{has:page.getByRole('heading',{name:'Fútbol',exact:true})});
+  await football.getByRole('button',{name:/^Ver más Fútbol/}).click();
+  await expect(football.getByRole('button',{name:/^Ver TONY-/})).toHaveCount(inLine('Fútbol'));
+  await expect(football.getByRole('button',{name:/^Ver TONY-/}).nth(columns*2)).toBeFocused();
+  await football.getByRole('button',{name:'Ver menos Fútbol',exact:true}).click();
+  await expect(football.getByRole('button',{name:/^Ver TONY-/})).toHaveCount(columns*2);
+  // A line chip shows that whole line.
+  const chips=picker.getByRole('group',{name:'Filtrar por línea'});
+  await chips.getByRole('button',{name:/^Baloncesto/}).click();
+  await expect(chips.getByRole('button',{name:/^Baloncesto/})).toHaveAttribute('aria-pressed','true');
+  await expect(picker.locator('.pedido-catalog-line h4')).toHaveText(['Baloncesto']);
+  await expect(picker.getByRole('button',{name:/^Ver TONY-/})).toHaveCount(inLine('Baloncesto'));
+  // A new search covers the whole catalogue again.
+  await page.getByRole('searchbox',{name:'Buscar por código o nombre'}).fill('polo');
+  await expect(chips.getByRole('button',{name:/^Todas/})).toHaveAttribute('aria-pressed','true');
+  await expect(picker.getByRole('button',{name:/^Ver TONY-/})).toHaveCount(inLine('Empresarial'));
   await page.getByRole('searchbox',{name:'Buscar por código o nombre'}).fill('TONY-070');
-  await expect(page.getByRole('button',{name:/^Ver TONY-/})).toHaveCount(1);
+  await expect(picker.getByRole('button',{name:/^Ver TONY-/})).toHaveCount(1);
   await page.getByRole('button',{name:'Ver TONY-070',exact:true}).click();
   const dialog=page.getByRole('dialog',{name:'Vista completa TONY-070'});
   await expect(dialog).toBeVisible();await dialog.getByRole('button',{name:/Usar TONY-070/}).click();
@@ -46,9 +72,29 @@ test('el escudo se coloca solo en el pecho; se agranda, vuelve a su lugar y se c
   await expect(page.getByText('Borrador guardado en este navegador.',{exact:true})).toBeVisible();
 });
 
+for(const [code,line,frontOnly] of [['TONY-071','Voleibol',false],['TONY-090','Baloncesto',true],['TONY-102','Empresarial',true]] as const)test(`${code} (${line}) se carga en el editor con su frontal y su dorsal`,async({page})=>{
+  await mockPedidoApi(page);await openSeededEditor(page);
+  await page.getByRole('button',{name:/Explorar \d+ diseños/}).click();
+  const picker=page.getByRole('region',{name:'Catálogo oficial Tony'});
+  await picker.getByRole('group',{name:'Filtrar por línea'}).getByRole('button',{name:new RegExp(`^${line}`)}).click();
+  await picker.getByRole('button',{name:`Ver ${code}`,exact:true}).click();
+  const dialog=page.getByRole('dialog',{name:`Vista completa ${code}`});
+  await expect(dialog.getByRole('img')).toHaveAttribute('src',new RegExp(`${code.toLowerCase()}\\.webp$`));
+  // Sheets that only show the front say so: the AI generator draws the real back.
+  if(frontOnly)await expect(dialog.getByText(/muestra el frente/)).toBeVisible();else await expect(dialog.getByText(/frontal y el dorsal/)).toBeVisible();
+  await dialog.getByRole('button',{name:new RegExp(`Usar ${code}`)}).click();
+  const front=page.getByRole('img',{name:`Base frontal ${code}`});await expect(front).toHaveAttribute('src',new RegExp(`${code.toLowerCase()}-front\\.webp$`));
+  await expect.poll(()=>front.evaluate(img=>(img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await page.getByRole('button',{name:/^Dorsal/}).click();
+  const back=page.getByRole('img',{name:`Base dorsal ${code}`});await expect(back).toHaveAttribute('src',new RegExp(`${code.toLowerCase()}-back\\.webp$`));
+  await expect.poll(()=>back.evaluate(img=>(img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+});
+
 test('al elegir un diseño del catálogo el nombre y el número grande quedan atrás solos',async({page})=>{
   await mockPedidoApi(page);await openSeededEditor(page);
-  await page.getByRole('button',{name:/Explorar 70 diseños/}).click();
+  await page.getByRole('button',{name:/Explorar \d+ diseños/}).click();
+  // TONY-012 may sit past the first two rows of Fútbol: the search reaches the whole catalogue.
+  await page.getByRole('searchbox',{name:'Buscar por código o nombre'}).fill('TONY-012');
   await page.getByRole('button',{name:'Ver TONY-012',exact:true}).click();
   await page.getByRole('dialog',{name:'Vista completa TONY-012'}).getByRole('button',{name:/Usar TONY-012/}).click();
   await page.getByRole('button',{name:/^Dorsal/}).click();

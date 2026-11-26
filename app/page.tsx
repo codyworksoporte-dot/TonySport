@@ -9,6 +9,7 @@ import {IMPLEMENT_FAMILIES, IMPLEMENTS_PAGE} from '@/lib/implements';
 import {CURRENT_PROMOTIONS, PROMOTIONS_PAGE} from '@/lib/promotions';
 import {HELP_WHATSAPP, ORDER_LOOKUP_URL, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
 import stores from '@/data/tony-stores.json';
+import catalog from '@/data/pedido/catalog.json';
 import '@/components/home/home.css';
 
 // "Botones gigantes": the home is a greeting, one big search and picture buttons. No reading required.
@@ -16,8 +17,21 @@ type Asset = `/assets/${string}`;
 const rise = (i: number) => ({'--i': i}) as CSSProperties;
 const NEW_TAB = ' (se abre en otra pestaña)';
 
-// Real TONY designs from the order catalog (data/pedido/catalog.json); each one opens the order flow with it.
-const DESIGNS = ['063', '052', '040', '031', '001', '017', '023', '010'];
+// Real TONY designs from the order catalog (data/pedido/catalog.json), each one opens the order flow with it:
+// four football, then one volleyball, one basketball and one business polo. The eighth tile fills the grid's
+// second row (fourth on phones) and leads to the whole catalogue, one design of each line as its picture.
+const designOf = (code: string) => {
+  const design = catalog.designs.find(item => item.code === code);
+  if (!design) throw new Error(`El catálogo no tiene ${code}.`);
+  return design;
+};
+const DESIGNS = ['TONY-063', 'TONY-052', 'TONY-040', 'TONY-031', 'TONY-077', 'TONY-088', 'TONY-095'].map(designOf);
+const LINE_COVERS = ['TONY-012', 'TONY-071', 'TONY-084', 'TONY-100'].map(designOf);
+const LINE_NAMES = [...new Set(catalog.designs.map(design => design.category))];
+const LINE_COLOR: Record<string, string> = {Fútbol: '#b4ff35', Voleibol: '#62c9ff', Baloncesto: '#ff9442', Empresarial: '#f2cd5c'};
+const lineLabel = (line?: string): CSSProperties => ({display: 'block', marginTop: 6, font: '700 11px/1.2 var(--font-body), sans-serif', letterSpacing: '.12em', color: (line && LINE_COLOR[line]) || 'var(--tc-mute)'});
+const MOSAIC: CSSProperties = {display: 'grid', gridTemplateColumns: '1fr 1fr', gridTemplateRows: '1fr 1fr', gap: 2};
+const catalogAsset = (path: string) => siteAsset(path as Asset);
 
 // Fine framing for product flyers: the zoom keeps the garment or product in view and leaves out the flyer's
 // printed titles and prices (pos is both object-position and the zoom origin).
@@ -127,12 +141,18 @@ export default function Home() {
         <section className="tc-sec home-sec" aria-labelledby="home-disenos">
           <SectionHead id="home-disenos" title="Diseños para tu equipo" href="/configurador" more="Ver todo" what="en diseños"/>
           <ul className="tc-cards home-grid" role="list">
-            {DESIGNS.map(id => <li key={id}>
-              <Link className="tc-card" href={`/configurador?diseno=TONY-${id}`}>
-                <span className="tc-card-media"><img src={siteAsset(`/assets/pedido/catalog/tony-${id}.webp`)} srcSet={`${siteAsset(`/assets/pedido/catalog/tony-${id}-thumb.webp`)} 220w, ${siteAsset(`/assets/pedido/catalog/tony-${id}.webp`)} 1200w`} sizes="(max-width: 599px) 46vw, (max-width: 1399px) 24vw, 320px" alt="" width={1200} height={1200} loading="lazy" decoding="async"/></span>
-                <span className="tc-card-name"><span><span className="tc-sr">Personalizar el diseño </span>TONY-{id}</span><span className="home-plus"><Icon name="plus"/></span></span>
+            {DESIGNS.map(design => <li key={design.code}>
+              <Link className="tc-card" href={`/configurador?diseno=${design.code}`}>
+                <span className="tc-card-media"><img src={catalogAsset(design.image)} srcSet={`${catalogAsset(design.thumbnail)} 220w, ${catalogAsset(design.image)} ${design.width}w`} sizes="(max-width: 599px) 46vw, (max-width: 1399px) 24vw, 320px" alt="" width={design.width} height={design.height} loading="lazy" decoding="async"/></span>
+                <span className="tc-card-name"><span><span className="tc-sr">Personalizar el diseño </span>{design.code} <small style={lineLabel(design.category)}>{design.category}</small></span><span className="home-plus"><Icon name="plus"/></span></span>
               </Link>
             </li>)}
+            <li>
+              <Link className="tc-card" href="/configurador">
+                <span className="tc-card-media" style={MOSAIC}>{LINE_COVERS.map(design => <span key={design.code} style={{overflow: 'hidden'}}><img src={catalogAsset(design.thumbnail)} alt="" width={220} height={220} loading="lazy" decoding="async"/></span>)}</span>
+                <span className="tc-card-name"><span>Ver los {catalog.designs.length} diseños <small style={lineLabel()}>{LINE_NAMES.length} líneas<span className="tc-sr">: {LINE_NAMES.join(', ')}</span></small></span><span className="home-plus"><Icon name="grid"/></span></span>
+              </Link>
+            </li>
           </ul>
         </section>
 

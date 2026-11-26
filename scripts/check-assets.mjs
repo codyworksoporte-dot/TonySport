@@ -23,6 +23,19 @@ for (const guide of guides.guides) {
 }
 
 const errors = [];
+// The order validators (TypeScript and PHP) accept TONY-catalogMin…catalogMax from prices.json, and
+// /configurador?diseno= builds the front/back paths from the code: both must match catalog.json.
+const catalog = JSON.parse(await readFile('data/pedido/catalog.json', 'utf8'));
+const { catalogMin, catalogMax } = JSON.parse(await readFile('data/pedido/prices.json', 'utf8')).design;
+const numbers = catalog.designs.map(design => /^TONY-\d{3}$/.test(design.code) ? Number(design.code.slice(5)) : Number.NaN);
+if (numbers.some(Number.isNaN) || new Set(numbers).size !== numbers.length || numbers.length !== catalogMax - catalogMin + 1 || numbers.some(number => number < catalogMin || number > catalogMax)) {
+  errors.push(`Los códigos del catálogo deben ser únicos y cubrir TONY-${String(catalogMin).padStart(3, '0')}…TONY-${String(catalogMax).padStart(3, '0')} (design.catalogMin/catalogMax en prices.json).`);
+}
+for (const design of catalog.designs) {
+  const base = `/assets/pedido/catalog/${String(design.code).toLowerCase()}`;
+  if (design.image !== `${base}.webp` || design.thumbnail !== `${base}-thumb.webp` || design.front !== `${base}-front.webp` || design.back !== `${base}-back.webp`) errors.push(`Rutas inesperadas en ${design.code}: usa ${base}.webp, -thumb, -front y -back.`);
+  if (!design.name || !design.category) errors.push(`Falta el nombre o la línea de ${design.code}.`);
+}
 const sheet = JSON.parse(await readFile('data/pedido/option-thumbnails.json', 'utf8'));
 const options = guides.guides.filter(guide => /^(mold|fabric|collar|sleeve|brand|crest)-/.test(guide.id));
 if (sheet.ids.length !== options.length || options.some(guide => !sheet.ids.includes(guide.id))

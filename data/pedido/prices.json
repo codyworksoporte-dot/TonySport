@@ -13,7 +13,7 @@
   "sizes": ["2", "4", "6", "8", "10", "12", "14", "16", "XS", "S", "M", "L", "XL", "2XL", "3XL", "4XL"],
   "sizeExtras": {"2XL": 200, "3XL": 300, "4XL": 400},
   "socks": {"colors": ["Negro", "Blanco", "Azul negro", "Rojo", "Azul bandera"], "pairCents": 125},
-  "design": {"creationCents": 500, "crestCents": 500, "brandCents": 300, "sponsorCents": 500, "threeDPerTypePerFieldPlayerCents": 175, "catalogMin": 1, "catalogMax": 70},
+  "design": {"creationCents": 500, "crestCents": 500, "brandCents": 300, "sponsorCents": 500, "threeDPerTypePerFieldPlayerCents": 175, "catalogMin": 1, "catalogMax": 106},
   "keeper": {"freeUniformFieldQuantity": 12},
   "tonyUniformDiscountCents": 50,
   "delivery": {"pickup": 0, "home": 600},

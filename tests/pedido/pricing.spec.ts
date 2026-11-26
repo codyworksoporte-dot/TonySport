@@ -3,6 +3,10 @@ import {calculatePedido, estimatePedido, isCatalogCode, money, PedidoValidationE
 import {createPedido, readPedido, resizePlayers, validateBuyer, validateDelivery, validateStep} from '../../lib/pedido/order';
 import type {Buyer, Delivery, PedidoDraft} from '../../lib/pedido/types';
 import {completePedido, complexPedido, DEMO_IMAGE, layer} from './pricing.fixtures';
+import catalog from '../../data/pedido/catalog.json';
+
+// First number after the last catalogue design (TONY-106 today): never a valid code.
+const PAST_CATALOG = `TONY-${String(catalog.designs.length + 1).padStart(3, '0')}`;
 
 test('6 uniformes catálogo: 6 × $12.99 = $77.94; 50% = $38.97', () => {
   const price = calculatePedido(completePedido());
@@ -107,7 +111,7 @@ test('opciones desconocidas, tallas alteradas y cantidades inválidas se rechaza
     (o: PedidoDraft) => {o.socks.Negro = .5;},
     (o: PedidoDraft) => {o.quantity = 100;},
     (o: PedidoDraft) => {o.quantity = 5;},
-    (o: PedidoDraft) => {o.design.catalogCode = 'TONY-071';},
+    (o: PedidoDraft) => {o.design.catalogCode = PAST_CATALOG;},
   ]) {const order = completePedido(); mutate(order); expect(() => calculatePedido(order)).toThrow(PedidoValidationError); expect(readPedido(order)).toBeNull();}
   expect(() => calculatePedido(completePedido(), 'free' as 'home')).toThrow(PedidoValidationError);
 });
@@ -144,7 +148,13 @@ test('pago y firma: datos completos, comprobante obligatorio o Wompi verificado'
 
 test('catálogo y dinero no admiten códigos inexistentes ni cantidades fraccionarias', () => {
   expect(isCatalogCode('TONY-001')).toBe(true); expect(isCatalogCode('TONY-070')).toBe(true);
-  expect(isCatalogCode('TONY-000')).toBe(false); expect(isCatalogCode('TONY-071')).toBe(false); expect(isCatalogCode('TONY-1')).toBe(false);
+  // Every line counts: fútbol, voleibol, baloncesto and empresarial share one sequence of codes.
+  for (const design of catalog.designs) expect(isCatalogCode(design.code), design.code).toBe(true);
+  expect(new Set(catalog.designs.map(design => design.category))).toEqual(new Set(['Fútbol', 'Voleibol', 'Baloncesto', 'Empresarial']));
+  expect(isCatalogCode('TONY-000')).toBe(false); expect(isCatalogCode(PAST_CATALOG)).toBe(false); expect(isCatalogCode('TONY-1')).toBe(false);
+  // A catalogue design from a new line is a complete, price-free design like the football ones.
+  const order = completePedido(); order.design.catalogCode = 'TONY-090';
+  expect(readPedido(order)).not.toBeNull(); expect(calculatePedido(order).creationDesignCents).toBe(0); expect(validateStep(order, 'design')).toEqual({});
   expect(money(20343)).toBe('$203.43'); expect(() => money(10.5)).toThrow();
 });
 

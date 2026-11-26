@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "fluid": true,
+  "functions": {
+    "api/generate.js": { "maxDuration": 300 },
+    "api/magic_eraser.js": { "maxDuration": 300 },
+    "api/finalize.js": { "maxDuration": 300 },
+    "api/session.js": { "maxDuration": 10 },
+    "api/no-disponible.js": { "maxDuration": 10 },
+    "api/estado.js": { "maxDuration": 10 }
+  },
+  "rewrites": [
+    { "source": "/session.php", "destination": "/api/session" },
+    { "source": "/generate.php", "destination": "/api/generate" },
+    { "source": "/magic_eraser.php", "destination": "/api/magic_eraser" },
+    { "source": "/finalize.php", "destination": "/api/finalize" },
+    { "source": "/quote.php", "destination": "/api/no-disponible" },
+    { "source": "/tony-submit-order.php", "destination": "/api/no-disponible" },
+    { "source": "/wompi-crear-pago.php", "destination": "/api/no-disponible" },
+    { "source": "/wompi-verificar.php", "destination": "/api/no-disponible" },
+    { "source": "/wompi-retorno.php", "destination": "/api/no-disponible" },
+    { "source": "/wompi-webhook.php", "destination": "/api/no-disponible" },
+    { "source": "/order.php", "destination": "/api/no-disponible" },
+    { "source": "/mock-confirm.php", "destination": "/api/no-disponible" },
+    { "source": "/auth.php", "destination": "/api/no-disponible" },
+    { "source": "/", "destination": "/api/estado" }
+  ]
+}

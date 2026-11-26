@@ -24,6 +24,8 @@ export class PedidoValidationError extends Error {
 const owns = (object: object, key: string) => Object.prototype.hasOwnProperty.call(object, key);
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);
 const count = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+/** TONY-001… across every catalogue line; the range lives in prices.json (shared with the PHP API) and
+ * scripts/check-assets.mjs keeps it equal to the codes in data/pedido/catalog.json. */
 export function isCatalogCode(value: unknown): value is string {
   if (typeof value !== 'string' || !/^TONY-\d{3}$/.test(value)) return false;
   const number = Number(value.slice(5));

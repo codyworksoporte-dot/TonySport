@@ -1,6 +1,7 @@
 import {expect,test,type Page} from '@playwright/test';
 import fs from 'node:fs';
 import {completePedido} from './pedido/pricing.fixtures';
+import catalog from '../data/pedido/catalog.json';
 import {continuePedido,expectNoOverflow,mockPedidoApi,openSeededDelivery,openSeededEditor,openSeededRoster,pngFixture,seedPedido,signPedido,TEST_PAYMENT_URL,TEST_REFERENCE} from './pedido/helpers';
 
 test.beforeEach(async({page})=>{await page.emulateMedia({reducedMotion:'reduce'});});
@@ -122,10 +123,10 @@ test('la política de privacidad explica los datos del pedido y se enlaza desde 
   await expect(page).toHaveURL(/\/privacidad\/?$/);
 });
 
-test('el catálogo muestra los 70 diseños oficiales y lleva el elegido al pedido',async({page})=>{
+test('el catálogo muestra todos los diseños oficiales y lleva el elegido al pedido',async({page})=>{
   await mockPedidoApi(page);await page.goto('/catalogo');
   await expect(page.getByText('PRÓXIMAMENTE')).toHaveCount(0);
-  const cards=page.locator('.catalog-gallery-grid li');await expect(cards).toHaveCount(70);
+  const cards=page.locator('.catalog-gallery-grid li');await expect(cards).toHaveCount(catalog.designs.length);
   const broken=await page.locator('.catalog-gallery-grid img').evaluateAll(images=>Promise.all(images.slice(0,8).map(image=>(image as HTMLImageElement).decode().then(()=>0,()=>1))));
   expect(broken.reduce((a,b)=>a+b,0)).toBe(0);
   await page.getByLabel('Buscar por número').fill('012');await expect(cards).toHaveCount(1);
@@ -136,6 +137,14 @@ test('el catálogo muestra los 70 diseños oficiales y lleva el elegido al pedid
   await expect(page.getByText('Elegiste TONY-012 del catálogo Tony.')).toBeVisible();
   await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
   await expect(page.locator('.pedido-aside .pedido-mini-specs')).toContainText('TONY-012');
+});
+
+// The home cards link the new lines the same way: /configurador?diseno=<code>.
+for(const code of ['TONY-077','TONY-088','TONY-095'])test(`?diseno=${code} llega al pedido con ese diseño`,async({page})=>{
+  await mockPedidoApi(page);await page.goto(`/configurador?diseno=${code}`);
+  await expect(page.getByText(`Elegiste ${code} del catálogo Tony.`)).toBeVisible();
+  await page.getByRole('button',{name:/CREAR MI PEDIDO/}).click();
+  await expect(page.locator('.pedido-aside .pedido-mini-specs')).toContainText(code);
 });
 
 test('reducir jugadores requiere confirmación y mantiene los datos de las filas restantes',async({page})=>{

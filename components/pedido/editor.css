@@ -26,6 +26,26 @@
 .pedido-size-row>button{width:48px;height:44px;border:1px solid #4d6d45;border-radius:10px;background:#10231a;color:#c4ed80;font-size:22px;font-weight:700}
 @media(max-width:480px){.pedido-piece-actions{grid-template-columns:1fr}}
 
+/* Smart fit of uploaded logos: a switch under the upload buttons and a button per image. */
+.pedido-autofit-toggle{display:flex;align-items:flex-start;gap:12px;margin:-6px 0 18px;padding:12px 14px;border:1px solid #b4ff3533;border-radius:10px;background:#0e1c12;cursor:pointer;min-width:0}
+.pedido-autofit-toggle input{appearance:none;-webkit-appearance:none;flex:none;width:40px;height:24px;margin:2px 0 0;border-radius:999px;background:#2a3a2c;border:1px solid #5b7a52;position:relative;cursor:pointer;transition:background-color .15s}
+.pedido-autofit-toggle input::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#d9e3cf;transition:transform .15s}
+.pedido-autofit-toggle input:checked{background:var(--venom);border-color:var(--venom)}
+.pedido-autofit-toggle input:checked::after{transform:translateX(16px);background:#10170a}
+.pedido-autofit-toggle input:focus-visible{outline:2px solid var(--venom);outline-offset:3px}
+.pedido-autofit-toggle input:disabled{opacity:.5;cursor:default}
+.pedido-autofit-toggle>span{min-width:0}
+.pedido-autofit-toggle strong{display:block;font-size:13px;line-height:1.3}
+.pedido-autofit-toggle small{display:block;font-size:11.5px;line-height:1.5;color:var(--pedido-muted);margin-top:3px}
+.pedido-autofit-button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;margin:12px 0 0;padding:10px 14px;border-radius:8px;border:1px solid var(--venom);background:#b4ff3514;color:var(--venom);font-size:12.5px;font-weight:700;line-height:1.3}
+.pedido-autofit-button:hover:not(:disabled){background:#b4ff3526}
+.pedido-autofit-button:disabled{opacity:.45}
+@media(max-width:900px){
+  .pedido-editor-workspace .pedido-autofit-toggle{order:3;width:100%;margin:0}
+  .pedido-editor-workspace:not([data-mobile-panel=add]) .pedido-autofit-toggle{display:none}
+}
+@media(prefers-reduced-motion:reduce){.pedido-autofit-toggle input,.pedido-autofit-toggle input::after{transition:none}}
+
 /* A single preview and three compact tool groups on phones. The desktop studio
    keeps its two columns; no duplicated inputs or independent editor state. */
 .pedido-mobile-editor-tabs{display:none}

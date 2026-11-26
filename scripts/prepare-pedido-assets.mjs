@@ -8,6 +8,11 @@ const root = process.cwd();
 const source = path.join(root, 'output/tony-v279-assets');
 const destination = path.join(root, 'public/assets/pedido');
 const manifest = JSON.parse(await fs.readFile(path.join(source, 'manifest.json'), 'utf8'));
+// This importer owns only the V279 football designs and guides. Data added later (other catalogue
+// lines, Tony sleeve models, option photos) is read back and kept so a re-run cannot erase it.
+const readPrevious = async file => { try { return JSON.parse(await fs.readFile(path.join(root, file), 'utf8')); } catch { return {}; } };
+const previousCatalog = await readPrevious('data/pedido/catalog.json');
+const previousGuides = await readPrevious('data/pedido/guides.json');
 await fs.mkdir(path.join(destination, 'catalog'), { recursive: true });
 await fs.mkdir(path.join(destination, 'guides'), { recursive: true });
 const cropDefinition = { front: { x: .12, y: .10, width: .43, height: .80 }, back: { x: .48, y: .08, width: .42, height: .82 } };
@@ -61,11 +66,16 @@ for (const fabric of fabrics) {
 await fs.mkdir(path.join(root, 'data/pedido'), { recursive: true });
 // These two configurator illustrations are maintained directly in the repo.
 for (const [id, title] of [['sleeve-short', 'Manga corta'], ['sleeve-long', 'Manga larga']]) {
+  const kept = previousGuides.guides?.find(guide => guide.id === id);
+  if (kept) { guides.push(kept); continue; }
   const image = `/assets/pedido/guides/${id}.webp`;
   const { width, height } = await sharp(path.join(root, 'public', image.slice(1))).metadata();
   guides.push({ id, title, image, width, height });
 }
-await fs.writeFile(path.join(root, 'data/pedido/catalog.json'), `${JSON.stringify({ source: manifest.sources[1].source, verifiedAt: manifest.createdAt, cropDefinition, designs }, null, 2)}\n`);
-await fs.writeFile(path.join(root, 'data/pedido/guides.json'), `${JSON.stringify({ source: manifest.sources[1].source, guides }, null, 2)}\n`);
+const otherLines = (previousCatalog.designs || []).filter(design => !designs.some(own => own.code === design.code));
+const lines = previousCatalog.lines ? { lines: previousCatalog.lines } : {};
+const optionPhotos = previousGuides.optionPhotos ? { optionPhotos: previousGuides.optionPhotos } : {};
+await fs.writeFile(path.join(root, 'data/pedido/catalog.json'), `${JSON.stringify({ source: manifest.sources[1].source, verifiedAt: manifest.createdAt, cropDefinition, ...lines, designs: [...designs, ...otherLines] }, null, 2)}\n`);
+await fs.writeFile(path.join(root, 'data/pedido/guides.json'), `${JSON.stringify({ source: manifest.sources[1].source, guides, ...optionPhotos }, null, 2)}\n`);
 await prepareGuidePreviews();
 console.log(`Prepared ${designs.length} verified catalog designs and ${guides.length} guides.`);

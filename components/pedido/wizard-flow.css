@@ -42,6 +42,79 @@
   .pedido-one-choice .pedido-choice .pedido-choice-img { height: 60px; }
 }
 .pedido-screen[data-photo-step] { animation: none; }
+/* Options outside the sheet (Tony sleeve models, brand choice) use their own photo at the same size. */
+.pedido-choice-img .pedido-choice-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* One step number for every screen; it ticks when it changes. */
+.pedido-wizard-progress .pedido-wizard-count { flex: none; white-space: nowrap; }
+.pedido-wizard-progress strong { min-width: 0; text-align: right; }
+.pedido-wizard-count b { display: inline-block; min-width: 1ch; color: var(--pedido-ink); font-weight: 800; animation: pedido-count-tick 420ms var(--ease) both; }
+@keyframes pedido-count-tick { from { opacity: 0; transform: translate3d(0, 6px, 0); } to { opacity: 1; transform: none; } }
+
+/* Socks: a preview in the tapped colour and a bold button per colour with − / + steppers. */
+.pedido-sock-studio { container-type: inline-size; margin-top: 18px; }
+.pedido-sock-layout { display: grid; gap: 14px; }
+.pedido-sock-stage { position: relative; isolation: isolate; display: grid; justify-items: center; align-content: center; gap: 8px; min-width: 0; margin: 0; padding: 18px 16px; border: 1px solid var(--pedido-line); border-radius: 20px; overflow: hidden; background: radial-gradient(120% 70% at 50% 100%, #1d3a26, transparent 70%), linear-gradient(160deg, #122a1c, #0a1a11); }
+.pedido-sock-glow { position: absolute; z-index: -1; left: 50%; top: 42%; width: 72%; aspect-ratio: 1; border-radius: 50%; background: var(--sock-rim); opacity: .3; filter: blur(40px); transform: translate(-50%, -50%); transition: background-color 360ms ease; pointer-events: none; }
+.pedido-sock-motion { display: grid; place-items: center; animation: pedido-sock-hop 560ms var(--ease) both; }
+.pedido-sock-art { display: block; width: min(100%, 230px); height: auto; overflow: visible; }
+.pedido-sock-fill { fill: var(--sock); }
+.pedido-sock-cuff { fill: #000; opacity: .2; }
+.pedido-sock-rib { stroke: #fff; stroke-opacity: .2; stroke-width: 2; }
+.pedido-sock-heel, .pedido-sock-toe { fill: #000; opacity: .22; }
+.pedido-sock-dim { fill: #000; opacity: .28; }
+.pedido-sock-edge { fill: none; stroke: var(--sock-rim); stroke-opacity: .65; stroke-width: 1.8; }
+.pedido-sock-shadow { fill: #000; opacity: .45; }
+.pedido-sock-stage figcaption { display: grid; justify-items: center; gap: 2px; text-align: center; }
+.pedido-sock-stage figcaption span { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--pedido-muted); }
+.pedido-sock-stage figcaption strong { font-size: 22px; line-height: 1.15; }
+.pedido-sock-stage figcaption small { font-size: 12px; color: var(--pedido-green); }
+.pedido-sock-side { display: grid; align-content: start; gap: 12px; min-width: 0; }
+.pedido-sock-list { display: grid; gap: 12px; margin: 0; padding: 6px 0 0; list-style: none; }
+.pedido-sock-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; }
+.pedido-sock-swatch { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; min-width: 0; min-height: 58px; padding: 10px 14px; border: 2px solid transparent; border-radius: 16px; background: linear-gradient(135deg, rgb(255 255 255 / .2), transparent 48%), repeating-linear-gradient(90deg, rgb(0 0 0 / .1) 0 3px, transparent 3px 8px), var(--sock); color: var(--sock-ink); font: inherit; font-size: 15px; font-weight: 800; text-align: left; box-shadow: inset 0 0 0 1px var(--sock-rim), 0 10px 22px -14px #000; transition: transform 180ms var(--ease), box-shadow 200ms ease, border-color 200ms ease; }
+.pedido-sock-row.is-shown .pedido-sock-swatch { border-color: var(--pedido-green); box-shadow: inset 0 0 0 1px var(--sock-rim), 0 0 0 4px #c4ed802e, 0 14px 28px -14px #000; }
+.pedido-sock-swatch:not(:disabled):active { transform: scale(.98); }
+.pedido-sock-chip { flex: none; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--sock-ink); opacity: .75; }
+.pedido-sock-row.is-shown .pedido-sock-chip { opacity: 1; }
+.pedido-sock-row.is-shown .pedido-sock-chip::after { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--sock-ink); }
+.pedido-sock-name { min-width: 0; overflow-wrap: break-word; }
+/* The pair count sits on the corner like a bubble, so the colour name keeps the full width. */
+.pedido-sock-badge { position: absolute; top: -9px; right: -6px; padding: 3px 9px; border: 2px solid #0c1d14; border-radius: 999px; background: var(--sock-ink); color: var(--sock); font-size: 11px; font-weight: 800; line-height: 1.3; white-space: nowrap; box-shadow: 0 6px 14px -6px #000; animation: pedido-sock-pop 380ms cubic-bezier(.34, 1.56, .64, 1) both; }
+.pedido-sock-swatch, .pedido-sock-stepper button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.pedido-sock-stepper { display: flex; align-items: center; gap: 6px; }
+.pedido-sock-stepper button { display: grid; place-items: center; width: 46px; height: 46px; padding: 0; border: 2px solid var(--sock-rim); border-radius: 50%; background: #0c1d14; color: var(--pedido-ink); font: inherit; font-size: 24px; font-weight: 700; line-height: 1; transition: transform 160ms var(--ease), background-color 160ms ease; }
+.pedido-sock-stepper button:last-child { background: var(--sock); color: var(--sock-ink); }
+.pedido-sock-stepper button[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+.pedido-sock-stepper button:not(:disabled, [aria-disabled="true"]):active { transform: scale(.88); }
+.pedido-sock-stepper input { width: 56px; min-height: 46px; padding: 0 4px; border: 1px solid #435740; border-radius: 12px; background: #081c12; color: #f1f5eb; font: inherit; font-size: 18px; font-weight: 800; text-align: center; color-scheme: dark; appearance: textfield; -moz-appearance: textfield; }
+.pedido-sock-stepper input::-webkit-outer-spin-button, .pedido-sock-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pedido-sock-total { margin: 0 !important; padding: 12px 14px; border: 1px dashed #3f5f3a; border-radius: 14px; font-size: 14px; font-weight: 700; color: var(--pedido-green); }
+.pedido-sock-total span { display: inline-block; animation: pedido-count-tick 360ms var(--ease) both; }
+@media (hover: hover) and (pointer: fine) {
+  .pedido-sock-swatch:hover { transform: translateY(-2px); }
+  .pedido-sock-stepper button:not(:disabled, [aria-disabled="true"]):hover { transform: scale(1.06); }
+}
+@container (min-width: 560px) {
+  .pedido-sock-layout { grid-template-columns: minmax(190px, .8fr) minmax(0, 1.2fr); align-items: stretch; }
+}
+@container (max-width: 559px) {
+  .pedido-sock-stage { grid-template-columns: 112px minmax(0, 1fr); justify-items: start; align-items: center; column-gap: 14px; padding: 12px 16px; }
+  .pedido-sock-stage figcaption { justify-items: start; text-align: left; }
+  .pedido-sock-art { width: 112px; }
+}
+@container (max-width: 359px) {
+  .pedido-sock-swatch { gap: 8px; padding: 8px 10px; font-size: 14px; }
+  .pedido-sock-stepper { gap: 4px; }
+  .pedido-sock-stepper button { width: 44px; height: 44px; }
+  .pedido-sock-stepper input { width: 48px; }
+}
+@keyframes pedido-sock-hop { 0% { opacity: .4; transform: translate3d(0, 12px, 0) rotate(-4deg) scale(.94); } 60% { opacity: 1; transform: translate3d(0, -6px, 0) rotate(1.5deg) scale(1.03); } 100% { transform: none; } }
+@keyframes pedido-sock-pop { 0% { opacity: 0; transform: scale(.4); } 70% { opacity: 1; transform: scale(1.15); } 100% { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .pedido-sock-motion, .pedido-sock-badge, .pedido-sock-total span, .pedido-wizard-count b { animation: none; }
+  .pedido-sock-swatch, .pedido-sock-stepper button, .pedido-sock-glow { transition: none; }
+}
 
 @media (max-width: 700px), (hover: none) and (pointer: coarse) {
   /* Show the choices immediately. A short press still acknowledges the tap. */

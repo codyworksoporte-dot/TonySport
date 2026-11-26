@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 const SECTIONS: {title: string; body: React.ReactNode}[] = [
   {title: 'Explorar, diseñar y guardar', body: <p>Puedes consultar los diseños y preparar una solicitud de uniformes. Guardar en el carrito o descargar un boceto conserva tu trabajo; esas acciones no envían un pedido, reservan materiales ni realizan un cobro. Si abres WhatsApp, revisa el mensaje y adjunta los archivos que quieras compartir antes de enviarlo.</p>},
-  {title: 'Revisión del diseño y los archivos', body: <p>El editor y los mockups son referencias visuales. Antes de aprobar, revisa ambas caras, nombres, números, tallas, cantidades, telas y opciones. Tony confirmará la viabilidad del diseño y los ajustes técnicos necesarios para fabricar la prenda. Usa imágenes, escudos y marcas que tengas derecho o autorización para utilizar. Puedes consultar con Tony antes de aprobar si tienes dudas sobre un archivo o una opción.</p>},
+  {title: 'Revisión del diseño y los archivos', body: <p>El editor y los mockups, incluidos los que se generan con inteligencia artificial (Google Gemini a través de Vercel AI Gateway), son referencias visuales. Antes de aprobar, revisa ambas caras, nombres, números, tallas, cantidades, telas y opciones. Tony confirmará la viabilidad del diseño y los ajustes técnicos necesarios para fabricar la prenda. Usa imágenes, escudos y marcas que tengas derecho o autorización para utilizar. Puedes consultar con Tony antes de aprobar si tienes dudas sobre un archivo o una opción.</p>},
   {title: 'Cotización y disponibilidad', body: <p>El total mostrado corresponde a las opciones elegidas y a las reglas del configurador. Antes de comprometer un pago, confirma con Tony la cotización definitiva, disponibilidad, costo y modalidad de entrega, y cualquier condición que necesite aclaración. Explorar un diseño del catálogo no garantiza disponibilidad inmediata de prendas, telas o materiales.</p>},
   {title: 'Envío, pago y confirmación', body: <><p>El envío de pedidos y el pago en línea requieren que el servicio correspondiente esté disponible. El anticipo y el saldo aparecen en el resumen antes de pagar. Con tarjeta, ingresas los datos de pago en el enlace seguro de Wompi; una transferencia queda sujeta a revisión del comprobante.</p><p>Conserva la referencia y comprueba que Tony haya recibido el pedido y confirmado sus condiciones. Si ves un pago sin verificar o un aviso de recepción pendiente, consulta su estado antes de repetir un pago o solicitar el inicio de producción. La preparación de un boceto por sí sola no confirma una compra.</p></>},
   {title: 'Entrega y seguimiento', body: <p>Revisa la sucursal o la dirección elegida y acuerda con Tony la fecha estimada antes de confirmar. Consulta el estado con tu referencia de pedido. Si necesitas corregir datos o cambiar una opción, contacta a Tony cuanto antes para conocer si el cambio es viable y cómo afecta el pedido.</p>},
@@ -25,7 +25,7 @@ export default function TerminosPage() {
       <p className="eyebrow orange">TU PEDIDO, CLARO</p>
       <h1>TÉRMINOS DE<br/><span>USO Y PEDIDO.</span></h1>
       <p className="lead">Revisa cómo preparar tu diseño, consultar las condiciones y confirmar un pedido con Tony Sportswear, El Salvador.</p>
-      <p>Actualizado el 30 de septiembre de 2026.</p>
+      <p>Actualizado el 26 de noviembre de 2026.</p>
       <a className="text-link" href="#condiciones-pedido">Leer los 13 puntos del pedido ↓</a>
     </section>
     <section className="section-wrap privacy-body" aria-label="Guía de uso y pedido">

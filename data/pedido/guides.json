@@ -205,16 +205,26 @@
     {
       "id": "sleeve-short",
       "title": "Manga corta",
-      "image": "/assets/pedido/guides/sleeve-short.webp",
-      "width": 800,
-      "height": 800
+      "description": "Modelo Tony de manga corta.",
+      "image": "/assets/pedido/opciones/manga-corta.webp",
+      "width": 600,
+      "height": 600,
+      "source": "https://www.tonysportselsalvador.com/wp-content/uploads/20-9.jpg"
     },
     {
       "id": "sleeve-long",
       "title": "Manga larga",
-      "image": "/assets/pedido/guides/sleeve-long.webp",
-      "width": 800,
-      "height": 800
+      "description": "Modelo Tony de manga larga.",
+      "image": "/assets/pedido/opciones/manga-larga.webp",
+      "width": 600,
+      "height": 600,
+      "source": "https://www.tonysportselsalvador.com/wp-content/uploads/19-8.jpg"
     }
-  ]
+  ],
+  "optionPhotos": {
+    "manga-corta": ["/assets/pedido/opciones/manga-corta-96.webp", "/assets/pedido/opciones/manga-corta-192.webp"],
+    "manga-larga": ["/assets/pedido/opciones/manga-larga-96.webp", "/assets/pedido/opciones/manga-larga-192.webp"],
+    "marca-tony": ["/assets/pedido/opciones/marca-tony-96.webp", "/assets/pedido/opciones/marca-tony-192.webp"],
+    "marca-propia": ["/assets/pedido/opciones/marca-propia-96.webp", "/assets/pedido/opciones/marca-propia-192.webp"]
+  }
 }

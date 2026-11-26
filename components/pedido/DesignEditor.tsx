@@ -6,6 +6,9 @@ import type { ChangeEvent, PointerEvent } from 'react';
 import type { PedidoDesign, PedidoDraft, PedidoLayer } from '@/lib/pedido/types';
 import { siteAsset } from '@/lib/asset-path';
 import {money, PRICES} from '@/lib/pedido/pricing';
+import { setMockupContext } from '@/lib/pedido/api';
+import { autofitImage, type AutofitResult } from '@/lib/pedido/autofit';
+import catalog from '@/data/pedido/catalog.json';
 import CatalogPicker, { type CatalogDesign } from './CatalogPicker';
 import { fitImage, resetToZone, roleOf, samplePlayer, scaleLayer, textLayer, zoneFor, type Role } from '@/lib/pedido/layout';
 import './editor.css';
@@ -73,7 +76,21 @@ const layerLabel = (layer: PedidoLayer) => layer.type === 'Sponsor' ? layer.name
 const imageRatio = (layer: PedidoLayer) => (layer.width * WIDTH) / (layer.height * HEIGHT);
 const SWATCHES = [['#ffffff', 'Blanco'], ['#151515', 'Negro'], ['#b4ff35', 'Verde'], ['#ffd23f', 'Amarillo'], ['#e5383b', 'Rojo'], ['#1f6feb', 'Azul']] as const;
 
-async function readUpload(file: File): Promise<{ data: string; key: string; ratio: number }> {
+/** The catalogue line of a design (sport or business line), for the AI context. */
+function catalogLine(code: string): string | undefined {
+  const item = catalog.designs.find(design => design.code === code) as ({ category?: unknown; line?: unknown } | undefined);
+  const line = item?.line ?? item?.category;
+  return typeof line === 'string' ? line : undefined;
+}
+/** "quitamos el fondo, lo enderezamos 12°, recortamos lo sobrante y lo centramos en el frente" */
+function describeFit(fit: AutofitResult, last: string): string {
+  const steps = [fit.removedBackground && 'quitamos el fondo', fit.angle && `lo enderezamos ${Math.round(Math.abs(fit.angle))}°`, fit.trimmed && 'recortamos lo sobrante', last].filter((step): step is string => typeof step === 'string');
+  return steps.length > 1 ? `${steps.slice(0, -1).join(', ')} y ${steps[steps.length - 1]}` : steps[0];
+}
+/** Fitted artwork gets its own design key: the same original file always yields the same fitted file. */
+const fittedKey = (key?: string) => key ? (key.endsWith('-af1') ? key : `${key}-af1`) : undefined;
+
+async function readUpload(file: File): Promise<{ data: string; key: string; ratio: number; canvas: HTMLCanvasElement }> {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Elige una imagen JPG, PNG o WEBP.');
   if (file.size > MAX_FILE_BYTES) throw new Error('La imagen supera 4 MB. Reduce su tamaño y vuelve a intentarlo.');
   const bytes = new Uint8Array(await file.arrayBuffer());
@@ -88,8 +105,8 @@ async function readUpload(file: File): Promise<{ data: string; key: string; rati
     if (!img.naturalWidth || !img.naturalHeight || img.naturalWidth * img.naturalHeight > 40_000_000) throw new Error('Esta imagen es demasiado grande para el editor. Usa una versión de hasta 40 megapíxeles.');
     const scale = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight));
     const canvas = document.createElement('canvas'); canvas.width = Math.round(img.naturalWidth * scale); canvas.height = Math.round(img.naturalHeight * scale);
-    const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('No pudimos procesar esta imagen.'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return { data: canvas.toDataURL('image/webp', .88), key, ratio: img.naturalWidth / img.naturalHeight };
+    const ctx = canvas.getContext('2d', { willReadFrequently: true }); if (!ctx) throw new Error('No pudimos procesar esta imagen.'); ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return { data: canvas.toDataURL('image/webp', .88), key, ratio: img.naturalWidth / img.naturalHeight, canvas };
   } finally { URL.revokeObjectURL(objectURL); }
 }
 
@@ -106,6 +123,8 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
   const [frame, setFrame] = useState({ zoom: 1, x: 0, y: 0 });
   const [framing, setFraming] = useState(false);
   const [mobilePanel, setMobilePanel] = useState<'add' | 'adjust' | 'image'>('add');
+  // Smart fit of uploaded logos: on by default; Deshacer returns to the original upload.
+  const [autoFit, setAutoFit] = useState(true);
   const current = useRef(draft); current.current = draft;
   const past = useRef<PedidoDesign[]>([]), future = useRef<PedidoDesign[]>([]);
   const uploadRole = useRef<PedidoLayer['type']>('Escudo');
@@ -122,6 +141,8 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
   useEffect(() => { past.current = []; future.current = []; setHistoryVersion(value => value + 1); operationToken.current++; return () => { operationToken.current++; }; }, [draft.id]);
   useEffect(() => { setSelectedId(id => current.current.design.layers.some(item => item.id === id && item.side === side) ? id : ''); setRegion(null); setFrame({ zoom: 1, x: 0, y: 0 }); setFraming(false); setEraseMode(false); }, [side]);
   useEffect(() => () => cancelAnimationFrame(dragFrame.current), []);
+  // The AI must know which catalogue design (and line) it is adapting.
+  useEffect(() => { setMockupContext({ source: draft.design.source, catalogCode: draft.design.catalogCode || undefined, catalogLine: catalogLine(draft.design.catalogCode) }); }, [draft.design.source, draft.design.catalogCode]);
 
   function selectLayer(id: string, reveal = true) {
     setSelectedId(id); setMobilePanel('adjust');
@@ -185,9 +206,23 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
         const existing = role !== 'Sponsor' ? design.layers.find(item => item.type === role) : undefined;
         const zone = zoneFor(design, role, count);
         const layer: PedidoLayer = { id: existing?.id ?? crypto.randomUUID(), side: zone.side, type: role, name: role === 'Sponsor' ? `Patrocinador ${count + 1}` : role, data: result.data, designKey: result.key, x: zone.x, y: zone.y, ...fitImage(zone, result.ratio), rotation: 0, color: '#ffffff', fontSize: 42, visible: true };
+        // Smart fit: background out, trimmed and level, centred in its zone. A badly
+        // photographed logo already sits well on the selected model before any AI.
+        let fit: AutofitResult | null = null;
+        if (autoFit) {
+          setBusy('Ajustando tu imagen al modelo…');
+          try { fit = await autofitImage(result.canvas, { fillHoles: role === 'Sponsor' }); } catch { fit = null; }
+          if (token !== operationToken.current) return;
+        }
         change({ ...design, layers: existing ? design.layers.map(item => item.id === existing.id ? layer : item) : [...design.layers, layer] });
+        const place = `${zone.side === 'front' ? 'el frente' : 'la espalda'}`;
+        if (fit?.changed && fit.data) {
+          // A second history step: Deshacer brings back the original upload.
+          const fitted: PedidoLayer = { ...layer, data: fit.data, designKey: fittedKey(result.key), ...fitImage(zone, fit.ratio) };
+          change({ ...current.current.design, layers: current.current.design.layers.map(item => item.id === layer.id ? fitted : item) });
+          setMessage(`${LABELS[role]} ajustado automáticamente: ${describeFit(fit, `lo centramos en ${place}`)}. ¿Prefieres el original? Toca Deshacer.`);
+        } else setMessage(`${LABELS[role]} ${existing ? 'cambiado' : 'colocado'} en ${place}. Si quieres, arrástralo o cambia su tamaño.`);
         setSide(zone.side); selectLayer(layer.id);
-        setMessage(`${LABELS[role]} ${existing ? 'cambiado' : 'colocado'} en ${zone.side === 'front' ? 'el frente' : 'la espalda'}. Si quieres, arrástralo o cambia su tamaño.`);
       } else {
         const design = await withNameAndNumber({ ...current.current.design, source: 'own', catalogCode: '', [side]: result.data }); if (token !== operationToken.current) return;
         change(design); setCatalogOpen(false);
@@ -203,6 +238,27 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
   }
   const localPoint = (event: PointerEvent<HTMLElement>) => { const rect = stage.current!.getBoundingClientRect(); return { x: clamp((event.clientX - rect.left) / rect.width * 100, 0, 100), y: clamp((event.clientY - rect.top) / rect.height * 100, 0, 100) }; };
   function removeLayer(id: string) { change({ ...current.current.design, layers: current.current.design.layers.filter(item => item.id !== id) }); setSelectedId(''); setMessage('Elemento eliminado. Puedes recuperarlo con Deshacer.'); }
+  /** "Ajustar automáticamente": cleans and straightens the selected image and puts it back in its zone. */
+  async function autofitLayer(id: string) {
+    const layer = current.current.design.layers.find(item => item.id === id);
+    if (!layer?.data || layer.type === 'Texto') return;
+    const token = ++operationToken.current; setError(''); setBusy('Ajustando tu imagen al modelo…');
+    try {
+      const fit = await autofitImage(resolveImage(layer.data), { fillHoles: layer.type === 'Sponsor' }); if (token !== operationToken.current) return;
+      const design = current.current.design;
+      const ratio = fit.changed ? fit.ratio : imageRatio(layer);
+      const placed = resetToZone(design, layer, ratio);
+      if (!fit.changed) { patchLayer(layer.id, placed); setMessage('La imagen ya estaba limpia y recta: la volvimos a centrar en su lugar.'); }
+      else {
+        const designKey = fittedKey(layer.designKey);
+        // Copies of the same file (front and back) receive the same fitted artwork, so it is charged once.
+        change({ ...design, layers: design.layers.map(item => item.id === layer.id ? { ...item, ...placed, data: fit.data, designKey }
+          : item.type === layer.type && item.data === layer.data ? { ...item, data: fit.data, designKey, height: Math.min(100, Math.max(2, item.width * WIDTH / HEIGHT / fit.ratio)) } : item) });
+        setMessage(`${layerLabel(layer)} ajustado: ${describeFit(fit, 'lo centramos en su lugar')}. Puedes deshacerlo.`);
+      }
+      if (placed.side) setSide(placed.side);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'No pudimos ajustar la imagen.'); } finally { if (token === operationToken.current) setBusy(''); }
+  }
   async function adjustFrame() {
     if (!draft.design[side]) return; setBusy('Aplicando encuadre…'); setError('');
     try {
@@ -238,7 +294,7 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
   return <section className="pedido-editor" aria-label="Editor de tu uniforme" data-history={historyVersion}>
     <div className="pedido-editor-heading"><div><span className="pedido-editor-kicker">Tu identidad, a tu manera</span><h3>Diseña las dos caras.</h3></div><span className="pedido-design-code">{draft.design.catalogCode || (draft.design.front || draft.design.back ? 'Diseño propio' : 'Diseño por elegir')}</span></div>
     {!draft.design.front && !draft.design.back && <p className="pedido-fine">Catálogo Tony: sin recargo de creación. Subir un diseño propio: +{money(PRICES.design.creationCents)} por pedido.</p>}
-    <div className="pedido-editor-toolbar"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => setCatalogOpen(value => !value)}>▦ {catalogOpen ? 'Ocultar catálogo' : 'Explorar 70 diseños'}</button><button type="button" className="pedido-tool-button" disabled={disabled || !past.current.length} onClick={undo}>↶ Deshacer</button><button type="button" className="pedido-tool-button" disabled={disabled || !future.current.length} onClick={redo}>↷ Rehacer</button></div>
+    <div className="pedido-editor-toolbar"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => setCatalogOpen(value => !value)}>▦ {catalogOpen ? 'Ocultar catálogo' : `Explorar ${catalog.designs.length} diseños`}</button><button type="button" className="pedido-tool-button" disabled={disabled || !past.current.length} onClick={undo}>↶ Deshacer</button><button type="button" className="pedido-tool-button" disabled={disabled || !future.current.length} onClick={redo}>↷ Rehacer</button></div>
     {catalogOpen && <CatalogPicker value={draft.design.catalogCode} disabled={disabled} onSelect={selectCatalog} onClose={() => setCatalogOpen(false)} />}
     <div className="pedido-editor-workspace" aria-busy={disabled} data-mobile-panel={mobilePanel}>
       <div className="pedido-mobile-editor-tabs" role="group" aria-label="Herramientas del editor">
@@ -275,6 +331,7 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
           {!draft.design.layers.some(item => roleOf(item) === 'Equipo') && <button type="button" className="pedido-piece-button" disabled={disabled || !draft.design.back} onClick={() => void addText('Equipo', (draft.teamName || 'TU EQUIPO').toUpperCase())}><span aria-hidden="true">＋</span>Nombre del equipo</button>}
           <button type="button" className="pedido-piece-button" disabled={disabled || !draft.design.front} onClick={() => void addText('Texto', 'TU FRASE')}><span aria-hidden="true">＋</span>Otro texto</button>
         </div>
+        <label className="pedido-autofit-toggle"><input type="checkbox" checked={autoFit} disabled={disabled} onChange={event => setAutoFit(event.target.checked)} /><span><strong>Ajuste automático</strong><small>Al subir un logo le quitamos el fondo, lo enderezamos y lo centramos en su lugar. Deshacer recupera el original.</small></span></label>
         <input ref={layerInput} type="file" className="sr-only" accept="image/jpeg,image/png,image/webp" tabIndex={-1} aria-label="Subir elemento personalizado" onChange={event => upload(event, true)} />
         <div className="pedido-layer-list"><h4>En {side === 'front' ? 'el frente' : 'la espalda'} <span>{sideLayers.length}</span></h4>{!sideLayers.length && <p className="pedido-editor-empty">Todavía no hay piezas en {side === 'front' ? 'el frente' : 'la espalda'}.</p>}{sideLayers.map(layer => <div className={`pedido-layer-row${selectedId === layer.id ? ' is-selected' : ''}`} key={layer.id}><button type="button" disabled={disabled} onClick={() => selectLayer(layer.id)}><span>{layer.type === 'Texto' ? 'T' : '◈'}</span><span>{layerLabel(layer)}<small>{layer.type === 'Texto' ? layer.text : layer.visible ? 'Toca para ajustar' : 'Oculto'}</small></span></button><button type="button" disabled={disabled} className="pedido-layer-delete" onClick={() => removeLayer(layer.id)} aria-label={`Quitar ${layerLabel(layer)}`}>×</button></div>)}</div>
         {selected && <div className="pedido-layer-properties"><h4>{layerLabel(selected)}</h4>
@@ -283,11 +340,12 @@ export default function DesignEditor({ draft, onChange, onAI }: { draft: PedidoD
           {selected.type === 'Texto' && <div className="pedido-swatches" role="group" aria-label="Color del texto">{SWATCHES.map(([color, label]) => <button type="button" key={color} aria-label={label} aria-pressed={selected.color.toLowerCase() === color} disabled={disabled} style={{ background: color }} onClick={() => patchLayer(selected.id, { color })} />)}<label className="pedido-swatch-custom" aria-label="Otro color"><input type="color" value={selected.color} disabled={disabled} onChange={event => patchLayer(selected.id, { color: event.target.value })} /></label></div>}
           <div className="pedido-size-row" role="group" aria-label="Tamaño"><span>Tamaño</span><button type="button" disabled={disabled} onClick={() => patchLayer(selected.id, scaleLayer(selected, 1 / 1.15))} aria-label="Más pequeño">−</button><button type="button" disabled={disabled} onClick={() => patchLayer(selected.id, scaleLayer(selected, 1.15))} aria-label="Más grande">＋</button></div>
           <p className="pedido-editor-note">Para moverlo, arrástralo sobre la camiseta.</p>
+          {selected.type !== 'Texto' && selected.data && <button type="button" className="pedido-autofit-button" disabled={disabled} onClick={() => void autofitLayer(selected.id)}><span aria-hidden="true">✦</span>Ajustar automáticamente</button>}
           <div className="pedido-editor-toolbar"><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => { const patch = resetToZone(current.current.design, selected, imageRatio(selected)); patchLayer(selected.id, patch); if (patch.side) setSide(patch.side); setMessage('De vuelta a su lugar.'); }}>↺ Volver a su lugar</button><button type="button" className="pedido-tool-button" disabled={disabled} onClick={() => { const target: Side = side === 'front' ? 'back' : 'front'; change({ ...current.current.design, layers: [...current.current.design.layers, { ...selected, id: crypto.randomUUID(), side: target }] }); setMessage(`También en ${target === 'front' ? 'el frente' : 'la espalda'}.`); }}>Poner también {side === 'front' ? 'atrás' : 'adelante'}</button><button type="button" className="pedido-tool-button is-danger" disabled={disabled} onClick={() => removeLayer(selected.id)}>Quitar</button></div>
         </div>}
         <details className="pedido-image-tools">
           <summary>Elementos impresos e IA</summary>
-          <p className="pedido-editor-note" id="pedido-editor-ai-info">Al generar un mockup o borrar un área, Tony envía la imagen base y las indicaciones a la inteligencia artificial de Google (Gemini). Para el borrado se envía la cara completa de la prenda y la zona marcada. Usa imágenes que puedas compartir. <Link href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad ↗</Link></p>
+          <p className="pedido-editor-note" id="pedido-editor-ai-info">Al generar un mockup o borrar un área, Tony envía la imagen base y las indicaciones de tu configuración (sin datos personales) a Google Gemini a través de Vercel AI Gateway. Para el borrado se envía la cara completa de la prenda y la zona marcada. Usa imágenes que puedas compartir. <Link href="/privacidad" target="_blank" rel="noopener noreferrer">Privacidad ↗</Link></p>
           <p className="pedido-editor-note">Puedes quitar directamente las capas que agregaste. Para quitar un nombre o escudo que ya viene impreso en la imagen, selecciona su área.</p>
           <button type="button" className="pedido-tool-button" disabled={disabled || !onAI || !draft.design[side]} aria-pressed={eraseMode} onClick={() => { setEraseMode(value => !value); setFraming(false); setRegion(null); setSelectedId(''); }}>{eraseMode ? 'Cancelar selección' : 'Seleccionar área para borrar'}</button>
           {eraseMode && <>

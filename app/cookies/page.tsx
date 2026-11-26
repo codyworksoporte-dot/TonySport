@@ -16,7 +16,7 @@ const SECTIONS: {title: string; body: React.ReactNode}[] = [
   {title: 'Contenido externo que tú eliges', body: <ul>
     <li><strong>Instagram y TikTok:</strong> las vistas de Tony News se cargan al pulsar su botón. Desde ese momento la plataforma puede recibir datos de conexión y utilizar su propio almacenamiento; sus políticas rigen ese contenido.</li>
     <li><strong>Mapa de entrega:</strong> se conecta a OpenStreetMap al abrirlo y solicita las imágenes de la zona mostrada. Puedes escribir la dirección sin abrirlo. La opción de usar tu ubicación requiere el permiso del navegador.</li>
-    <li><strong>IA del editor:</strong> si está habilitada, solicita las imágenes y elementos necesarios para la operación que elijas a Google Gemini. Revisa qué archivos incluyes antes de utilizarla.</li>
+    <li><strong>IA del editor:</strong> si está habilitada, envía las imágenes y elementos necesarios para la operación que elijas a Google Gemini a través de Vercel AI Gateway. Revisa qué archivos incluyes antes de utilizarla.</li>
     <li><strong>WhatsApp, correo y pago:</strong> se abren cuando eliges el enlace o la acción correspondiente. El mensaje preparado o los datos necesarios para el pago pasan al servicio elegido, que aplica sus propias condiciones.</li>
   </ul>},
   {title: 'Cómo controlarlo', body: <>
@@ -33,7 +33,7 @@ export default function Cookies() {
       <p className="eyebrow orange">TÚ CONTROLAS LO QUE GUARDAS</p>
       <h1>COOKIES Y<br/><span>ALMACENAMIENTO.</span></h1>
       <p className="lead">Cómo se conservan tus borradores y preferencias, y qué ocurre al cargar servicios externos.</p>
-      <p className="privacy-updated">Actualizada el <time dateTime="2026-11-24">24 de noviembre de 2026</time>.</p>
+      <p className="privacy-updated">Actualizada el <time dateTime="2026-11-26">26 de noviembre de 2026</time>.</p>
       <nav className="privacy-related" aria-label="Información relacionada"><Link href="/privacidad">Política de privacidad ↗</Link><Link href="/terminos">Condiciones de pedidos ↗</Link></nav>
     </section>
     <section className="section-wrap privacy-body" aria-label="Almacenamiento y controles">
