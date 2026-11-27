@@ -1,6 +1,6 @@
-import Link from 'next/link';
 import Brand from './Brand';
 import Icon from './Icon';
+import IntentLink from './IntentLink';
 import NavAnchor from './header/NavAnchor';
 import {FOOTER_COLUMNS} from '@/lib/nav';
 import {TONY_EMAIL, TONY_WHATSAPP, TONY_WHATSAPP_DISPLAY} from '@/lib/site-links';
@@ -16,7 +16,10 @@ const SOCIAL_GLYPHS: Record<Channel, string> = {
   tiktok: 'M16.6 3c.3 2.4 1.7 3.9 4.1 4v2.8a7 7 0 0 1-4-1.3v5.9a5.6 5.6 0 1 1-5.6-5.6l.6.1v3a2.6 2.6 0 1 0 1.9 2.5V3h3Z',
 };
 
-/** Compact footer: contact first, three short link columns and the legal line. */
+/**
+ * Compact footer: contact first, three short link columns and the legal line.
+ * Its links prefetch on intent only (IntentLink): scrolling to the footer must not download every section behind it.
+ */
 export default function Footer() {
   return <footer className="site-footer tony-footer">
     <div className="tc-wrap tony-footer-main">
@@ -40,14 +43,14 @@ export default function Footer() {
       {FOOTER_COLUMNS.map(column => <nav className="tony-footer-column" aria-label={column.title} key={column.title}>
         <h3>{column.title}</h3>
         <ul>{column.links.map(link => <li key={link.href}>
-          <NavAnchor href={link.href} external={link.external}>{link.label}{link.external && <Icon name="diagonal" className="tony-footer-ext"/>}</NavAnchor>
+          <NavAnchor href={link.href} external={link.external} intent>{link.label}{link.external && <Icon name="diagonal" className="tony-footer-ext"/>}</NavAnchor>
         </li>)}</ul>
       </nav>)}
     </div>
     <div className="tc-wrap tony-footer-bottom">
       <span className="tony-footer-copy">© {new Date().getFullYear()} Tony Sportswear</span>
       <nav className="tony-footer-legal" aria-label="Información y condiciones">
-        <Link href="/privacidad">Privacidad</Link><Link href="/terminos">Términos</Link><Link href="/cookies">Cookies</Link>
+        <IntentLink href="/privacidad">Privacidad</IntentLink><IntentLink href="/terminos">Términos</IntentLink><IntentLink href="/cookies">Cookies</IntentLink>
       </nav>
       <span className="tony-footer-origin">
         <svg className="tony-salvador-flag" viewBox="0 0 60 36" role="img" aria-label="Bandera de El Salvador"><path fill="#0757ad" d="M0 0h60v36H0z"/><path fill="#fff" d="M0 12h60v12H0z"/><g transform="translate(30 18)"><path d="M-4.7 3.5A6 6 0 0 1-5-3M4.7 3.5A6 6 0 0 0 5-3" fill="none" stroke="#43843c" strokeWidth="1"/><path d="m0-4.4 4.4 7.1h-8.8Z" fill="#e7cf70" stroke="#b69137" strokeWidth=".4"/><path d="M-3 2.2-1.9-.3l1 1.3L.1-1 1.2.8 2-.3l1 2.5" fill="#467d41"/><path d="M-3 2.1h6v.5h-6" fill="#367ec4"/><path d="M-.9-2.5h1.8" stroke="#cf4340" strokeWidth=".55"/><circle cy="-3.3" r=".55" fill="#e5b541"/><path d="M-3.7 4.4q3.7 1.5 7.4 0" fill="none" stroke="#b69137" strokeWidth=".55"/></g></svg>

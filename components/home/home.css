@@ -3,7 +3,7 @@
  * Greeting + big search, a bento of picture buttons, disciplines, designs, implementos and one promo banner.
  */
 main.home-c{padding-top:clamp(18px,2.6vw,34px)}
-.home-chips,.tc-cards.home-grid{margin:0;padding:0;list-style:none}
+.tc-cards.home-grid{margin:0;padding:0;list-style:none}
 
 /* Greeting and the big search pill. */
 .home-hello{display:flex;align-items:flex-end;justify-content:space-between;gap:18px 40px;padding-bottom:22px}
@@ -84,8 +84,6 @@ main.home-c{padding-top:clamp(18px,2.6vw,34px)}
 
 /* Escoge tu disciplina deportiva: round picture buttons. Grid on desktop, a swipeable row on phones. */
 .home-sec-h a{position:relative;min-height:44px}
-.home-chips{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:24px 12px}
-.home-chips>li{display:flex;justify-content:center;min-width:0}
 .home-chip{--chip:96px;position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;width:100%;max-width:150px;color:var(--tc-ink);font:700 14px/1.2 var(--font-body);text-align:center;text-decoration:none;border-radius:16px}
 .home-chip-ring{display:block;flex:none;width:var(--chip);height:var(--chip);padding:3px;border-radius:50%;background:conic-gradient(from 200deg,var(--tc-lime),#2bd46b,var(--tc-lime));transition:transform 380ms var(--tc-ease),filter 220ms ease}
 .home-chip-photo{display:block;width:100%;height:100%;overflow:hidden;border:3px solid var(--tc-bg);border-radius:50%;background:var(--tc-tile)}
@@ -101,9 +99,6 @@ main.home-c{padding-top:clamp(18px,2.6vw,34px)}
 }
 @media(min-width:1280px){.home-chip{--chip:104px}}
 @media(max-width:899px){
-  .home-chips{display:flex;gap:12px;margin-inline:-16px;padding:8px 48px 10px 16px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-padding-inline:16px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 44px),transparent)}
-  .home-chips::-webkit-scrollbar{display:none}
-  .home-chips>li{flex:none;width:84px;scroll-snap-align:start}
   .home-chip{--chip:76px;gap:8px;font-size:12.5px}
 }
 
@@ -127,6 +122,15 @@ main.home-c{padding-top:clamp(18px,2.6vw,34px)}
   .home-marquee{--speed:34s;margin-inline:-16px}
   .home-marquee-track>li{width:96px}
 }
+/* Off screen the loop pauses, so the compositor stops drawing frames nobody sees: a view timeline sets
+   --home-marquee-seen to 0 while the row is outside the viewport and a style query pauses its track.
+   Rows keep rendering: the photos in the row's window load as before, the next ones as they slide in
+   (now only while the row is on screen). Without view timelines or style queries the property keeps
+   its initial 1 and the loop simply runs, as it always did. */
+@property --home-marquee-seen{syntax:'*';inherits:false;initial-value:1}
+@supports(animation-timeline:view()){.home-marquee{animation:home-marquee-seen linear both;animation-timeline:view()}}
+@keyframes home-marquee-seen{from,to{--home-marquee-seen:0}.1%,99.9%{--home-marquee-seen:1}}
+@container style(--home-marquee-seen:0){.home-marquee-track{animation-play-state:paused}}
 @media(prefers-reduced-motion:reduce){
   .home-marquee{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:none;mask-image:none}
   .home-marquee-track{animation:none;transform:none}

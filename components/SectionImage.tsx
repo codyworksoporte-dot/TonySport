@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import { siteAsset } from '@/lib/asset-path';
 
 export type SectionPhoto =
@@ -8,15 +7,32 @@ export type SectionPhoto =
   | 'futbol' | 'baloncesto' | 'voleibol' | 'running' | 'ciclismo'
   | 'racing' | 'empresarial' | 'casual' | 'implementos';
 
-/** Original conceptual campaign art; captions, links and product data stay in HTML. */
-export default function SectionImage({ photo, shade = 'bottom', sizes = '(max-width: 760px) 90vw, 45vw', position = 'center top', fit = 'cover' }: {
+/**
+ * Widths of the lighter copies every section photo has (<photo>-tony-<width>.webp, originals 960 px wide).
+ * Keep in sync with SECTION_WIDTHS in scripts/generate-responsive-images.mjs; check-assets.mjs verifies them.
+ */
+const SECTION_WIDTHS = [320, 560, 720];
+const ORIGINAL_WIDTH = 960;
+// What next/image's `fill` drew (the static export does not optimize images, so it only ever served the original).
+const FILL = { position: 'absolute', height: '100%', width: '100%', left: 0, top: 0, right: 0, bottom: 0, color: 'transparent' } as const;
+
+/**
+ * Original conceptual campaign art; captions, links and product data stay in HTML.
+ * `priority`: the photo is the page's main picture, so it loads at once and first; the rest wait until they near the screen.
+ */
+export default function SectionImage({ photo, shade = 'bottom', sizes = '(max-width: 760px) 90vw, 45vw', position = 'center top', fit = 'cover', priority = false }: {
   photo: SectionPhoto;
   shade?: 'none' | 'bottom' | 'left' | 'light' | 'strong';
   sizes?: string;
   position?: string;
   fit?: 'cover' | 'contain';
+  priority?: boolean;
 }) {
+  const file = (width?: number) => siteAsset(`/assets/sections/${photo}-tony${width ? `-${width}` : ''}.webp`);
+  const srcSet = [...SECTION_WIDTHS.map(width => `${file(width)} ${width}w`), `${file()} ${ORIGINAL_WIDTH}w`].join(', ');
+  // Inside <picture>, React adds no preload of its own for this image, on this page or in the RSC prefetch of others.
   return <picture className={`section-image section-image--${shade}`} aria-hidden="true" data-section-photo={photo}>
-    <Image src={siteAsset(`/assets/sections/${photo}-tony.webp`)} alt="" fill sizes={sizes} quality={85} style={{objectFit:fit, objectPosition:position}} />
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src={file()} srcSet={srcSet} sizes={sizes} alt="" loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : undefined} decoding="async" style={{ ...FILL, objectFit: fit, objectPosition: position }} />
   </picture>;
 }

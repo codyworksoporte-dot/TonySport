@@ -4,29 +4,33 @@ import {useEffect, useRef, type RefObject} from 'react';
 import AppDownload from '../AppDownload';
 import Brand from '../Brand';
 import Icon from '../Icon';
+import IntentLink from '../IntentLink';
 import NavAnchor from './NavAnchor';
+import {warmSearchIndex} from './SearchDialog';
 import {disciplineThumb} from './thumbs';
 import {siteAsset} from '@/lib/asset-path';
 import {DISCIPLINES, DISCIPLINES_TITLE, disciplineHref} from '@/lib/disciplines';
-import {CREATE_ORDER_HREF, MENU_MORE, NAV, SEARCH_LABEL, STORE_COUNT, type NavLink} from '@/lib/nav';
+import {CREATE_ORDER_HREF, MENU_MORE, NAV, SEARCH_LABEL, type NavLink} from '@/lib/nav';
 import {TONY_WHATSAPP, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
 
 type Props = {
   open: boolean; path: string; dialogRef: RefObject<HTMLDialogElement | null>;
+  /** Number of stores in data/tony-stores.json (counted by the layout, on the server). */
+  storeCount: number;
   onDismiss: () => void; onClosed: () => void; onSearch: () => void;
 };
 
 // `focus` is the photo's object-position: the implementos photo keeps its ball and bag in narrow phone tiles.
 type Tile = NavLink & {note?: string; flag?: string; wide?: boolean; focus?: string};
-const TILES: Tile[] = [
+const tiles = (storeCount: number): Tile[] => [
   {...NAV.promociones, flag: 'Promos', wide: true},
   {...NAV.implementos, focus: '0% 50%'},
-  {...NAV.tiendas, note: `${STORE_COUNT} tiendas`},
+  {...NAV.tiendas, note: `${storeCount} tiendas`},
   NAV.consulta,
 ];
 
 /** The site menu: one native modal dialog, a full-screen sheet on phones and a large right panel on desktop. */
-export default function MenuDialog({open, path, dialogRef, onDismiss, onClosed, onSearch}: Props) {
+export default function MenuDialog({open, path, dialogRef, storeCount, onDismiss, onClosed, onSearch}: Props) {
   const body = useRef<HTMLDivElement>(null), closeButton = useRef<HTMLButtonElement>(null);
   const onConfigurator = path === CREATE_ORDER_HREF || path.startsWith(`${CREATE_ORDER_HREF}/`);
 
@@ -45,7 +49,8 @@ export default function MenuDialog({open, path, dialogRef, onDismiss, onClosed, 
     }
   }, [open, dialogRef]);
 
-  const tile = (item: Tile) => <NavAnchor className="tc-tile tony-menu-tile" href={item.href} external={item.external} onClick={onDismiss} aria-current={!item.external && path === item.href ? 'page' : undefined}>
+  // Opening the menu shows some twenty links: they prefetch on touch or hover, not all at once on sight.
+  const tile = (item: Tile) => <NavAnchor className="tc-tile tony-menu-tile" href={item.href} external={item.external} intent onClick={onDismiss} aria-current={!item.external && path === item.href ? 'page' : undefined}>
     {item.image && <img src={siteAsset(item.image)} alt="" width={640} height={400} loading="lazy" decoding="async" style={item.focus ? {objectPosition: item.focus} : undefined}/>}
     {item.flag && <span className="tc-flag">{item.flag}</span>}
     <span className="tc-go"><Icon name={item.external ? 'diagonal' : 'arrow'}/></span>
@@ -61,23 +66,23 @@ export default function MenuDialog({open, path, dialogRef, onDismiss, onClosed, 
         <button ref={closeButton} type="button" className="tony-menu-close" aria-label="Cerrar menú" onClick={onDismiss}><span>Cerrar</span><Icon name="close" size={24}/></button>
       </div>
       <div ref={body} className="tony-mobile-body">
-        <button type="button" className="tony-search-pill tony-menu-search" aria-haspopup="dialog" onClick={onSearch}><Icon name="search" size={26}/><span>{SEARCH_LABEL}</span></button>
+        <button type="button" className="tony-search-pill tony-menu-search" aria-haspopup="dialog" onClick={onSearch} onPointerEnter={warmSearchIndex} onFocus={warmSearchIndex} onTouchStart={warmSearchIndex}><Icon name="search" size={26}/><span>{SEARCH_LABEL}</span></button>
         {!onConfigurator && <Link className="tc-btn tc-btn--lime tc-btn--lg tc-btn--block tony-menu-create" href={CREATE_ORDER_HREF} onClick={onDismiss}>Crear mi pedido<Icon name="plus"/></Link>}
         <nav aria-label="Navegación principal" className="tony-mobile-nav">
           <section className="tony-menu-sec" aria-labelledby="tony-menu-disciplinas">
             <h2 id="tony-menu-disciplinas" className="tony-menu-sec-title">{DISCIPLINES_TITLE}</h2>
             <ul className="tony-chips">
               {DISCIPLINES.map(discipline => <li key={discipline.id}>
-                <Link className="tony-chip" href={disciplineHref(discipline.id)} onClick={onDismiss}>
+                <IntentLink className="tony-chip" href={disciplineHref(discipline.id)} onClick={onDismiss}>
                   <span className="tony-chip-img"><img src={siteAsset(disciplineThumb(discipline, 'chip'))} alt="" width={160} height={160} loading="lazy" decoding="async"/></span>
                   <span className="tony-chip-name">{discipline.name}</span>
-                </Link>
+                </IntentLink>
               </li>)}
-              <li><Link className="tony-chip tony-chip--all" href="/producto" onClick={onDismiss} aria-current={path === '/producto' ? 'page' : undefined}><span className="tony-chip-img"><Icon name="grid" size={28}/></span><span className="tony-chip-name">Ver todas</span></Link></li>
+              <li><IntentLink className="tony-chip tony-chip--all" href="/producto" onClick={onDismiss} aria-current={path === '/producto' ? 'page' : undefined}><span className="tony-chip-img"><Icon name="grid" size={28}/></span><span className="tony-chip-name">Ver todas</span></IntentLink></li>
             </ul>
           </section>
           <ul className="tony-menu-tiles">
-            {TILES.map(item => <li key={item.href} className={item.wide ? 'is-wide' : undefined}>{tile(item)}</li>)}
+            {tiles(storeCount).map(item => <li key={item.href} className={item.wide ? 'is-wide' : undefined}>{tile(item)}</li>)}
             <li>
               <AppDownload className="tc-tile tony-menu-tile">
                 <img src={siteAsset(NAV.app.image)} alt="" width={640} height={400} loading="lazy" decoding="async"/>
@@ -96,7 +101,7 @@ export default function MenuDialog({open, path, dialogRef, onDismiss, onClosed, 
             <li>{tile(NAV.news)}</li>
           </ul>
           <ul className="tony-menu-more">
-            {MENU_MORE.map(item => <li key={item.href}><Link href={item.href} onClick={onDismiss} aria-current={path === item.href ? 'page' : undefined}><Icon name={item.icon}/>{item.label}</Link></li>)}
+            {MENU_MORE.map(item => <li key={item.href}><IntentLink href={item.href} onClick={onDismiss} aria-current={path === item.href ? 'page' : undefined}><Icon name={item.icon}/>{item.label}</IntentLink></li>)}
           </ul>
         </nav>
       </div>

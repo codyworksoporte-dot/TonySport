@@ -1,9 +1,11 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
+import LeadImage from '@/components/media/LeadImage';
+import {TILE3_SIZES} from '@/components/pages/photo-sizes';
 import {rise} from '@/components/pages/rise';
 import stores from '@/data/tony-stores.json';
-import {siteAsset} from '@/lib/asset-path';
+import {responsive} from '@/lib/responsive-image';
 import {ORDER_LOOKUP_URL, TONY_EMAIL, TONY_WHATSAPP, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
 import '@/components/pages/pages.css';
 
@@ -38,16 +40,18 @@ export default function ContactoPage() {
 
       <div className="tp-tiles tp-tiles--3 tp-contact-tiles">
         <Link className="tc-tile tc-rise" style={rise(3)} href="/tiendas">
-          <img className="tp-img-top" src={siteAsset('/assets/sections/tiendas-tony.webp')} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+          {/* The first photo the page shows (on phones the other two start below it): loads at once, at default
+              priority, since it is not the LCP and must not take bandwidth from the render-blocking CSS. */}
+          <LeadImage className="tp-img-top" {...responsive('/assets/sections/tiendas-tony.webp', TILE3_SIZES)} width={960} height={1200} fetchPriority="auto"/>
           <span className="tc-tile-label"><span><b>Tiendas</b><small>{stores.length} en El Salvador</small></span><span className="tc-go"><Icon name="pin"/></span></span>
         </Link>
         <a className="tc-tile tc-rise" style={rise(4)} href={ORDER_LOOKUP_URL} target="_blank" rel="noopener noreferrer">
-          <img className="tp-img-top" src={siteAsset('/assets/sections/entregas-tony.webp')} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+          <img className="tp-img-top" {...responsive('/assets/sections/entregas-tony.webp', TILE3_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
           <span className="tc-tile-label"><span><b>Consulta tu pedido</b><small>Con tu número de orden</small></span><span className="tc-go"><Icon name="diagonal"/></span></span>
           <span className="tc-sr">{NEW_TAB}</span>
         </a>
         <Link className="tc-tile tc-rise" style={rise(5)} href="/ayuda">
-          <img className="tp-img-top" src={siteAsset('/assets/sections/recientes-tony.webp')} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+          <img className="tp-img-top" {...responsive('/assets/sections/recientes-tony.webp', TILE3_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
           <span className="tc-tile-label"><span><b>Preguntas frecuentes</b><small>Respuestas rápidas</small></span><span className="tc-go"><Icon name="help"/></span></span>
         </Link>
       </div>

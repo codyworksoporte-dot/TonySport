@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import Icon from '@/components/Icon';
-import {siteAsset} from '@/lib/asset-path';
+import LeadImage from '@/components/media/LeadImage';
+import {responsive} from '@/lib/responsive-image';
 import {ORDER_LOOKUP_URL, whatsappLink} from '@/lib/site-links';
+import {LOOKUP_PHOTO_SIZES, TILE_SIZES} from './photo-sizes';
 import {rise} from './rise';
 import './pages.css';
 
@@ -13,7 +15,7 @@ export default function OrderLookup() {
     <div className="tc-wrap">
       <section className="tp-lookup-card tc-rise" aria-labelledby="tp-lookup-title">
         <div className="tp-lookup-media">
-          <img src={siteAsset('/assets/sections/entregas-tony.webp')} alt="" width={960} height={1200} loading="eager" decoding="async" fetchPriority="high"/>
+          <LeadImage {...responsive('/assets/sections/entregas-tony.webp', LOOKUP_PHOTO_SIZES)} width={960} height={1200}/>
         </div>
         <div className="tp-lookup-copy">
           <p className="tp-kicker"><Icon name="package"/>Tu pedido</p>
@@ -38,11 +40,11 @@ export default function OrderLookup() {
       <section className="tp-lookup-more" aria-label="Más ayuda con tu pedido">
         <div className="tp-tiles">
           <Link className="tc-tile tc-rise" style={rise(4)} href="/tiendas">
-            <img className="tp-img-top" src={siteAsset('/assets/sections/tiendas-tony.webp')} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+            <img className="tp-img-top" {...responsive('/assets/sections/tiendas-tony.webp', TILE_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
             <span className="tc-tile-label"><span><b>Tiendas</b><small>Retiro o envío a domicilio</small></span><span className="tc-go"><Icon name="pin"/></span></span>
           </Link>
           <Link className="tc-tile tc-rise" style={rise(5)} href="/ayuda">
-            <img className="tp-img-top" src={siteAsset('/assets/sections/recientes-tony.webp')} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+            <img className="tp-img-top" {...responsive('/assets/sections/recientes-tony.webp', TILE_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
             <span className="tc-tile-label"><span><b>Preguntas frecuentes</b><small>Respuestas rápidas</small></span><span className="tc-go"><Icon name="arrow"/></span></span>
           </Link>
         </div>

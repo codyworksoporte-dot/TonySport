@@ -94,7 +94,10 @@
   .tony-search-pill--wide{height:56px;padding:0 20px;font-size:16px}
 }
 @media(max-width:899px){
-  .site-header.tony-header{background:#050a07;backdrop-filter:none;-webkit-backdrop-filter:none}
+  /* Opaque bar: no blur behind it. The unprefixed property goes last so the minifier keeps it
+     (it drops all but the last of a prefixed/unprefixed pair), otherwise Chromium keeps blurring
+     under an opaque background on every scroll frame. */
+  .site-header.tony-header{background:#050a07;-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 @media(max-width:759px){.tony-header .tony-header-create{display:none}}
 @media(max-width:599px){.tony-wa-text small{display:none}}

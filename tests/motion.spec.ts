@@ -4,6 +4,10 @@ async function ready(page: Page, route = '/') {
   await page.addInitScript(() => sessionStorage.setItem('tony:intro:v2', 'seen'));
   await page.goto(route);
   await expect(page.locator('html')).toHaveAttribute('data-tony-effects', 'on');
+  // On desktop the motion runtime loads on its own after hydration: wait until it runs before moving or clicking.
+  if (!await page.evaluate(() => matchMedia('(max-width: 900px), (pointer: coarse)').matches)) {
+    await expect(page.locator('.tony-peek')).toHaveAttribute('data-ready', 'true');
+  }
 }
 
 async function scrollInstant(page: Page, top: number) {
@@ -16,7 +20,8 @@ test('el logo abre la intro inmediatamente y vuelve a Inicio desde una página i
   const logo = page.locator('.tony-header-inner .brand');
   await logo.click();
   await expect(page.locator('.lagarto-intro[open]')).toBeVisible();
-  await expect(page).toHaveURL(/\/$/);
+  // The logo prefetches Inicio on intent, not on sight: a fresh dev server may still be compiling it at the click.
+  await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
   await expect(page.locator('.lagarto-intro .lagarto-head--reference')).toHaveCount(1);
   // The intro's mark is the only one on the page with the reference face.
   await expect(page.locator('.lagarto-head--reference')).toHaveCount(1);

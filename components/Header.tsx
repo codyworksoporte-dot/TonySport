@@ -7,7 +7,7 @@ import CartLink from './CartLink';
 import Icon from './Icon';
 import MenuDialog from './header/MenuDialog';
 import QuickNav from './header/QuickNav';
-import SearchDialog from './header/SearchDialog';
+import SearchDialog, {warmSearchIndex} from './header/SearchDialog';
 import {CREATE_ORDER_HREF, SEARCH_LABEL} from '@/lib/nav';
 import {TONY_WHATSAPP, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
 import './site-navigation.css';
@@ -15,7 +15,7 @@ import './site-navigation.css';
 /** Any component can open the site search: window.dispatchEvent(new Event('tony:open-search')). */
 export const OPEN_SEARCH_EVENT = 'tony:open-search';
 
-export default function Header() {
+export default function Header({storeCount}: {storeCount: number}) {
   const path = usePathname();
   const onConfigurator = path === CREATE_ORDER_HREF || path.startsWith(`${CREATE_ORDER_HREF}/`);
   const header = useRef<HTMLElement>(null), subbar = useRef<HTMLDivElement>(null);
@@ -61,7 +61,8 @@ export default function Header() {
     return () => { cancelAnimationFrame(frame); removeEventListener('scroll', schedule); };
   }, []);
 
-  const searchButton = (wide = false) => <button type="button" className={`tony-search-pill${wide ? ' tony-search-pill--wide' : ''}`} aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" onClick={openSearch}><Icon name="search" size={26}/><span>{SEARCH_LABEL}</span></button>;
+  const searchButton = (wide = false) => <button type="button" className={`tony-search-pill${wide ? ' tony-search-pill--wide' : ''}`} aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" onClick={openSearch}
+    onPointerEnter={warmSearchIndex} onFocus={warmSearchIndex} onTouchStart={warmSearchIndex}><Icon name="search" size={26}/><span>{SEARCH_LABEL}</span></button>;
 
   return <>
     <header ref={header} className="site-header tony-header">
@@ -82,7 +83,7 @@ export default function Header() {
       <QuickNav path={path}/>
       <div className="tony-subbar-search">{searchButton(true)}</div>
     </div>
-    <MenuDialog open={menuOpen} dialogRef={menuDialog} path={path} onDismiss={() => setMenuOpen(false)} onSearch={openSearch}
+    <MenuDialog open={menuOpen} dialogRef={menuDialog} path={path} storeCount={storeCount} onDismiss={() => setMenuOpen(false)} onSearch={openSearch}
       onClosed={() => { setMenuOpen(false); if (!searchDialog.current?.open) menuTrigger.current?.focus({preventScroll: true}); }}/>
     <SearchDialog open={searchOpen} dialogRef={searchDialog} onDismiss={() => setSearchOpen(false)}
       onClosed={() => { setSearchOpen(false); const target = searchReturn.current; searchReturn.current = null; if (target?.isConnected && !menuDialog.current?.open) target.focus({preventScroll: true}); }}/>

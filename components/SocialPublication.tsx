@@ -80,7 +80,7 @@ export default function SocialPublication({provider}:{provider:Provider}){
 
   return <div className={`tn-embed tn-embed-${provider}`} data-state={phase}>
     <div className="tn-embed-stage">
-      {phase==='idle'&&<div className="tn-embed-cover"><SectionImage photo={isInstagram?"tiendas":"social"} shade="left" />
+      {phase==='idle'&&<div className="tn-embed-cover"><SectionImage photo={isInstagram?"tiendas":"social"} shade="left" sizes="(max-width: 760px) 90vw, 54vw" />
         <span className="tn-cover-top">{isInstagram?'DEL ARCHIVO DE TONY':'EL CANAL OFICIAL'}</span>
         <div className="tn-cover-wordmark" aria-hidden="true">{isInstagram?<>LOURDES.<br/><em>TAMBIÉN<br/>ES TONY.</em></>:<>TONY<br/><em>EN<br/>MOVIMIENTO.</em></>}</div>
         <div className="tn-cover-action"><span>{isInstagram?'Instagram · 11 SEP 2026':TONY_CHANNELS.tiktok.handle}</span><button type="button" onClick={start}>{isInstagram?'Ver publicación':'Ver publicaciones de TikTok'}<Icon name="diagonal"/></button><small>{isInstagram?'Carga la publicación original de Instagram.':'Carga el perfil y las publicaciones que muestre TikTok.'}</small></div>

@@ -49,6 +49,23 @@ for (const size of [96, 192]) {
     if (info.width !== size * sheet.columns || info.height !== size * sheet.rows) errors.push(`Dimensiones incorrectas: ${file}`);
   } catch { errors.push(`No se pudo leer la hoja de miniaturas: ${file}`); }
 }
+// Responsive copies (scripts/generate-responsive-images.mjs): every listed copy must exist, the original must keep
+// the size recorded for it, and every section photo needs the widths SectionImage builds its srcset from.
+const responsive = JSON.parse(await readFile('data/responsive-images.json', 'utf8'));
+const regenerate = 'ejecuta node scripts/generate-responsive-images.mjs';
+for (const [path, [width, height, widths]] of Object.entries(responsive)) {
+  try {
+    const meta = await sharp(join('public', path.slice(1))).metadata();
+    if (meta.width !== width || meta.height !== height) errors.push(`${path} cambió de tamaño: ${regenerate}.`);
+  } catch { errors.push(`Falta ${path}`); }
+  for (const copy of widths) references.add(path.replace(/\.webp$/, `-${copy}.webp`));
+}
+for (const name of await readdir('public/assets/sections')) {
+  if (!/^[a-z0-9-]+-tony\.webp$/.test(name)) continue;
+  const copies = responsive[`/assets/sections/${name}`]?.[2] ?? [];
+  if ([320, 560, 720].some(width => !copies.includes(width))) errors.push(`Faltan las copias ligeras de /assets/sections/${name}: ${regenerate}.`);
+}
+
 for (const reference of references) {
   try { await readFile(join('public', reference.slice(1))); }
   catch { errors.push(`Falta ${reference}`); }

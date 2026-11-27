@@ -15,7 +15,11 @@
 .ta-launcher-icon svg,.ta-avatar svg{fill:currentColor}
 .ta-root[data-phase=open] .ta-launcher-icon{transform:rotate(90deg)}
 .ta-launcher::before{content:'';position:absolute;inset:0;border-radius:50%;pointer-events:none}
-.ta-root[data-hint] .ta-launcher::before{animation:ta-ping 1.8s ease-out 3}
+/* First-visit ping: a lime ring spreads 18px past the edge and fades. It runs on the compositor: a disc grows
+   (transform) and fades (opacity) behind a copy of the face (::after), so only the part outside the launcher shows. */
+.ta-root[data-hint] .ta-launcher::before{z-index:-1;background:rgb(180 255 53);opacity:0;animation:ta-ping 1.8s ease-out 3}
+.ta-root[data-hint] .ta-launcher::after{content:'';position:absolute;inset:0;z-index:-1;border-radius:50%;pointer-events:none;background:radial-gradient(circle at 32% 26%,#f2ffd0 0,var(--tc-lime) 52%,var(--tc-lime-lo) 100%);box-shadow:inset 0 -3px 0 rgb(46 86 12 / .35)}
+@media(max-width:699px){.ta-root[data-hint] .ta-launcher::before{animation-name:ta-ping-sm}}
 .ta-launcher-label{position:absolute;right:calc(100% + 12px);top:50%;padding:10px 15px;border-radius:999px;background:var(--tc-tile-2);box-shadow:inset 0 0 0 1px var(--tc-line-strong),var(--tc-shadow);color:var(--tc-ink);font:700 14px/1 var(--font-body),Arial,sans-serif;white-space:nowrap;opacity:0;transform:translate(8px,-50%);pointer-events:none;transition:opacity 180ms ease,transform 280ms var(--tc-ease)}
 .ta-launcher:focus-visible{outline:3px solid #e8ffb0;outline-offset:4px}
 .ta-launcher:focus-visible .ta-launcher-label{opacity:1;transform:translate(0,-50%)}
@@ -169,7 +173,9 @@
 }
 
 @keyframes ta-launch-in{from{opacity:0;transform:scale(.4) rotate(-40deg)}}
-@keyframes ta-ping{0%{box-shadow:0 0 0 0 rgb(180 255 53 / .55)}100%{box-shadow:0 0 0 18px rgb(180 255 53 / 0)}}
+/* Scale = (size + 2 × 18px) / size: 96/60 on desktop, 92/56 on phones. */
+@keyframes ta-ping{0%{opacity:.55;transform:none}100%{opacity:0;transform:scale(1.6)}}
+@keyframes ta-ping-sm{0%{opacity:.55;transform:none}100%{opacity:0;transform:scale(1.642857)}}
 @keyframes ta-hint-in{from{opacity:0;transform:translateY(10px) scale(.85)}to{opacity:1;transform:none}}
 @keyframes ta-panel-in{from{opacity:0;transform:translateY(18px) scale(.92)}to{opacity:1;transform:none}}
 @keyframes ta-panel-out{to{opacity:0;transform:translateY(12px) scale(.96)}}

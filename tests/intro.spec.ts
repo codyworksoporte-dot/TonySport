@@ -70,7 +70,7 @@ test('movimiento reducido y las páginas internas no muestran la intro',async({p
 
 test('el escudo mantiene el nombre aunque falle la imagen del logo',async({page})=>{
   await page.emulateMedia({reducedMotion:'no-preference'});
-  // The emblem is the logo file (srcset: tony-logo-480.webp and tony-logo.webp); losing it must still show the name.
+  // The emblem is the logo file (srcset: tony-logo-240/640/960.webp and tony-logo.webp); losing it must still show the name.
   await page.route('**/assets/brand/tony-logo*.webp',route=>route.abort('failed'));
   await page.goto('/',{waitUntil:'domcontentloaded'});
   const intro=page.locator('.lagarto-intro');

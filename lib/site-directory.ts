@@ -2,7 +2,7 @@ import categories from '@/data/collection-categories.json';
 import stores from '@/data/tony-stores.json';
 import {DISCIPLINES, DISCIPLINES_TITLE, disciplineHref} from './disciplines';
 import {IMPLEMENT_FAMILIES, IMPLEMENTS_PAGE, implementsOf} from './implements';
-import {CREATE_ORDER_HREF, NAV, STORE_COUNT, type NavLink} from './nav';
+import {CREATE_ORDER_HREF, NAV} from './nav';
 import {PRODUCT_CATEGORIES} from './products';
 import {PROMOTIONS, PROMOTIONS_PAGE} from './promotions';
 
@@ -60,7 +60,7 @@ const collections: DirectoryEntry[] = [
 ];
 
 const storeEntries: DirectoryEntry[] = [
-  {href: NAV.tiendas.href, label: 'Tiendas', group: 'TIENDAS', terms: `${STORE_COUNT} tiendas sucursales ubicaciones direcciones horarios mapa`, image: NAV.tiendas.image},
+  {href: NAV.tiendas.href, label: 'Tiendas', group: 'TIENDAS', terms: `${stores.length} tiendas sucursales ubicaciones direcciones horarios mapa`, image: NAV.tiendas.image},
   ...stores.map(store => ({href: `/tiendas?tienda=${encodeURIComponent(store.name)}`, label: `Tienda ${store.name}`, group: 'TIENDAS', terms: `sucursal ${store.zone} ${store.address} ${store.phone}`})),
 ];
 
@@ -98,5 +98,5 @@ export const company: [href: string, label: string, description: string][] = com
 /** @deprecated See `company`. */
 export const customer: [href: string, label: string, description: string][] = [...storeEntries.slice(0, 1), ...helpEntries.slice(0, 4)].map(item => [item.href, item.label, item.terms]);
 
-/** What the search shows before anything is typed. */
-export const SEARCH_SHORTCUTS: NavLink[] = [NAV.crear, NAV.promociones, NAV.tiendas, NAV.consulta, NAV.implementos, NAV.app, NAV.ayuda];
+/** What the search shows before anything is typed (kept in lib/nav.ts; re-exported for older importers). */
+export {SEARCH_SHORTCUTS} from './nav';

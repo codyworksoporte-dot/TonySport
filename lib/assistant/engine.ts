@@ -13,12 +13,11 @@ import {
   FAMILY_NOUN, FAMILY_QUESTION, STORES, findDisciplines, findImplementFamily, findStores, findZone, searchDirectory,
   storesInZone, telHref, type Store,
 } from './knowledge';
+import {QUICK_REPLIES} from './greeting';
 import {keyword, normalize, scorer, type Weighted} from './text';
 import type {AssistantAction, AssistantCard, AssistantContext, AssistantReply, IntentId} from './types';
 
-export const QUICK_REPLIES = [
-  'Crear mi pedido', 'Precios', 'Promociones', 'Tiendas cerca', 'Consulta tu pedido', 'App Tony', 'Implementos', 'Hablar con una persona',
-];
+export {QUICK_REPLIES, greeting} from './greeting';
 export const PRICE_TEXT = 'Uniformes desde $12.99 c/u y camisas desde $7.99 c/u.';
 
 // Intents in tie-break order: when two score the same, the earlier one answers.
@@ -370,10 +369,5 @@ export function replyTo(question: string, context: AssistantContext = {}): Assis
     default:
       return unknownReply(question, ask);
   }
-}
-
-/** The first message of every conversation. */
-export function greeting(): AssistantReply {
-  return reply('saludo', '¡Hola! Soy el asistente de Tony. ¿En qué te ayudo?', {chips: QUICK_REPLIES});
 }
 

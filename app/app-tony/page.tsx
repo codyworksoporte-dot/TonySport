@@ -2,8 +2,11 @@ import type {Metadata} from 'next';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import {AppDownloadPanel} from '@/components/AppDownload';
+import LeadImage from '@/components/media/LeadImage';
+import {APP_PHOTO_SIZES} from '@/components/pages/photo-sizes';
 import {rise} from '@/components/pages/rise';
 import {siteAsset} from '@/lib/asset-path';
+import {responsive} from '@/lib/responsive-image';
 import '@/components/pages/pages.css';
 
 export const metadata: Metadata = {
@@ -21,7 +24,7 @@ export default function AppTonyPage() {
 
       <div className="tp-app-grid">
         <div className="tc-tile tp-app-photo tc-rise" style={rise(1)}>
-          <img src={siteAsset('/assets/sections/app-tony-tony.webp')} alt="" width={960} height={1200} loading="eager" decoding="async" fetchPriority="high"/>
+          <LeadImage {...responsive('/assets/sections/app-tony-tony.webp', APP_PHOTO_SIZES)} width={960} height={1200}/>
           <span className="tc-tile-label"><span><b>Tony en tu teléfono</b><small>Android y iPhone</small></span></span>
         </div>
         <div className="tp-app-panel tc-rise" style={rise(2)}>

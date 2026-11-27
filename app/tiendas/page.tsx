@@ -4,8 +4,10 @@ import Link from 'next/link';
 import stores from '@/data/tony-stores.json';
 import {StoreDirectory} from '@/components/EditorialTools';
 import {EditorialShell, SourceNote, whatsappLink} from '@/components/TonyEditorial';
+import LeadImage from '@/components/media/LeadImage';
+import {STORES_PHOTO_SIZES, TILE_SIZES} from '@/components/pages/photo-sizes';
 import {rise} from '@/components/pages/rise';
-import {siteAsset} from '@/lib/asset-path';
+import {responsive} from '@/lib/responsive-image';
 import {TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
 import '@/components/pages/pages.css';
 
@@ -20,7 +22,7 @@ export default function StoresPage() {
         <p className="tp-stores-count"><b>{stores.length}</b>tiendas en El Salvador</p>
       </div>
       <div className="tc-tile tp-stores-photo tc-rise" aria-hidden="true">
-        <img src={siteAsset('/assets/sections/tiendas-tony.webp')} alt="" width={960} height={1200} loading="eager" decoding="async" fetchPriority="high"/>
+        <LeadImage {...responsive('/assets/sections/tiendas-tony.webp', STORES_PHOTO_SIZES)} width={960} height={1200}/>
       </div>
     </header>
 
@@ -34,7 +36,7 @@ export default function StoresPage() {
     <section className="tc-wrap tp-stores-end" aria-label="Tu pedido y ayuda">
       <div className="tp-tiles">
         <Link className="tc-tile tc-rise" href="/consulta">
-          <img className="tp-img-top" src={siteAsset('/assets/sections/entregas-tony.webp')} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+          <img className="tp-img-top" {...responsive('/assets/sections/entregas-tony.webp', TILE_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
           <span className="tc-tile-label"><span><b>Consulta tu pedido</b><small>Con tu número de orden</small></span><span className="tc-go"><Icon name="package"/></span></span>
         </Link>
         <a className="tc-tile tp-tile-wa tc-rise" href={whatsappLink('Hola, Tony. Quiero que me orienten sobre una tienda. Mi ciudad es:')} target="_blank" rel="noopener noreferrer">

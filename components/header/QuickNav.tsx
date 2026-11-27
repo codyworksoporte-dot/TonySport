@@ -3,6 +3,7 @@ import Link from 'next/link';
 import {useEffect, useRef, useState} from 'react';
 import AppDownload from '../AppDownload';
 import Icon from '../Icon';
+import IntentLink from '../IntentLink';
 import NavAnchor from './NavAnchor';
 import {disciplineThumb} from './thumbs';
 import {siteAsset} from '@/lib/asset-path';
@@ -54,13 +55,14 @@ export default function QuickNav({path}: {path: string}) {
       <div className="tony-disc-inner">
         <h2 className="tony-disc-title">{DISCIPLINES_TITLE}</h2>
         <ul className="tony-disc-grid">
+          {/* Fourteen cards open at once: each prefetches on hover or focus, not on sight. */}
           {DISCIPLINES.map(discipline => <li key={discipline.id}>
-            <Link className="tony-disc-card" href={disciplineHref(discipline.id)} onClick={close}>
+            <IntentLink className="tony-disc-card" href={disciplineHref(discipline.id)} onClick={close}>
               <img src={siteAsset(disciplineThumb(discipline, 'card'))} alt="" width={400} height={480} loading="lazy" decoding="async"/>
               <span>{discipline.name}</span>
-            </Link>
+            </IntentLink>
           </li>)}
-          <li><Link className="tony-disc-card tony-disc-all" href="/producto" onClick={close}><Icon name="grid" size={30}/><span>Ver todas</span></Link></li>
+          <li><IntentLink className="tony-disc-card tony-disc-all" href="/producto" onClick={close}><Icon name="grid" size={30}/><span>Ver todas</span></IntentLink></li>
         </ul>
       </div>
     </div>

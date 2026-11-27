@@ -8,6 +8,7 @@ import SearchButton from '@/components/product/SearchButton';
 import {DISCIPLINES_TITLE} from '@/lib/disciplines';
 import {PRODUCT_MENU} from '@/lib/product-menu';
 import {siteAsset} from '@/lib/asset-path';
+import {fitted,responsive} from '@/lib/responsive-image';
 import {TONY_WHATSAPP_NUMBER,whatsappLink} from '@/lib/site-links';
 import ProductDirectorySync from './ProductDirectorySync';
 import '@/components/product/product.css';
@@ -40,7 +41,7 @@ export default function Producto(){
       {PRODUCT_MENU.map(section=><section key={section.id} id={`categoria-${section.id}`} className="tc-sec pd-sec" style={spans(section.cards.length)} aria-labelledby={`titulo-${section.id}`}>
         <header className="tc-sec-h pd-sec-h">
           <div className="pd-sec-title">
-            <img className="pd-sec-avatar" src={siteAsset(section.image)} alt="" width={64} height={64} loading="lazy" decoding="async"/>
+            <img className="pd-sec-avatar" src={siteAsset(fitted(section.image,240))} alt="" width={64} height={64} loading="lazy" decoding="async"/>
             <h2 id={`titulo-${section.id}`}>{section.name}</h2>
           </div>
           {section.more&&<Link href={section.more.href}>{section.more.label}<Icon name="arrow"/></Link>}
@@ -51,7 +52,7 @@ export default function Producto(){
           </li>)}
           {section.more&&<li className="pd-more">
             <Link href={section.more.href} className="tc-tile pd-more-tile">
-              <img src={siteAsset(section.image)} alt="" width={440} height={550} loading="lazy" decoding="async"/>
+              <img {...responsive(section.image,'(max-width: 899px) 33vw, 520px')} alt="" width={440} height={550} loading="lazy" decoding="async"/>
               <span className="tc-tile-label"><b>{section.more.cta}</b><span className="tc-go"><Icon name="arrow"/></span></span>
             </Link>
           </li>}

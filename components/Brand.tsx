@@ -1,16 +1,18 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { flushSync } from 'react-dom';
 import { siteAsset } from '@/lib/asset-path';
+import IntentLink from './IntentLink';
 import './brand.css';
 
 export default function Brand() {
   const router = useRouter();
+  // The logo sits in the header, menu and footer of every page: prefetching Inicio on sight would pull its photos
+  // on every page, so it prefetches on hover, focus or touch instead.
   return (
-    <Link href="/" className="brand" aria-label="Tony Sportswear — Inicio" onClick={event => {
+    <IntentLink href="/" className="brand" aria-label="Tony Sportswear — Inicio" onClick={event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
       if (matchMedia('(max-width: 900px), (pointer: coarse)').matches) return;
       event.preventDefault();
@@ -19,8 +21,9 @@ export default function Brand() {
       router.push('/');
       if (['/', '/TonySport', '/TonySport/'].includes(window.location.pathname)) window.scrollTo({ top: 0, behavior: 'instant' });
     }}>
+      {/* Drawn 46–64 px tall: the 240 px copy (240×216) stays sharp on 3x screens at a third of the bytes. */}
       <Image
-        src={siteAsset('/assets/brand/tony-logo-480.webp')}
+        src={siteAsset('/assets/brand/tony-logo-240.webp')}
         alt="TONY Sportswear"
         width={480}
         height={432}
@@ -28,6 +31,6 @@ export default function Brand() {
         className="official-logo"
         preload
       />
-    </Link>
+    </IntentLink>
   );
 }

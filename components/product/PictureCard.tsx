@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Icon from '@/components/Icon';
+import LeadImage from '@/components/media/LeadImage';
 import {siteAsset} from '@/lib/asset-path';
 import {imageFocus} from '@/lib/product-menu';
 
@@ -12,12 +13,18 @@ type Props = {
   kind:'page'|'whatsapp'|'external';
   /** Accessible name for external cards (e.g. "<name> en la tienda oficial de Tony"). */
   label?:string;
+  /**
+   * The card is in the first row the page shows: its picture loads at once (the rest wait until they near the screen).
+   * 'high' only for the page's LCP picture; 'auto' for the others, so they do not compete with it and the CSS.
+   */
+  priority?:false|'high'|'auto';
 };
 
 /** A product option as a picture and its name. Nothing else. */
-export default function PictureCard({id,name,image,href,kind,label}:Props){
+export default function PictureCard({id,name,image,href,kind,label,priority=false}:Props){
+  const photo={src:siteAsset(image),alt:'',width:440,height:440,decoding:'async' as const,style:imageFocus(image)};
   const body=<>
-    <span className="tc-card-media"><img src={siteAsset(image)} alt="" width={440} height={440} loading="lazy" decoding="async" style={imageFocus(image)}/></span>
+    <span className="tc-card-media">{priority?<LeadImage {...photo} fetchPriority={priority}/>:<img {...photo} loading="lazy"/>}</span>
     <span className="tc-card-name"><span>{name.replace(/N\.º /g,'N.º ')}</span><Icon name={kind==='page'?'arrow':kind==='whatsapp'?'whatsapp':'diagonal'}/></span>
   </>;
   if(kind==='page')return <Link id={id} href={href} className="tc-card pd-card">{body}</Link>;

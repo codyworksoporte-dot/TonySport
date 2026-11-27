@@ -44,7 +44,13 @@ export const TONY_ART = {
   /** The complete logo: crocodile, claws, shield and lettering. */
   badge: {
     src: '/assets/brand/tony-logo.webp', width: 1200, height: 1079, frame: BADGE_FRAME,
-    smaller: [{ src: '/assets/brand/tony-logo-480.webp', width: 480 }],
+    // Copies made by scripts/generate-responsive-images.mjs. The 240 one is also the header logo (Brand), so
+    // a badge drawn small reuses that download; 640 and 960 cover the emblem on desktop and on phones.
+    smaller: [
+      { src: '/assets/brand/tony-logo-240.webp', width: 240 },
+      { src: '/assets/brand/tony-logo-640.webp', width: 640 },
+      { src: '/assets/brand/tony-logo-960.webp', width: 960 },
+    ],
   },
   /** Head, arms and claws above the shield, cut at the shield's edge. */
   peek: {

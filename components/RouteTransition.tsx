@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { usePathname } from 'next/navigation';
 import { AMBIENT } from '@/lib/ambient-config';
 import { siteAsset } from '@/lib/asset-path';
+import { whenPageSettles } from '@/lib/page-settled';
 import { TONY_ART } from '@/lib/tony-art';
 import { TonyBadge, tonyArtVars } from './TonyArt';
 import './route-transition.css';
@@ -23,8 +24,13 @@ export default function RouteTransition() {
   const pathname = usePathname();
   const [art, setArt] = useState<'pending' | 'mobile' | 'full'>('pending');
   const root = useRef<HTMLDivElement>(null);
-  const run = useRef({ phase: 'idle' as Phase, coveredAt: 0, mobile: false, timers: [] as number[], warm: 0, generation: 0 });
+  const run = useRef({ phase: 'idle' as Phase, coveredAt: 0, mobile: false, timers: [] as number[], warm: 0, generation: 0, artShown: false });
   const shown = useRef(pathname);
+  /**
+   * The artwork (and its logo file) mounts once the page has settled, so it never competes with the
+   * page's own images; a section change before that mounts it right away.
+   */
+  const showArt = () => { run.current.artShown = true; setArt(matchMedia(MOBILE).matches ? 'mobile' : 'full'); };
 
   const set = (phase: Phase) => {
     if (run.current.phase === phase) return;
@@ -79,6 +85,7 @@ export default function RouteTransition() {
   const cover = (x: number, y: number) => {
     clear();
     run.current.mobile = matchMedia(MOBILE).matches;
+    if (!run.current.artShown) showArt();
     arm();
     stopWarming();
     root.current?.style.setProperty('--from-x', `${Math.round(x)}px`);
@@ -102,10 +109,10 @@ export default function RouteTransition() {
     };
     const onIntro = () => { clear(); stopWarming(); set('idle'); setCovered(false); };
     const mobile = matchMedia(MOBILE), reduced = matchMedia('(prefers-reduced-motion: reduce)');
-    const update = () => {onIntro(); setArt(mobile.matches ? 'mobile' : 'full');};
+    const update = () => {onIntro(); if (run.current.artShown) showArt();};
     const interrupted = () => {if (!allowed()) onIntro();};
     update();
-    const idle = window.requestIdleCallback?.(arm, { timeout: 2500 }) ?? window.setTimeout(arm, 1200);
+    const settled = whenPageSettles(() => { if (!run.current.artShown) showArt(); }, { imageWait: 3000 });
     document.addEventListener('click', onClick, true);
     window.addEventListener('tony:intro-start', onIntro);
     window.addEventListener('tony:effects-change', interrupted);
@@ -119,12 +126,19 @@ export default function RouteTransition() {
       document.removeEventListener('visibilitychange', interrupted);
       mobile.removeEventListener('change', update);
       reduced.removeEventListener('change', interrupted);
-      if (window.cancelIdleCallback) window.cancelIdleCallback(idle); else clearTimeout(idle);
+      settled();
       clear();
       stopWarming();
       setCovered(false);
     };
   }, []);
+
+  // Desktop: once the artwork is drawn, load and decode it (and the scales texture) ahead of the first change.
+  useEffect(() => {
+    if (art !== 'full') return;
+    const idle = window.requestIdleCallback?.(arm, { timeout: 2500 }) ?? window.setTimeout(arm, 1200);
+    return () => { if (window.cancelIdleCallback) window.cancelIdleCallback(idle); else clearTimeout(idle); };
+  }, [art]);
 
   useEffect(() => {
     // Effects can run twice for the same page (Strict Mode): only a new path counts.

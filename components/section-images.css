@@ -27,20 +27,12 @@
 .te-stitch-art:has(.section-image){background:#152019;border-color:#82996366}
 .te-stitch-art:has(.section-image) :is(.te-fabric-number,.te-fabric-labels,.te-art-note){color:#edf5e0;z-index:1;text-shadow:0 1px 8px #0008}
 .te-technique-swatch:has(.section-image)>span{color:#f0f5e8;z-index:1;background:#101a12df;border-radius:3px;padding:8px;line-height:1.5}
-.te-large-word:has(.section-image){min-height:420px;padding:30px;display:flex;align-items:flex-end;overflow:hidden;border-radius:7px;font-size:clamp(64px,7vw,100px);color:#def7ba}
-.te-large-word:has(.section-image)>div{position:relative;z-index:1}
-.te-delivery-graphic:has(.section-image){min-height:420px;margin:0;padding:24px;border:1px solid #8ba36b55;border-radius:7px;overflow:hidden;justify-content:flex-end}
-.te-delivery-graphic:has(.section-image)>div{font-size:clamp(26px,2.5vw,35px);padding:17px 0;z-index:1}
-.te-delivery-graphic:has(.section-image)>div::before{display:none}
 .te-sponsorship-emblem:has(.section-image){min-height:420px;overflow:hidden;border-radius:7px;align-items:end;justify-items:start;padding:30px}
 .te-sponsorship-emblem:has(.section-image) strong{position:relative;z-index:1;transform:none;text-align:left;font-size:clamp(65px,7vw,100px);text-shadow:none}
 .te-app-poster:has(.section-image){background:#152019;justify-content:flex-start;align-items:flex-end;padding:64px 26px 26px}
 .te-app-poster:has(.section-image) .te-app-poster-top{color:#e5f4d5;z-index:1}
 .te-app-poster:has(.section-image) .te-phone{width:66%;max-width:290px;min-height:0;border:0;border-radius:0;background:none;box-shadow:none;transform:none;padding:0;z-index:1}
 .te-app-poster:has(.section-image) .te-phone-word{margin-top:0}
-.te-tonyplay-art:has(.section-image){justify-content:space-between;min-height:440px}
-.te-tonyplay-art:has(.section-image)>span{position:relative;z-index:1}
-.te-tonyplay-art .section-image{background:#101810}
 .te-story-art:has(.section-image){min-height:480px;justify-content:flex-start;padding:25px;color:#edf4e3}
 .te-story-art:has(.section-image)::before,.te-story-art:has(.section-image)::after{display:none}
 .te-story-art:has(.section-image)>span{transform:none;padding:0;font-size:clamp(56px,6.5vw,89px);line-height:.9;text-align:left}
@@ -49,8 +41,6 @@
 .story-poster:has(.section-image){overflow:hidden;min-height:460px;justify-content:flex-end;padding:30px}
 .story-poster:has(.section-image)>span,.story-poster:has(.section-image)>small{position:relative;z-index:1}
 .story-poster:has(.section-image)>span{font-size:100px}
-.contact-card:has(.section-image){position:relative;overflow:hidden;isolation:isolate}
-.contact-card:has(.section-image)>:not(.section-image){position:relative;z-index:1}
 
 .recent-empty-photo{position:relative;width:100%;min-height:290px;border-radius:7px;overflow:hidden}
 .review-empty-photo{position:relative;height:225px;margin:-50px -37px 30px;overflow:hidden}
@@ -70,8 +60,7 @@
   .destination-photo{width:57px;height:77px;flex-basis:57px}
   .review-empty-photo{height:215px;margin:-28px -28px 25px}
   .recent-empty-photo{min-height:235px}
-  .te-large-word:has(.section-image),.te-delivery-graphic:has(.section-image),.te-sponsorship-emblem:has(.section-image){min-height:390px}
-  .te-large-word:has(.section-image){font-size:clamp(62px,16vw,100px)}
+  .te-sponsorship-emblem:has(.section-image){min-height:390px}
   .te-story-art:has(.section-image){min-height:420px}
   .te-story-art:has(.section-image)>span{font-size:clamp(58px,12vw,86px)}
   .te-news-poster:has(.section-image)>span{font-size:clamp(53px,11vw,78px)}
@@ -84,6 +73,5 @@
   .destination-entry:has(.destination-photo){gap:9px}
   .destination-entry:has(.destination-photo) h3{font-size:23px}
   .review-empty-photo{margin:-25px -25px 24px}
-  .te-large-word:has(.section-image){padding:24px 18px;font-size:61px}
   .te-app-poster:has(.section-image){padding-left:20px;padding-right:20px}
 }

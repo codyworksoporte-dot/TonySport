@@ -9,7 +9,7 @@
 import {usePathname} from 'next/navigation';
 import {useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent} from 'react';
 import Icon from '@/components/Icon';
-import {greeting, replyTo} from '@/lib/assistant/engine';
+import {greeting} from '@/lib/assistant/greeting';
 import {ASSISTANT_ENDPOINT, askRemote} from '@/lib/assistant/remote';
 import type {AssistantMessage, AssistantReply} from '@/lib/assistant/types';
 import {HELP_WHATSAPP, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
@@ -37,6 +37,14 @@ const isMessage = (value: unknown): value is AssistantMessage => !!value && type
   && ((value as AssistantMessage).role === 'user' || (value as AssistantMessage).role === 'assistant');
 const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.tonyEffects === 'off';
 const wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
+// The local engine and its site facts load on first interest (launcher hover, focus or touch, opening),
+// not with every page: most visits never ask a question.
+let engine: Promise<typeof import('@/lib/assistant/engine')> | null = null;
+const loadEngine = () => {
+  engine ??= import('@/lib/assistant/engine').catch(error => { engine = null; throw error; });
+  return engine;
+};
+const warmEngine = () => { void loadEngine().catch(() => { /* Retried when a question is sent. */ }); };
 
 export default function TonyAssistant() {
   const path = usePathname() || '/';
@@ -88,6 +96,7 @@ export default function TonyAssistant() {
 
   function openPanel() {
     if (hiddenRef.current) return;
+    warmEngine();
     window.clearTimeout(closeTimer.current);
     dismissHint();
     setPhase('open');
@@ -123,9 +132,14 @@ export default function TonyAssistant() {
         if (remote) answer = toMessage(remote, 'remote');
       }
       if (!answer) {
-        await wait(TYPING_MS);
+        // No network, or a new deploy removed the engine's chunk while this tab stayed open: answer anyway.
+        const [local] = await Promise.all([loadEngine().catch(() => null), wait(TYPING_MS)]);
         const history = earlier.filter(message => message.role === 'user').map(message => message.text);
-        answer = toMessage(replyTo(question, {history, page: pathRef.current}), 'local');
+        answer = toMessage(local ? local.replyTo(question, {history, page: pathRef.current}) : {
+          intent: 'desconocido', cards: [], chips: [],
+          text: 'No pude cargar mis respuestas. Revisa tu conexión o recarga la página; también puedes escribirnos por WhatsApp.',
+          actions: [{label: `WhatsApp ${TONY_WHATSAPP_NUMBER}`, kind: 'whatsapp', icon: 'whatsapp-solid', href: HELP_WHATSAPP}],
+        }, 'local');
       }
       const reply = answer;
       setMessages(current => [...current, reply]);
@@ -235,7 +249,8 @@ export default function TonyAssistant() {
     </div>}
 
     <button ref={launcher} type="button" className="ta-launcher" aria-label={open ? 'Cerrar asistente Tony' : 'Abrir asistente Tony'}
-      aria-expanded={phase === 'open'} aria-controls={open ? panelId : undefined} onClick={() => (phase === 'open' ? closePanel() : openPanel())}>
+      aria-expanded={phase === 'open'} aria-controls={open ? panelId : undefined} onClick={() => (phase === 'open' ? closePanel() : openPanel())}
+      onPointerEnter={warmEngine} onFocus={warmEngine} onTouchStart={warmEngine}>
       <span className="ta-launcher-icon" aria-hidden="true"><Icon name={phase === 'open' ? 'close' : 'sparkle'} size={28}/></span>
       <span className="ta-launcher-label" aria-hidden="true">Asistente Tony</span>
     </button>

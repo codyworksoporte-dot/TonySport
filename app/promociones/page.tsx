@@ -1,8 +1,11 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
+import LeadImage from '@/components/media/LeadImage';
+import {TILE_SIZES} from '@/components/pages/photo-sizes';
 import {rise} from '@/components/pages/rise';
 import {siteAsset} from '@/lib/asset-path';
+import {responsive} from '@/lib/responsive-image';
 import {CURRENT_PROMOTIONS, PROMOTIONS, PROMO_QUESTION, type Promotion} from '@/lib/promotions';
 import {whatsappLink} from '@/lib/site-links';
 import '@/components/pages/pages.css';
@@ -20,7 +23,8 @@ const NEW_TAB = ' (se abre en otra pestaña)';
 function PromoCard({promo, index, now = false}: {promo: Promotion; index: number; now?: boolean}) {
   const body = <>
     <span className="tp-promo-media">
-      <img src={siteAsset(promo.image)} alt="" width={440} height={440} loading={index < 3 ? 'eager' : 'lazy'} decoding="async"/>
+      {/* Lazy: the first three are the hero's own pictures, already loading at the top of the page. */}
+      <img src={siteAsset(promo.image)} alt="" width={440} height={440} loading="lazy" decoding="async"/>
       {now && <span className="tc-flag">Vigente</span>}
     </span>
     <span className="tp-promo-name">
@@ -52,7 +56,7 @@ export default function PromocionesPage() {
           </div>
         </div>
         <div className="tp-promo-stack" aria-hidden="true">
-          {PROMOTIONS.slice(0, 3).map(promo => <img key={promo.id} src={siteAsset(promo.image)} alt="" width={440} height={440} loading="eager" decoding="async"/>)}
+          {PROMOTIONS.slice(0, 3).map(promo => <LeadImage key={promo.id} src={siteAsset(promo.image)} width={440} height={440} fetchPriority="auto"/>)}
         </div>
       </section>
 
@@ -81,11 +85,11 @@ export default function PromocionesPage() {
       <section className="tc-sec" aria-label="También te puede servir">
         <div className="tp-tiles">
           <Link className="tc-tile tc-rise" href="/tiendas">
-            <img className="tp-img-top" src={siteAsset('/assets/sections/tiendas-tony.webp')} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+            <img className="tp-img-top" {...responsive('/assets/sections/tiendas-tony.webp', TILE_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
             <span className="tc-tile-label"><span><b>Tiendas</b><small>Pregunta en la más cercana</small></span><span className="tc-go"><Icon name="pin"/></span></span>
           </Link>
           <Link className="tc-tile tc-rise" href="/app-tony">
-            <img className="tp-img-top" src={siteAsset('/assets/sections/app-tony-tony.webp')} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+            <img className="tp-img-top" {...responsive('/assets/sections/app-tony-tony.webp', TILE_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
             <span className="tc-tile-label"><span><b>App Tony</b><small>Suma puntos y canjea premios</small></span><span className="tc-go"><Icon name="download"/></span></span>
           </Link>
         </div>

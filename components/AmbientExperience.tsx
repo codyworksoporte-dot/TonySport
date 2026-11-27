@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { usePathname } from 'next/navigation';
 import { AMBIENT } from '@/lib/ambient-config';
-import { startAmbient } from '@/lib/ambient-runtime';
+import type { startAmbient } from '@/lib/ambient-runtime';
 import TonyPeek from './TonyPeek';
 import './ambient-experience.css';
 
@@ -53,9 +53,15 @@ export default function AmbientExperience() {
     const glowLayer = glowRef.current, pulseLayer = pulseRef.current, peekLayer = peekRef.current;
     if (!active || compact || !glowLayer || !pulseLayer || !peekLayer) return;
     const scratches = [...(scratchRef.current?.querySelectorAll<SVGSVGElement>('svg') ?? [])];
-    const controller = startAmbient({ glow: glowLayer, pulse: pulseLayer, peek: peekLayer, scratches }, path.current);
-    runtime.current = controller;
-    return () => { controller.destroy(); runtime.current = null; };
+    // The motion runtime only runs on desktop: phones never download it.
+    let controller: ReturnType<typeof startAmbient> | null = null, cancelled = false;
+    import('@/lib/ambient-runtime').then(({ startAmbient: start }) => {
+      if (cancelled) return;
+      controller = start({ glow: glowLayer, pulse: pulseLayer, peek: peekLayer, scratches }, path.current);
+      runtime.current = controller;
+      peekLayer.dataset.ready = 'true'; // The runtime arrives after hydration; tests wait for this mark.
+    }).catch(() => { /* Decorative: the page works without it. */ });
+    return () => { cancelled = true; controller?.destroy(); runtime.current = null; delete peekLayer.dataset.ready; };
   }, [active, compact]);
 
   useEffect(() => { runtime.current?.setRoute(pathname); }, [pathname]);

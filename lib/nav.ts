@@ -1,7 +1,6 @@
 // The destinations the site chrome (header, menu, search, footer) offers, in one place.
 // External destinations open in a new tab; everything else is an internal route.
 import type {IconName} from '@/components/Icon';
-import stores from '@/data/tony-stores.json';
 import {HELP_WHATSAPP, ORDER_LOOKUP_URL} from './site-links';
 
 type Asset = `/assets/${string}`;
@@ -9,7 +8,6 @@ export type NavLink = {label: string; href: string; icon: IconName; external?: b
 
 export const SEARCH_LABEL = '¿Qué buscas en específico?';
 export const CREATE_ORDER_HREF = '/configurador';
-export const STORE_COUNT = stores.length;
 
 export const NAV = {
   crear: {label: 'Crear pedido', href: CREATE_ORDER_HREF, icon: 'plus'},
@@ -24,6 +22,9 @@ export const NAV = {
 // Tile photos are light 640x400 copies (public/assets/chrome/tiles) of /assets/hero-campaign-v3.png and
 // /assets/sections/{implementos,tiendas,entregas,app-tony,social}-tony.webp. The implementos copy is cropped
 // to the ball, bottle and bag of its photo, so the tile shows equipment rather than a jersey.
+
+/** What the search shows before anything is typed (here, not in site-directory.ts, so the closed search stays light). */
+export const SEARCH_SHORTCUTS: NavLink[] = [NAV.crear, NAV.promociones, NAV.tiendas, NAV.consulta, NAV.implementos, NAV.app, NAV.ayuda];
 
 /** Small text links at the end of the menu. */
 export const MENU_MORE: NavLink[] = [
