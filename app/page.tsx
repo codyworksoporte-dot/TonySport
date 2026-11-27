@@ -149,7 +149,8 @@ export default function Home() {
           <WarmImages watch="home-disciplinas" images={PRODUCT_LEAD_PHOTOS}/>
           {/* Two rows in motion: the top one drifts right, the bottom one left. Each track repeats its row
               (copies are aria-hidden and out of the tab order) and shifts by exactly one copy, so the loop is seamless. */}
-          <div className="home-chips-rows">
+          {/* data-ahead: the marquees clip their chips, so PicturesAhead readies them all as the section comes near. */}
+          <div className="home-chips-rows" data-ahead="">
             {[DISCIPLINES.slice(0, 7), DISCIPLINES.slice(7)].map((row, rowIndex) => {
               const chips = [...row.map(line => ({key: line.id, line})), ...(rowIndex === 1 ? [{key: 'all', line: null}] : [])];
               return <div key={rowIndex} className="home-marquee" data-dir={rowIndex === 0 ? 'right' : 'left'}>
