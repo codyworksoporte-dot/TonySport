@@ -27,8 +27,9 @@ export default function RouteTransition() {
   const run = useRef({ phase: 'idle' as Phase, coveredAt: 0, mobile: false, timers: [] as number[], warm: 0, generation: 0, artShown: false });
   const shown = useRef(pathname);
   /**
-   * The artwork (and its logo file) mounts once the page has settled, so it never competes with the
-   * page's own images; a section change before that mounts it right away.
+   * The artwork (and its logo file, at low priority) mounts once the page has settled, so it never competes with
+   * the page's own images, or as soon as the visitor touches, clicks or types, since a section change may follow.
+   * A section change before either mounts it right away.
    */
   const showArt = () => { run.current.artShown = true; setArt(matchMedia(MOBILE).matches ? 'mobile' : 'full'); };
 
@@ -113,6 +114,10 @@ export default function RouteTransition() {
     const interrupted = () => {if (!allowed()) onIntro();};
     update();
     const settled = whenPageSettles(() => { if (!run.current.artShown) showArt(); }, { imageWait: 3000 });
+    const interest = ['pointerdown', 'touchstart', 'keydown'] as const;
+    const stopListening = () => interest.forEach(type => document.removeEventListener(type, onInterest, true));
+    function onInterest() { stopListening(); if (!run.current.artShown) showArt(); }
+    interest.forEach(type => document.addEventListener(type, onInterest, { capture: true, passive: true }));
     document.addEventListener('click', onClick, true);
     window.addEventListener('tony:intro-start', onIntro);
     window.addEventListener('tony:effects-change', interrupted);
@@ -127,6 +132,7 @@ export default function RouteTransition() {
       mobile.removeEventListener('change', update);
       reduced.removeEventListener('change', interrupted);
       settled();
+      stopListening();
       clear();
       stopWarming();
       setCovered(false);
@@ -164,7 +170,7 @@ export default function RouteTransition() {
     {art === 'mobile' && <div className="rt-mobile">
       <div className="rt-mobile-content">
         <div className="rt-mobile-emblem" style={tonyArtVars(TONY_ART.badge)}>
-          <TonyBadge className="rt-mobile-badge" sizes="min(72vw, 290px)"/>
+          <TonyBadge className="rt-mobile-badge" sizes="min(72vw, 290px)" imgProps={{ fetchPriority: 'low' }}/>
         </div>
         <span className="rt-mobile-label">Cambiando apartado</span>
         <span className="rt-mobile-track"><i className="rt-mobile-progress"/></span>
@@ -176,7 +182,7 @@ export default function RouteTransition() {
     <div className="rt-stage">
       <div className="rt-emblem" style={tonyArtVars(TONY_ART.badge)}>
         <span className="rt-shadow"/>
-        <TonyBadge className="rt-badge" sizes="min(72vmin, 500px)"/>
+        <TonyBadge className="rt-badge" sizes="min(72vmin, 500px)" imgProps={{ fetchPriority: 'low' }}/>
       </div>
     </div></>}
   </div>;
