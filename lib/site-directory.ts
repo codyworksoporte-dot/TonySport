@@ -12,7 +12,7 @@ export type DirectoryEntry = {href: string; label: string; group: string; terms:
 const sections: DirectoryEntry[] = [
   {href: '/', label: 'Inicio', group: 'TONY', terms: 'pagina principal portada'},
   {href: CREATE_ORDER_HREF, label: 'Crear mi pedido', group: 'ACCESOS', terms: 'crea tu pedido uniforme camisa editor cantidad jugadores nombre numero dorsal talla escudo diseño personalizar cotizar configurador'},
-  {href: PROMOTIONS_PAGE, label: 'Promociones', group: 'ACCESOS', terms: `promos ofertas descuentos rebajas campañas ${PROMOTIONS.map(promo => promo.title).join(' ')}`, image: NAV.promociones.image},
+  {href: PROMOTIONS_PAGE, label: 'Promociones', group: 'ACCESOS', terms: `black friday promos ofertas descuentos rebajas campañas ${PROMOTIONS.map(promo => promo.title).join(' ')}`, image: NAV.promociones.image},
   {href: NAV.consulta.href, label: 'Consulta tu pedido', group: 'ACCESOS', terms: 'estado de mi pedido seguimiento rastrear orden entrega envio entregas domicilio', external: true, image: NAV.consulta.image},
   {href: '/app-tony', label: 'Descarga la App Tony', group: 'ACCESOS', terms: 'app aplicacion android ios iphone google play app store puntos premios canje recompensas descargar', image: NAV.app.image},
   {href: NAV.ayuda.href, label: 'Ayuda por WhatsApp', group: 'ACCESOS', terms: 'ayuda whatsapp 7015 5571 contacto chat telefono escribir asesor', external: true},

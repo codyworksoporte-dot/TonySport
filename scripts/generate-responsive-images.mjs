@@ -17,7 +17,6 @@ const LOGO = { quality: 85, alphaQuality: 95, effort: 6, smartSubsample: true };
 const SECTION_WIDTHS = [320, 560, 720];
 
 const text = file => readFile(file, 'utf8');
-const unique = list => [...new Set(list)];
 // Lists read from the code, so the copies follow what the pages show.
 async function homeDesigns() {
   const list = (await text('app/page.tsx')).match(/const DESIGNS = \[([^\]]*)\]/)?.[1] ?? '';
@@ -26,16 +25,20 @@ async function homeDesigns() {
 async function sectionPhotos() {
   return (await readdir('public/assets/sections')).filter(name => /^[a-z0-9-]+-tony\.webp$/.test(name)).map(name => `/assets/sections/${name}`);
 }
+async function storefrontCovers() {
+  return (await readdir('public/assets/portadas')).filter(name => /(?<!-\d{3,4})\.webp$/.test(name)).map(name => `/assets/portadas/${name}`);
+}
 async function smallCovers() {
-  // Implement family covers (40 px chips, 64 px avatars) and the product photos used as discipline avatars.
-  const covers = [...(await text('lib/implements.ts')).matchAll(/cover:\s*'(\/assets\/colecciones\/\d+\.webp)'/g)].map(match => match[1]);
-  const products = [...(await text('lib/disciplines.ts')).matchAll(/image:\s*'(\/assets\/colecciones\/\d+\.webp)'/g)].map(match => match[1]);
-  return unique([...covers, ...products]);
+  // Keep the previously generated gallery thumbnails available to their callers.
+  return (await readdir('public/assets/colecciones'))
+    .filter(name => /^\d+-240\.webp$/.test(name))
+    .map(name => `/assets/colecciones/${name.replace('-240', '')}`);
 }
 
 const GROUPS = [
   { name: 'Fotos de sección', files: sectionPhotos, widths: SECTION_WIDTHS, webp: PHOTO },
   { name: 'Promo de la portada', files: async () => ['/assets/home/promo-campaign.webp'], widths: [560, 720], webp: PHOTO },
+  { name: 'Portadas de productos y secciones', files: storefrontCovers, widths: [240, 400, 640], webp: PHOTO },
   { name: 'Diseños de la portada', files: homeDesigns, widths: [320, 560, 720], webp: PHOTO },
   { name: 'Portadas pequeñas', files: smallCovers, widths: [240], webp: PHOTO },
   // 240: header and footer logo (58–72 px CSS). 640 / 960: the section-change and intro emblem (lib/tony-art.ts).

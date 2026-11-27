@@ -1,40 +1,3 @@
-/* PROMOCIONES: a lime-to-orange hero band and big campaign cards. Uses components/pages/pages.css. */
-.tp-promo-hero{position:relative;overflow:hidden;isolation:isolate;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:center;gap:24px;min-height:440px;padding:48px 52px;border-radius:var(--tc-r);background:linear-gradient(118deg,#e9ffa6 0%,#b4ff35 40%,#ffb36b 80%,#ff8f45 100%);color:var(--tc-on-lime)}
-.tp-promo-word{position:absolute;right:-1%;bottom:-.16em;z-index:-1;font:700 clamp(150px,24vw,360px)/.8 var(--font-display),Impact,sans-serif;text-transform:uppercase;color:transparent;-webkit-text-stroke:2px rgb(11 18 13 / .16);pointer-events:none;user-select:none;white-space:nowrap}
-.tp .tp-promo-hero p.tp-promo-kicker{color:#28470c}
-.tp-promo-hero h1{margin-top:10px;font-size:clamp(58px,8.4vw,128px);line-height:.84}
-.tp-promo-lead{margin-top:16px;max-width:30ch;font:600 clamp(17px,1.6vw,21px)/1.38 var(--font-body),Arial,sans-serif;color:#1c2a0f}
-.tp-promo-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
-.tp-promo-stack{position:relative;height:350px}
-.tp-promo-stack img{--rot:0deg;position:absolute;width:min(58%,250px);height:auto;aspect-ratio:1;object-fit:cover;border-radius:18px;border:4px solid #fff;box-shadow:0 24px 50px rgb(28 40 6 / .35);transform:rotate(var(--rot));animation:tp-float 6s ease-in-out infinite}
-.tp-promo-stack img:nth-child(1){--rot:-9deg;left:0;top:12%}
-.tp-promo-stack img:nth-child(2){--rot:7deg;right:2%;top:0;animation-delay:-2s}
-.tp-promo-stack img:nth-child(3){--rot:-2deg;left:24%;bottom:0;z-index:1;animation-delay:-4s}
-@keyframes tp-float{0%,100%{transform:rotate(var(--rot)) translateY(0)}50%{transform:rotate(var(--rot)) translateY(-10px)}}
-@media(max-width:899px){
-  .tp-promo-hero{grid-template-columns:1fr;gap:6px;min-height:0;padding:30px 22px 22px}
-  .tp-promo-actions{margin-top:22px}
-  .tp-promo-actions .tc-btn{flex:1 1 220px}
-  .tp-promo-stack{width:100%;max-width:500px;height:230px;margin:8px auto 0}
-  .tp-promo-stack img{width:min(44%,190px)}
-  .tp-promo-stack img:nth-child(1){left:2%;top:16%}
-  .tp-promo-stack img:nth-child(3){left:30%}
-}
-@media(max-width:599px){
-  .tp-promo-hero{grid-template-columns:minmax(0,1fr);padding:26px 18px 18px}
-  .tp-promo-hero h1{font-size:max(40px,14vw)}
-  .tp-promo-actions .tc-btn{flex:1 1 100%;min-width:0;padding:0 16px;white-space:normal;text-align:center;line-height:1.15}
-  .tp-promo-stack{height:200px}
-}
-/* The stack floats forever: off screen it pauses, so the compositor stops drawing frames nobody sees
-   (the hero's view timeline sets --tp-promo-seen to 0 outside the viewport; a style query pauses the photos).
-   The timeline is named on the hero because the hero clips (overflow), which would make it the stack's scroller.
-   Without view timelines or style queries it keeps floating, as it always did. */
-@property --tp-promo-seen{syntax:'*';inherits:false;initial-value:1}
-@supports(animation-timeline:view()){.tp-promo-hero{view-timeline-name:--tp-promo-hero}.tp-promo-stack{animation:tp-promo-seen linear both;animation-timeline:--tp-promo-hero}}
-@keyframes tp-promo-seen{from,to{--tp-promo-seen:0}.1%,99.9%{--tp-promo-seen:1}}
-@container style(--tp-promo-seen:0){.tp-promo-stack img{animation-play-state:paused}}
-
 .tp-sec-note{margin-top:8px;color:var(--tc-mute);font:400 16px/1.4 var(--font-body),Arial,sans-serif}
 .tp-promo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:0;padding:0;list-style:none}
 .tp-promo-grid>li{display:flex;min-width:0}
@@ -75,6 +38,5 @@
   .tp-promo-name b{font-size:18px}
 }
 
-@media(prefers-reduced-motion:reduce){.tp-promo-stack img{animation:none}.tp-promo-card,.tp-promo-media img,.tp-promo-ask{transition:none!important}}
-html[data-tony-effects=off] .tp-promo-stack img{animation:none}
+@media(prefers-reduced-motion:reduce){.tp-promo-card,.tp-promo-media img,.tp-promo-ask{transition:none!important}}
 html[data-tony-effects=off] :is(.tp-promo-card,.tp-promo-media img,.tp-promo-ask){transition:none!important}

@@ -5,14 +5,14 @@ export type ImplementFamily = { id: string; name: string; cover: Asset };
 export type Implement = { id: number; name: string; family: string; image: Asset; href: string };
 
 export const IMPLEMENT_FAMILIES: ImplementFamily[] = [
-  { id: 'balones', name: 'Balones de fútbol', cover: '/assets/colecciones/33905.webp' },
-  { id: 'futsal', name: 'Fútbol sala', cover: '/assets/colecciones/35212.webp' },
-  { id: 'baloncesto', name: 'Baloncesto', cover: '/assets/colecciones/26366.webp' },
-  { id: 'guantes', name: 'Guantes de portero', cover: '/assets/colecciones/26361.webp' },
-  { id: 'espinilleras', name: 'Espinilleras', cover: '/assets/colecciones/26363.webp' },
-  { id: 'beisbol', name: 'Béisbol', cover: '/assets/colecciones/26359.webp' },
-  { id: 'mallas', name: 'Mallas', cover: '/assets/colecciones/35087.webp' },
-  { id: 'accesorios', name: 'Accesorios', cover: '/assets/colecciones/26358.webp' },
+  { id: 'balones', name: 'Balones de fútbol', cover: '/assets/portadas/balones.webp' },
+  { id: 'futsal', name: 'Fútbol sala', cover: '/assets/portadas/futsal.webp' },
+  { id: 'baloncesto', name: 'Baloncesto', cover: '/assets/portadas/baloncesto.webp' },
+  { id: 'guantes', name: 'Guantes de portero', cover: '/assets/portadas/guantes.webp' },
+  { id: 'espinilleras', name: 'Espinilleras', cover: '/assets/portadas/espinilleras.webp' },
+  { id: 'beisbol', name: 'Béisbol', cover: '/assets/portadas/beisbol.webp' },
+  { id: 'mallas', name: 'Mallas', cover: '/assets/portadas/mallas.webp' },
+  { id: 'accesorios', name: 'Accesorios', cover: '/assets/portadas/accesorios.webp' },
 ];
 
 const OFFICIAL = 'https://www.tonysportselsalvador.com/producto/';

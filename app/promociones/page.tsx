@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
-import LeadImage from '@/components/media/LeadImage';
+import BlackFridayCover from '@/components/BlackFridayCover';
 import {TILE_SIZES} from '@/components/pages/photo-sizes';
 import {rise} from '@/components/pages/rise';
 import {siteAsset} from '@/lib/asset-path';
@@ -42,23 +42,7 @@ export default function PromocionesPage() {
   const recent = PROMOTIONS.filter(promo => !promo.current);
   return <main id="contenido" className="tp tc-page tp-promos">
     <div className="tc-wrap">
-      <section className="tp-promo-hero tc-rise" aria-labelledby="tp-promo-title">
-        <span className="tp-promo-word" aria-hidden="true">Tony</span>
-        <div>
-          <p className="tp-kicker tp-promo-kicker"><Icon name="tag"/>Tony Sportswear</p>
-          <h1 id="tp-promo-title" className="tc-display">Promociones</h1>
-          <p className="tp-promo-lead">Pregunta por la promoción vigente en tu tienda o por WhatsApp.</p>
-          <div className="tp-promo-actions">
-            <a className="tc-btn tc-btn--wa tc-btn--lg" href={ASK} target="_blank" rel="noopener noreferrer">
-              <Icon name="whatsapp-solid"/>Preguntar por WhatsApp<span className="tc-sr">{NEW_TAB}</span>
-            </a>
-            <Link className="tc-btn tc-btn--dark tc-btn--lg" href="/tiendas"><Icon name="pin"/>Ver tiendas</Link>
-          </div>
-        </div>
-        <div className="tp-promo-stack" aria-hidden="true">
-          {PROMOTIONS.slice(0, 3).map(promo => <LeadImage key={promo.id} src={siteAsset(promo.image)} width={440} height={440} fetchPriority="auto"/>)}
-        </div>
-      </section>
+      <BlackFridayCover promotionPage/>
 
       {CURRENT_PROMOTIONS.length > 0 && <section className="tc-sec" aria-labelledby="tp-promo-now">
         <div className="tc-sec-h"><h2 id="tp-promo-now">Vigentes</h2></div>

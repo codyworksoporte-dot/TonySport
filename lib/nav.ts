@@ -11,17 +11,14 @@ export const CREATE_ORDER_HREF = '/configurador';
 
 export const NAV = {
   crear: {label: 'Crear pedido', href: CREATE_ORDER_HREF, icon: 'plus'},
-  promociones: {label: 'Promociones', href: '/promociones', icon: 'tag', image: '/assets/chrome/tiles/promociones.webp'},
-  implementos: {label: 'Implementos', href: '/implementos', icon: 'ball', image: '/assets/chrome/tiles/implementos.webp'},
-  tiendas: {label: 'Tiendas', href: '/tiendas', icon: 'store', image: '/assets/chrome/tiles/tiendas.webp'},
-  consulta: {label: 'Consulta tu pedido', href: ORDER_LOOKUP_URL, icon: 'package', external: true, image: '/assets/chrome/tiles/consulta.webp'},
-  app: {label: 'App Tony', href: '/app-tony', icon: 'phone', image: '/assets/chrome/tiles/app.webp'},
+  promociones: {label: 'Promociones', href: '/promociones', icon: 'tag', image: '/assets/portadas/black-friday-400.webp'},
+  implementos: {label: 'Implementos', href: '/implementos', icon: 'ball', image: '/assets/portadas/implementos-400.webp'},
+  tiendas: {label: 'Tiendas', href: '/tiendas', icon: 'store', image: '/assets/portadas/tiendas-400.webp'},
+  consulta: {label: 'Consulta tu pedido', href: ORDER_LOOKUP_URL, icon: 'package', external: true, image: '/assets/portadas/consulta-400.webp'},
+  app: {label: 'App Tony', href: '/app-tony', icon: 'phone', image: '/assets/portadas/app-tony-400.webp'},
   ayuda: {label: 'Ayuda', href: HELP_WHATSAPP, icon: 'whatsapp', external: true},
   news: {label: 'Tony News', href: '/tony-news', icon: 'news', image: '/assets/chrome/tiles/news.webp'},
 } satisfies Record<string, NavLink>;
-// Tile photos are light 640x400 copies (public/assets/chrome/tiles) of /assets/hero-campaign-v3.png and
-// /assets/sections/{implementos,tiendas,entregas,app-tony,social}-tony.webp. The implementos copy is cropped
-// to the ball, bottle and bag of its photo, so the tile shows equipment rather than a jersey.
 
 /** What the search shows before anything is typed (here, not in site-directory.ts, so the closed search stays light). */
 export const SEARCH_SHORTCUTS: NavLink[] = [NAV.crear, NAV.promociones, NAV.tiendas, NAV.consulta, NAV.implementos, NAV.app, NAV.ayuda];

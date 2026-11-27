@@ -28,6 +28,7 @@ export function disciplineThumb(discipline: Discipline, size: 'chip' | 'card'): 
 
 /** The light copy of any photo that has one (search thumbnails use the 160px chip). */
 export function chipThumb(image: Asset, size: 'chip' | 'card' = 'chip'): Asset {
+  if (image.startsWith('/assets/portadas/')) return image.replace(/(?:-\d{3,4})?\.webp$/, size === 'chip' ? '-240.webp' : '-400.webp') as Asset;
   const copy = COPIES[image];
   return copy ? `/assets/chrome/disciplinas/${copy}-${size}.webp` : image;
 }

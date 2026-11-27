@@ -1,0 +1,21 @@
+.bf-cover{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;min-height:clamp(350px,42vw,520px);border:1px solid #ff4c3b;border-radius:var(--tc-r);background:#140809;color:#fff;box-shadow:0 12px 42px #87141852;scroll-margin-top:120px}
+.bf-cover-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:65% 48%;z-index:-2}
+.bf-cover::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(107deg,#0c0707 11%,#130505d9 36%,#f9272b89 36.3%,#ffb645bd 36.65%,transparent 37.4%),linear-gradient(0deg,#180507a6,transparent 54%)}
+.bf-cover-copy{padding:clamp(24px,5vw,70px);max-width:100%}
+.bf-cover-brand{display:flex;align-items:center;gap:10px;margin:0 0 11px;color:#e7ff9f;font:800 clamp(12px,1.55vw,17px)/1.15 var(--font-body),sans-serif;letter-spacing:.08em;text-transform:uppercase}
+.bf-cover-brand img{width:clamp(38px,4vw,52px);height:auto;border-radius:50%;box-shadow:0 0 0 1px #aaff36,0 0 18px #aaff3655}
+.bf-cover-title{margin:0;line-height:.94;font-size:clamp(48px,7vw,104px);font-style:italic;text-shadow:0 4px 0 #512020,0 12px 32px #000}
+.bf-cover-title em{display:inline-block;padding:0 .14em .05em;color:#090c05;background:linear-gradient(116deg,#f5ff98,#b8ff24 47%,#7bea06);clip-path:polygon(7% 0,100% 0,93% 100%,0 100%);font-style:inherit;text-shadow:none}
+.bf-cover-offer{display:inline-flex;align-items:baseline;gap:.17em;margin:12px 0 0;padding:6px 22px 10px 15px;clip-path:polygon(3% 0,100% 0,92% 100%,0 100%);background:repeating-linear-gradient(125deg,transparent 0 11px,#ffd5692b 12px 14px),linear-gradient(115deg,#a80e22,#ed282e 58%,#ff6e34);color:#fff;font:700 clamp(52px,8.2vw,126px)/.84 var(--font-display),Impact,sans-serif;text-shadow:0 3px 0 rgb(75 5 12 / .8)}
+.bf-cover-offer span{font-size:.47em}
+.bf-cover-dates{margin:14px 0 16px;color:#fff1e7;font:750 clamp(14px,1.65vw,21px)/1.25 var(--font-body),sans-serif}
+.bf-cover .tc-btn{white-space:normal}
+@media(max-width:639px){
+  .bf-cover{min-height:450px;align-items:end}
+  .bf-cover-photo{height:82%;object-position:92% 42%}
+  .bf-cover::after{background:linear-gradient(0deg,#140809 12%,#140809ed 22%,#14080980 53%,transparent 76%)}
+  .bf-cover-copy{padding:20px}
+  .bf-cover-title{font-size:clamp(37px,12.2vw,65px)}
+  .bf-cover-offer{margin-top:8px}
+  .bf-cover-dates{margin:10px 0 12px}
+}

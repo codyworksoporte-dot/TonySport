@@ -41,10 +41,22 @@ main.home-c{padding-top:clamp(18px,2.6vw,34px)}
 .home-tile .tc-tile-label b{font-size:clamp(24px,10.5cqi,36px);text-wrap:balance}
 .home-go{position:absolute;right:20px;bottom:20px}
 @container (max-width:170px){.home-tile .tc-flag{top:12px;left:12px;padding:5px 8px;font-size:10.5px;letter-spacing:.04em}}
+.home-product-tile,.home-equipment-card{--cover-accent:#b4ff35}
+.home-product-tile:nth-child(3n),.home-grid>li:nth-child(3n) .home-equipment-card{--cover-accent:#ff9043}
+.home-product-tile:nth-child(3n + 2),.home-grid>li:nth-child(3n + 2) .home-equipment-card{--cover-accent:#4dcfff}
+.home-product-tile::before,.home-equipment-card .tc-card-media::after{content:"";position:absolute;z-index:0;top:11px;left:11px;width:clamp(32px,5vw,46px);aspect-ratio:1;border-radius:50%;background:#09100b url('/assets/brand/sello-portadas.webp') center/cover no-repeat;box-shadow:0 0 0 1px var(--cover-accent),0 0 12px color-mix(in srgb,var(--cover-accent),transparent 50%);pointer-events:none}
+.home-product-tile::after{background:linear-gradient(180deg,transparent 45%,#020906ed),linear-gradient(127deg,transparent 0 80%,color-mix(in srgb,var(--cover-accent) 57%,transparent) 80.3%,transparent 81% 84%,color-mix(in srgb,var(--cover-accent) 29%,transparent) 84.2%,transparent 84.6%)}
+.home-equipment-card .tc-card-media{position:relative;background:radial-gradient(ellipse at 68% 40%,color-mix(in srgb,var(--cover-accent) 30%,#172025),#101813 76%)}
+.home-equipment-card{border-bottom:2px solid color-mix(in srgb,var(--cover-accent) 60%,#121b17)}
+.home-tile--promo{box-shadow:inset 0 0 0 1px #ff675b}
+.home-tile--promo::after{background:linear-gradient(180deg,transparent 29%,#160507 99%),linear-gradient(100deg,#10050991,transparent)}
+.home-tile--promo .tc-flag{background:#cb202e;color:white;font-size:clamp(12px,4.5cqi,18px);box-shadow:0 5px 14px #57071199}
+.home-tile--promo .tc-tile-label b{color:#fbff9a}
+.home-create::before,.home-tile--promo::before{content:"";position:absolute;top:12px;right:12px;width:clamp(36px,5vw,56px);aspect-ratio:1;border-radius:50%;background:#0c120c url('/assets/brand/sello-portadas.webp') center/cover no-repeat;box-shadow:0 0 0 1px #d0ff63,0 2px 16px #101504a8;pointer-events:none}
 
-.home-create{grid-column:span 2;grid-row:span 2;background:linear-gradient(135deg,#d8ff7a,#a8f23a 55%,#7fd61f);color:var(--tc-on-lime);box-shadow:none}
-.home-create::after{display:none}
-.home-tile.home-create>img{left:auto;width:58%;object-position:60% 28%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 38%);mask-image:linear-gradient(90deg,transparent,#000 38%)}
+.home-create{grid-column:span 2;grid-row:span 2;background:radial-gradient(circle,#15320028 1px,transparent 1.7px) 0 0/8px 8px,linear-gradient(135deg,#f2ffc8,#bafa40 49%,#7fc412);color:var(--tc-on-lime);box-shadow:none}
+.home-create::after{background:linear-gradient(107deg,transparent 0 43%,#dcff82 43.3%,#ddff689c 43.7%,transparent 44% 46%,#0c240d84 46.2%,transparent 46.6%);opacity:.75}
+.home-tile.home-create>img{left:auto;width:64%;object-position:55% 48%;mask-image:linear-gradient(107deg,transparent 7%,#000 20%)}
 .home-create-copy{position:absolute;top:clamp(20px,5cqi,36px);bottom:clamp(20px,5cqi,36px);left:clamp(20px,5cqi,36px);display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;gap:14px;max-width:56%}
 .home-create-title,.home-create-note{text-shadow:0 0 14px rgb(200 255 90 / .85),0 0 4px rgb(200 255 90 / .9)}
 .home-create-title{display:block;font-size:clamp(44px,13cqi,88px);line-height:.86}
@@ -70,6 +82,8 @@ main.home-c{padding-top:clamp(18px,2.6vw,34px)}
   .home-go{top:12px;right:12px;bottom:auto;width:42px;height:42px}
   /* The go disc takes the top corner on phones, so the flag sits just above the tile name instead. */
   .home-tile .tc-flag{top:auto;bottom:calc(24px + clamp(22px,10.5cqi,36px));left:14px}
+  .home-tile--promo .tc-flag{top:12px;bottom:auto}
+  .home-tile--promo::before{top:60px;right:16px;width:32px}
   .home-go svg{width:20px;height:20px}
   .home-wide .tc-tile-label{right:72px}
   .home-wide .tc-tile-label b{font-size:clamp(24px,7.6cqi,34px)}
@@ -150,31 +164,9 @@ html[data-tony-effects=off] .home-marquee-track>[data-copy]{display:none}
 @media(hover:hover) and (pointer:fine){.home-grid .tc-card:hover .home-plus{transform:rotate(90deg)}}
 @media(max-width:699px){.tc-cards.home-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.home-grid .tc-card-name{min-height:56px;padding:10px 12px}.home-plus{width:34px;height:34px}}
 
-/* Promo banner. */
-.home-promo{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);min-height:300px;overflow:hidden;border-radius:var(--tc-r);background:radial-gradient(120% 140% at 0% 0%,#ffc995 0%,var(--tc-orange) 40%,var(--tc-flare) 100%);color:#1d0f04;text-decoration:none}
-.home-promo:focus-visible{outline:3px solid #e8ffb0;outline-offset:3px}
-.home-promo-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:10px;padding:clamp(24px,4vw,48px)}
-.home-promo-icon{display:grid;place-items:center;width:52px;height:52px;margin-bottom:4px;border-radius:50%;background:#1d0f04;color:var(--tc-orange)}
-.home-promo-title{font-size:clamp(40px,5vw,72px);line-height:.9;color:#1d0f04}
-.home-promo-note{font:600 17px/1.4 var(--font-body);color:#3d1f07}
-.home-promo-btn{margin-top:12px}
-.home-promo-art{position:relative;min-height:240px}
-.home-promo-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:60% 50%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 42%);mask-image:linear-gradient(90deg,transparent,#000 42%)}
-.home-promo-card{position:absolute;top:50%;right:clamp(20px,7%,80px);width:clamp(150px,40%,236px);height:auto;aspect-ratio:1;object-fit:cover;border-radius:18px;box-shadow:0 0 0 4px #fff,0 26px 50px rgb(0 0 0 / .45);translate:0 -50%;rotate:-6deg;transition:rotate 600ms var(--tc-ease),scale 600ms var(--tc-ease)}
-@media(hover:hover) and (pointer:fine){.home-promo:hover .home-promo-card{rotate:-2deg;scale:1.04}.home-promo:hover .home-promo-btn{transform:translateY(-2px)}}
-@media(max-width:699px){
-  .home-promo{grid-template-columns:1fr;min-height:0}
-  .home-promo-art{order:-1;min-height:180px}
-  .home-promo-bg{-webkit-mask-image:linear-gradient(180deg,#000 55%,transparent);mask-image:linear-gradient(180deg,#000 55%,transparent)}
-  .home-promo-card{width:136px;right:22px}
-  .home-promo-copy{padding:4px 20px 22px}
-  .home-promo-icon{display:none}
-  .home-promo-note{font-size:15px}
-}
-
 @media(max-width:899px){.home-c .tc-sec{padding-top:40px}}
 @media(max-width:599px){.home-sec-h{gap:12px}.home-sec-h h2{font-size:clamp(28px,7.6vw,32px)}}
 
 /* Motion stays optional. */
-@media(prefers-reduced-motion:reduce){.home-c :is(.home-search,.home-search-go,.home-chip-ring,.home-chip-photo img,.home-help-mark,.home-plus,.home-promo-card){transition:none!important}}
-html[data-tony-effects=off] .home-c :is(.home-search,.home-search-go,.home-chip-ring,.home-chip-photo img,.home-help-mark,.home-plus,.home-promo-card){transition:none!important}
+@media(prefers-reduced-motion:reduce){.home-c :is(.home-search,.home-search-go,.home-chip-ring,.home-chip-photo img,.home-help-mark,.home-plus){transition:none!important}}
+html[data-tony-effects=off] .home-c :is(.home-search,.home-search-go,.home-chip-ring,.home-chip-photo img,.home-help-mark,.home-plus){transition:none!important}

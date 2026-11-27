@@ -52,7 +52,7 @@ export default function Producto(){
           </li>)}
           {section.more&&<li className="pd-more">
             <Link href={section.more.href} className="tc-tile pd-more-tile">
-              <img {...responsive(section.image,'(max-width: 899px) 33vw, 520px')} alt="" width={440} height={550} loading="lazy" decoding="async"/>
+              <img {...responsive(section.image,'(max-width: 899px) 33vw, 520px')} alt="" width={800} height={800} loading="lazy" decoding="async"/>
               <span className="tc-tile-label"><b>{section.more.cta}</b><span className="tc-go"><Icon name="arrow"/></span></span>
             </Link>
           </li>}

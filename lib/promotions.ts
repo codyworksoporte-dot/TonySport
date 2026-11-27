@@ -1,5 +1,7 @@
 // PROMOCIONES. Every entry is a real Tony campaign published on tonysportselsalvador.com, newest first.
 // They are past campaigns: mark one `current: true` (and set `until`) only when Tony confirms it is running.
+import {whatsappLink} from '@/lib/site-links';
+
 type Asset = `/assets/${string}`;
 export type Promotion = {
   id: string; title: string; when: string; image: Asset;
@@ -19,3 +21,9 @@ export const PROMOTIONS: Promotion[] = [
 export const CURRENT_PROMOTIONS = PROMOTIONS.filter(promo => promo.current);
 export const PROMOTIONS_PAGE = '/promociones';
 export const PROMO_QUESTION = 'Hola, Tony. ¿Qué promociones tienen vigentes?';
+export const BLACK_FRIDAY = {
+  id: 'black-friday',
+  image: '/assets/portadas/black-friday.webp',
+  dates: 'Del 23 al 30 de noviembre de 2026',
+  contact: whatsappLink('Hola, Tony. Quisiera consultar qué productos están incluidos en la promoción de Black Friday del 30%.'),
+} as const;

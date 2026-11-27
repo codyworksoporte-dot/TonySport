@@ -1,4 +1,3 @@
-import {siteAsset} from '@/lib/asset-path';
 import {DISCIPLINES} from '@/lib/disciplines';
 import {responsive} from '@/lib/responsive-image';
 
@@ -13,13 +12,8 @@ const TILE_SIZES='(max-width: 639px) calc(50vw - 21px), (max-width: 1099px) 25vw
 /** Tiles a 390×844 phone shows on arrival: the lead and the next two rows. */
 export const ON_SCREEN=5;
 
-/**
- * src, srcSet and sizes of the tile at `index`. The product photos (colecciones, 360–440 px originals) stay whole:
- * tiles crop them by height and some zoom in, so a lighter copy would look soft on 1.25x laptop screens.
- */
-export const disciplinePhoto=(image:`/assets/${string}`,index:number)=>image.startsWith('/assets/colecciones/')
-  ?{src:siteAsset(image),srcSet:undefined,sizes:undefined}
-  :responsive(image,index===0?LEAD_SIZES:index===1?WIDE_SIZES:TILE_SIZES);
+/** The lead tiles get a wider responsive image than the single-column cards. */
+export const disciplinePhoto=(image:`/assets/${string}`,index:number)=>responsive(image,index===0?LEAD_SIZES:index===1?WIDE_SIZES:TILE_SIZES);
 
 /** The photos on screen on arrival at /producto, exactly as DisciplineGrid draws them (same files, same cache entries). */
 export const leadTilePhotos=()=>DISCIPLINES.slice(0,ON_SCREEN).map((discipline,index)=>disciplinePhoto(discipline.image,index));
