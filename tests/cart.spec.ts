@@ -143,7 +143,7 @@ test('Escape and cancel preserve the design; confirmation removes it from cart a
   await dialog.getByRole('button', {name: 'Sí, eliminar', exact: true}).click();
   await expect(page.locator('[data-cart-item]')).toHaveCount(0);
   await expect(page.locator('.cart-live')).toContainText(`${team} se eliminó del carrito`);
-  await expect(page.locator('.cart-bite')).toHaveCount(0);
+  await expect(page.locator('.cart-removal-logo')).toHaveCount(0);
   expect(await savedCart(page)).toHaveLength(0);
   const draft = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), ORDER_STORAGE_KEY);
   expect(draft.team).toBe(team);
@@ -180,17 +180,17 @@ test('a branch is required and the manual quote and downloaded summary keep the 
   // Do not click the external quote link or send anything to a branch.
 });
 
-test('the lizard deletion effect starts only after confirmation and ends with the saved item removed', async ({page}) => {
+test('the logo appears only after confirming removal and leaves with the saved item removed', async ({page}) => {
   await page.emulateMedia({reducedMotion: 'no-preference'});
   await readyCart(page);
   await page.getByRole('button', {name: `Eliminar ${team} del carrito`, exact: true}).click();
-  await expect(page.locator('.cart-bite')).toHaveCount(0);
+  await expect(page.locator('.cart-removal-logo')).toHaveCount(0);
   expect(await savedCart(page)).toHaveLength(1);
   await page.getByRole('button', {name: 'Sí, eliminar', exact: true}).click();
-  await expect(page.locator('.cart-bite')).toBeVisible();
+  await expect(page.locator('.cart-removal-logo')).toBeVisible();
   expect(await savedCart(page)).toHaveLength(0);
   await expect(page.locator('[data-cart-item]')).toHaveCount(0);
-  await expect(page.locator('.cart-bite')).toHaveCount(0);
+  await expect(page.locator('.cart-removal-logo')).toHaveCount(0);
   await expect(page.locator('.cart-empty')).toBeVisible();
 });
 

@@ -1,17 +1,1 @@
-/* 404: the head close-up rises over the sideline (the art is cut at the shield's
-   edge, which rests on the line), the eye ignites and keeps smouldering, and he
-   blinks now and then. Opacity and transforms only. */
-.nf-tony{position:relative;width:min(300px,68vw);margin:34px auto 26px}
-.nf-tony-clip{overflow:hidden}
-.nf-tony-head{width:100%;transform-origin:50% 100%;animation:nf-rise 900ms cubic-bezier(.16,1,.3,1) 120ms both}
-.nf-tony-line{position:absolute;left:50%;bottom:-2px;width:min(150%,92vw);height:3px;translate:-50% 0;border-radius:2px;background:linear-gradient(90deg,transparent,#e9f5d6 18%,#e9f5d6 82%,transparent);box-shadow:0 0 18px rgb(255 122 26 / .35)}
-.nf-tony .tf-glow{animation:nf-ignite 1100ms cubic-bezier(.16,1,.3,1) 820ms both,nf-smoulder 3.2s ease-in-out 1920ms infinite}
-.nf-tony .tf-glow::after{animation:tf-glint 640ms ease-out 900ms both}
-.nf-tony .tf-lid{animation:tf-blink 5.6s linear 3s infinite}
-@keyframes nf-rise{from{opacity:0;transform:translateY(18%) scale(.96)}to{opacity:1;transform:none}}
-@keyframes nf-ignite{0%{opacity:0;transform:scale(.3)}40%{opacity:1;transform:scale(1.35)}100%{opacity:.9;transform:scale(1)}}
-@keyframes nf-smoulder{0%,100%{opacity:.9;transform:scale(1)}50%{opacity:.5;transform:scale(.9)}}
-@media(prefers-reduced-motion:reduce){.nf-tony-head,.nf-tony .tf-glow,.nf-tony .tf-glow::after,.nf-tony .tf-lid{animation:none!important}.nf-tony .tf-glow{opacity:.75}}
-html[data-tony-effects=off] :is(.nf-tony-head,.nf-tony .tf-glow,.nf-tony .tf-lid){animation:none}
-html[data-tony-effects=off] .nf-tony .tf-glow{opacity:.75}
-html[data-tony-effects=off] .nf-tony .tf-glow::after{animation:none}
+.nf-tony{width:min(280px,66vw);margin:24px auto}.nf-tony img{display:block;width:100%;height:auto;border-radius:6px}

@@ -1,0 +1,72 @@
+.replay-intro {
+  display:block; min-height:44px; margin:0 auto 10px; padding:8px 18px;
+  border:0; border-radius:6px; background:transparent; color:var(--mute);
+  font:600 12px/1.35 var(--font-body),sans-serif; cursor:pointer;
+}
+.replay-intro[hidden], .replay-intro:disabled { display:none }
+.replay-intro:hover { color:var(--venom) }
+.brand-intro {
+  --landing:600ms; --shine:1500ms; --exit:2250ms;
+  position:fixed; inset:0; margin:0; padding:0; width:100%; height:100dvh;
+  max-width:none; max-height:none; border:0; overflow:hidden; isolation:isolate;
+  color:#eff6e7; background:#080b09; overscroll-behavior:contain;
+}
+.brand-intro[open] { display:grid; place-items:center; animation:brand-exit 350ms ease-in var(--exit) both }
+.brand-intro::backdrop { background:transparent }
+.brand-intro::before {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:-1;
+  background:radial-gradient(ellipse at center,transparent,#080b09 82%), url('/assets/escamas-tony-base.webp') center / 560px;
+  opacity:.46;
+}
+.intro-wordmark {
+  position:relative; width:min(84vw,620px); aspect-ratio:1080/547; isolation:isolate;
+  animation:wordmark-drop calc(var(--landing) + 220ms) both;
+}
+.intro-wordmark img {
+  display:block; width:100%; height:100%; object-fit:contain;
+  mask-image:radial-gradient(ellipse 68% 65% at 50% 51%,#000 60%,transparent 88%);
+  animation:wordmark-shine 560ms ease-in-out var(--shine) both;
+}
+.intro-wordmark::before {
+  content:""; position:absolute; z-index:-1; inset:-16%; opacity:0;
+  background:radial-gradient(ellipse,#7eff4299,transparent 66%);
+  animation:wordmark-halo 680ms ease-out var(--shine) both;
+}
+.intro-impact { position:absolute; inset:0; display:grid; place-items:center; pointer-events:none; overflow:hidden }
+.intro-impact i {
+  position:absolute; width:140vmax; aspect-ratio:1; opacity:0;
+  background:url('/assets/escamas-tony-brasa.webp') center / min(82vw,520px);
+  mask-image:radial-gradient(closest-side,transparent 26%,rgb(0 0 0/.4) 38%,black 47%,rgb(0 0 0/.8) 56%,transparent 72%);
+  animation:impact-trail 1100ms cubic-bezier(.22,1,.36,1) var(--landing) both;
+}
+.intro-impact i+i { animation-delay:calc(var(--landing) + 160ms); background-size:min(82vw,520px); }
+.intro-wordmark-fallback { display:grid; place-content:center; height:100%; text-align:center; color:#b4ff35; font:italic 700 clamp(50px,14vw,110px)/.85 var(--font-display),sans-serif }
+.intro-wordmark-fallback small { margin-top:.45em; font:700 .22em var(--font-body),sans-serif; text-transform:uppercase; letter-spacing:.19em; color:#ffa259 }
+.intro-skip {
+  position:absolute; bottom:max(24px,env(safe-area-inset-bottom)); right:max(24px,env(safe-area-inset-right));
+  min-height:44px; padding:8px 16px; display:flex; align-items:center; gap:10px;
+  background:#111a14; border:1px solid #76905e; color:#e4eddb;
+  border-radius:999px; font:600 14px/1.2 var(--font-body),sans-serif; cursor:pointer;
+}
+@keyframes wordmark-drop {
+  0% { opacity:0; transform:translateY(-63dvh) scale(.9); animation-timing-function:cubic-bezier(.62,0,.85,.35) }
+  26% { opacity:1 }
+  74% { transform:translateY(0) scale(1.025,.955); animation-timing-function:ease-out }
+  88% { transform:translateY(-1.2dvh) scale(.995,1.008) }
+  100% { opacity:1; transform:none }
+}
+@keyframes impact-trail {
+  0% { opacity:0; transform:scale(.12) }
+  18% { opacity:1 }
+  100% { opacity:0; transform:scale(1.13) }
+}
+@keyframes wordmark-shine { 0%,100% { filter:brightness(1) } 45% { filter:brightness(1.36) saturate(1.25) } }
+@keyframes wordmark-halo { 0%,100% { opacity:0 } 48% { opacity:.85 } }
+@keyframes brand-exit { to { opacity:0 } }
+@media (max-width:700px) {
+  .brand-intro { --landing:420ms; --shine:990ms; --exit:1630ms }
+  .brand-intro[open] { animation-duration:270ms }
+  .intro-skip { right:50%; translate:50% 0 }
+  .intro-impact i { width:112vmax }
+}
+@media (prefers-reduced-motion:reduce) { .brand-intro, .replay-intro { display:none!important } }

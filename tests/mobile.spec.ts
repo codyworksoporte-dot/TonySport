@@ -61,12 +61,15 @@ test('storage failure shows an error and never a false cart success', async ({pa
 });
 
 test('mobile navigation keeps close and search reachable, releases scroll and uses a full-screen transition', async ({page}) => {
+  await page.addInitScript(() => sessionStorage.setItem('tony:intro:wordmark:v1','seen'));
   await page.goto('/');
-  await expect(page.locator('.lagarto-intro[open]')).toHaveCount(0);
+  await expect(page.locator('.brand-intro[open]')).toHaveCount(0);
   const menu=page.getByRole('dialog',{name:'Menú de Tony Sportswear'});
   await page.getByRole('button',{name:'Abrir menú'}).tap();
-  // The disciplines are picture chips in the menu (the old Producto accordion is gone).
-  await menu.getByRole('navigation',{name:'Navegación principal'}).getByRole('link',{name:'Fútbol',exact:true}).tap();
+  const nav=menu.getByRole('navigation',{name:'Navegación principal'});
+  await nav.getByText('Productos',{exact:true}).tap();
+  await nav.getByText('Confección de uniformes de fútbol',{exact:true}).tap();
+  await nav.getByRole('link',{name:'Ver fútbol',exact:true}).tap();
   await expect(page).toHaveURL(/\/producto#categoria-futbol$/);
   await expect(menu).not.toBeVisible();
   await expect(page.locator('.route-transition')).toHaveAttribute('data-phase','idle');
@@ -75,7 +78,8 @@ test('mobile navigation keeps close and search reachable, releases scroll and us
   await expect(page.locator('#categoria-futbol')).toBeInViewport();
   await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.documentElement).overflow)).not.toBe('hidden');
   await page.getByRole('button',{name:'Abrir menú'}).tap();
-  await expect(menu.getByRole('link',{name:'Ver todas',exact:true})).toHaveAttribute('aria-current','page');
+  await nav.getByText('Productos',{exact:true}).tap();
+  await expect(nav.getByRole('link',{name:'Ver todos los productos',exact:true})).toHaveAttribute('aria-current','page');
   await menu.getByRole('button',{name:'¿Qué buscas en específico?',exact:true}).tap();
   await expect(page.locator('#site-search')).toBeFocused();
   await page.locator('#site-search').fill('tiendas');

@@ -22,7 +22,7 @@ export function Hero() {
     const play = () => {
       if (played || reduced.matches || document.documentElement.dataset.tonyEffects === 'off') return;
       const boot = (window as Window & { __tonyIntroBoot?: { pending: boolean } }).__tonyIntroBoot;
-      if (boot?.pending || document.querySelector('.lagarto-intro[open]') || document.documentElement.dataset.routeCover) return;
+      if (boot?.pending || document.querySelector('.brand-intro[open]') || document.documentElement.dataset.routeCover) return;
       played = true;
       const compact = matchMedia('(max-width: 900px), (pointer: coarse)').matches;
       const image = root.querySelector('.hero-campaign-art img');

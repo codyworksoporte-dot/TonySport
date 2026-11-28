@@ -1,12 +1,12 @@
 /**
- * Every tunable of the decorative layer lives here: the scale glow, the lizard
- * peeking from the bottom edge, the section wink and the click scratch.
+ * Every tunable of the decorative layer lives here: the scale glow, the logo
+ * at rest, the section transition and click feedback.
  * Components read these values; CSS receives the ones it needs as custom
  * properties from AmbientExperience and RouteTransition.
  */
 export const AMBIENT = {
   preferenceKey: 'tony:ambient-effects:v1',
-  /** Order and purchase flows: no mascot and no ambient light over them. */
+  /** Order and purchase flows: no idle logo and no ambient light over them. */
   quietRoutes: /^\/(configurador|carrito|recientes)(?:\/|$)/,
 
   glow: {
@@ -28,8 +28,8 @@ export const AMBIENT = {
   peek: {
     /** Tony rises over the bottom edge after this long without clicks, taps, scroll or keys (pointer movement doesn't count). */
     idleMs: 5500,
-    /** Box width: clamp(min, vw, max). The height follows the art (lib/tony-art.ts). */
-    width: { min: 190, vw: 23, max: 360 },
+    /** Box width: clamp(min, vw, max). The height follows the wordmark. */
+    width: { min: 84, vw: 9, max: 124 },
     /** Candidate spots (fractions of the viewport width); he takes the one covering the least content. */
     stopCandidates: [.12, .25, .38, .5, .62, .75, .88],
     /** Time to climb into view before he stares, and to drop out of sight. */

@@ -56,9 +56,7 @@ test('reseñas abre por enlace directo, pero ni el encabezado, ni el menú, ni e
   const banner=page.getByRole('banner'),footer=page.getByRole('contentinfo');
   await expect(banner.getByRole('button',{name:'¿Qué buscas en específico?',exact:true})).toBeVisible();
   await expect(banner.locator(toReviews)).toHaveCount(0);
-  const quickNav=page.getByRole('navigation',{name:'Accesos rápidos'});
-  await expect(quickNav.getByRole('link',{name:'Tony News',exact:true})).toBeVisible();
-  await expect(quickNav.locator(toReviews)).toHaveCount(0);
+  await expect(page.getByRole('navigation',{name:'Accesos rápidos'})).toHaveCount(0);
   await expect(footer.getByRole('navigation',{name:'Ayuda',exact:true})).toBeVisible();
   await expect(footer.locator(toReviews)).toHaveCount(0);
   await expect(footer.getByRole('link',{name:/reseña/i})).toHaveCount(0);
@@ -66,6 +64,7 @@ test('reseñas abre por enlace directo, pero ni el encabezado, ni el menú, ni e
   await page.getByRole('button',{name:'Abrir menú',exact:true}).click();
   const menu=page.getByRole('dialog',{name:'Menú de Tony Sportswear'});
   await expect(menu.getByRole('navigation',{name:'Navegación principal',exact:true})).toBeVisible();
+  await expect(menu.getByRole('link',{name:'Tony News',exact:true})).toBeVisible();
   await expect(menu.locator(toReviews)).toHaveCount(0);
   await expect(menu.getByRole('link',{name:/reseña/i})).toHaveCount(0);
   await page.keyboard.press('Escape');await expect(menu).toBeHidden();
@@ -87,7 +86,7 @@ test('reseñas abre por enlace directo, pero ni el encabezado, ni el menú, ni e
 test('las cifras sociales salieron de la portada y el pie enlaza los perfiles oficiales en otra pestaña',async({page})=>{
   await page.goto('/');
   const main=page.getByRole('main');
-  await expect(main.getByRole('heading',{level:1})).toHaveText('¿Qué necesitas hoy?');
+  await expect(main.getByRole('heading',{level:1})).toHaveText('Crear mi pedido');
   await expect(main.locator('.social-community, .social-count')).toHaveCount(0);
   await expect(main).not.toContainText('Actualización manual');
   await expect(main.locator('a[href*="instagram.com"], a[href*="facebook.com"], a[href*="tiktok.com"]')).toHaveCount(0);

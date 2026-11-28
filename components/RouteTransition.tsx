@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation';
 import { AMBIENT } from '@/lib/ambient-config';
 import { siteAsset } from '@/lib/asset-path';
 import { whenPageSettles } from '@/lib/page-settled';
-import { TONY_ART } from '@/lib/tony-art';
-import { TonyBadge, tonyArtVars } from './TonyArt';
+import TonyWordmark from './TonyWordmark';
 import './route-transition.css';
 
 type Phase = 'idle' | 'cover' | 'wink' | 'reveal';
@@ -15,7 +14,7 @@ const MOBILE = '(max-width: 900px), (pointer: coarse)';
 
 /**
  * Changing section: the scales close over the page, a ring spreading from the
- * link you clicked; the Tony logo slams in, he winks (his eye flashes) once the
+ * link you clicked; the Tony logo slams in, it settles once the
  * new section is ready, then lets you in. Every moving part is a transform or an
  * opacity, so the compositor keeps it smooth while the new page renders.
  * Purely decorative: it never takes clicks or focus and skips when motion is off.
@@ -42,8 +41,8 @@ export default function RouteTransition() {
   const later = (callback: () => void, ms: number) => { run.current.timers.push(window.setTimeout(callback, ms)); };
   const allowed = () => !document.hidden && !matchMedia('(prefers-reduced-motion: reduce)').matches
     && document.documentElement.dataset.tonyEffects !== 'off'
-    && !document.querySelector('.lagarto-intro[open]');
-  /** While the page is covered its entrance animations wait (RevealText, the hero) and so does the peeking lizard. */
+    && !document.querySelector('.brand-intro[open]');
+  /** While the page is covered its entrance animations wait (RevealText, the hero). */
   const setCovered = (covered: boolean) => {
     const html = document.documentElement;
     if (covered === (html.dataset.routeCover === 'true')) return;
@@ -54,7 +53,7 @@ export default function RouteTransition() {
   /**
    * Load and decode the artwork ahead of time, then draw every layer once, nearly
    * transparent on desktop. The mobile cover uses a flat surface and cached
-   * character assets, without downloading the desktop texture or adding blur.
+   * logo, without downloading the desktop texture or adding blur.
    */
   const arm = () => {
     const element = root.current;
@@ -151,7 +150,7 @@ export default function RouteTransition() {
     if (shown.current === pathname) return;
     shown.current = pathname;
     if (run.current.phase === 'cover') {
-      // Let Tony arrive before the wink, however fast the page was.
+      // Let the logo settle, however fast the page was.
       clear();
       later(wink, Math.max(0, (run.current.mobile ? transition.mobile.arriveMs : transition.arriveMs) - (performance.now() - run.current.coveredAt)));
     } else if (allowed()) {
@@ -169,8 +168,8 @@ export default function RouteTransition() {
   } as CSSProperties}>
     {art === 'mobile' && <div className="rt-mobile">
       <div className="rt-mobile-content">
-        <div className="rt-mobile-emblem" style={tonyArtVars(TONY_ART.badge)}>
-          <TonyBadge className="rt-mobile-badge" sizes="min(72vw, 290px)" imgProps={{ fetchPriority: 'low' }}/>
+        <div className="rt-mobile-emblem">
+          <TonyWordmark className="rt-mobile-badge" sizes="min(72vw, 290px)" fetchPriority="low"/>
         </div>
         <span className="rt-mobile-label">Cambiando apartado</span>
         <span className="rt-mobile-track"><i className="rt-mobile-progress"/></span>
@@ -180,9 +179,9 @@ export default function RouteTransition() {
     <div className="rt-panel"/>
     <span className="rt-ring"/>
     <div className="rt-stage">
-      <div className="rt-emblem" style={tonyArtVars(TONY_ART.badge)}>
+      <div className="rt-emblem">
         <span className="rt-shadow"/>
-        <TonyBadge className="rt-badge" sizes="min(72vmin, 500px)" imgProps={{ fetchPriority: 'low' }}/>
+        <TonyWordmark className="rt-badge" sizes="min(72vmin, 500px)" fetchPriority="low"/>
       </div>
     </div></>}
   </div>;

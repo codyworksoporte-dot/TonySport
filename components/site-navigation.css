@@ -1,9 +1,4 @@
-/*
- * Site chrome, Option C ("Botones gigantes"): a sticky dark header with a big search pill, WhatsApp
- * contact, cart, "Crear pedido" and the menu; a slim quick nav on desktop (or the search pill on phones);
- * the menu sheet and the search palette. Tokens come from app/tony-c.css (--tc-*).
- */
-
+/* Site toolbar, contact strip, text menu and search palette. */
 /* ---------- Header (sticky) ---------- */
 .site-header.tony-header{position:sticky;top:0;z-index:40;isolation:isolate;padding:0;border-bottom:1px solid var(--tc-line);background:rgb(5 10 7 / .88);backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15);box-shadow:none}
 .tony-header-inner{width:min(1440px,calc(100% - 48px));height:84px;margin-inline:auto;display:flex;align-items:center;gap:14px}
@@ -47,41 +42,31 @@
 /* The keyboard hint means nothing on a touch screen. */
 @media(pointer:coarse){.tony-search-trigger>kbd{display:none}.tony-search-trigger .tony-search-pill{padding-right:22px}}
 
-/* ---------- Under the header (not sticky): quick nav on desktop, search pill on phones ---------- */
-.tony-subbar{position:relative;z-index:39;border-bottom:1px solid var(--tc-line);background:#060c08}
+/* Official contact strip. The mobile search stays above it. */
+.tony-subbar{border-bottom:1px solid var(--tc-line);background:#09110d}
 .tony-subbar-search{display:none}
-.tony-qnav{width:min(1440px,calc(100% - 48px));margin-inline:auto}
-.tony-qnav-list{display:flex;align-items:center;justify-content:space-between;gap:4px;min-height:58px;margin:0;padding:0;list-style:none}
-.tony-qnav-link{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border:0;border-radius:999px;background:none;color:#dfe8d6;font:600 14.5px/1 var(--font-body),Arial,sans-serif;white-space:nowrap;text-decoration:none;cursor:pointer;transition:background 180ms ease,color 180ms ease}
-.tony-qnav-link svg{width:21px;height:21px;flex:none;color:var(--tc-lime)}
-.tony-qnav-link .tony-qnav-ext{width:14px;height:14px;color:var(--tc-mute)}
-.tony-qnav-chevron{width:18px!important;height:18px!important;transition:transform 260ms var(--tc-ease)}
-.tony-qnav-disc[aria-expanded=true] .tony-qnav-chevron{transform:rotate(180deg)}
-.tony-qnav-link[aria-current=page],.tony-qnav-link.is-current,.tony-qnav-disc[aria-expanded=true]{background:rgb(180 255 53 / .12);color:var(--tc-lime)}
-.tony-qnav-promo{background:rgb(255 161 91 / .14);color:#ffd2ae}
-.tony-qnav-promo svg{color:var(--tc-orange)}
-@media(hover:hover) and (pointer:fine){.tony-qnav-link:hover{background:rgb(180 255 53 / .1);color:var(--tc-lime)}.tony-qnav-promo:hover{background:rgb(255 161 91 / .24);color:#ffe2cb}}
-
-/* Disciplines panel: 13 picture cards and "Ver todas", under the quick nav. */
-.tony-disc-panel{position:absolute;left:0;right:0;top:100%;z-index:39;max-height:calc(100dvh - 150px);overflow-y:auto;overscroll-behavior:contain;border-bottom:1px solid var(--tc-line-strong);background:rgb(6 12 8 / .97);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 30px 60px rgb(0 0 0 / .5)}
-.tony-disc-panel[hidden]{display:none}
-.tony-disc-panel:not([hidden]){animation:tony-panel-in 320ms var(--tc-ease) both}
-@keyframes tony-panel-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:none}}
-.tony-disc-inner{width:min(1440px,calc(100% - 48px));margin-inline:auto;padding:22px 0 26px}
-.tony-disc-title{margin:0 0 16px;font:700 clamp(28px,2.6vw,38px)/.95 var(--font-display),Impact,sans-serif;text-transform:uppercase;letter-spacing:-.01em}
-.tony-disc-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
-.tony-disc-card{position:relative;display:block;aspect-ratio:5/6;overflow:hidden;isolation:isolate;border-radius:var(--tc-r-md);background:var(--tc-tile);box-shadow:inset 0 0 0 1px var(--tc-line);color:var(--tc-ink);text-decoration:none}
-.tony-disc-card img{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover;object-position:50% 22%;transition:transform 900ms var(--tc-ease)}
-.tony-disc-card::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent 45%,rgb(3 7 5 / .9));pointer-events:none}
-.tony-disc-card span{position:absolute;left:12px;right:10px;bottom:10px;font:700 clamp(17px,1.45vw,22px)/.95 var(--font-display),Impact,sans-serif;text-transform:uppercase}
-.tony-disc-all{display:grid;place-items:center;align-content:center;gap:10px;background:linear-gradient(135deg,#e2ff98,var(--tc-lime) 55%,var(--tc-lime-lo));color:var(--tc-on-lime)}
-.tony-disc-all::after{display:none}
-.tony-disc-all span{position:static}
-@media(hover:hover) and (pointer:fine){.tony-disc-card:hover img{transform:scale(1.06)}.tony-disc-card:hover{box-shadow:inset 0 0 0 2px var(--tc-lime)}}
-
+.tony-contact-line{display:flex;align-items:center;justify-content:space-between;gap:6px 20px;width:min(1440px,calc(100% - 48px));min-height:44px;margin:auto;color:var(--tc-mute);font:550 14px/1.35 var(--font-body),Arial,sans-serif}
+.tony-contact-line>span{display:flex;align-items:center;gap:10px;color:#d9ebc8;font-weight:650}
+.tony-contact-line>span::before{content:'';width:18px;height:3px;transform:skewX(-28deg);background:var(--tc-lime)}
+.tony-contact-line a{display:inline-flex;align-items:center;min-height:44px;color:inherit;text-decoration:underline;text-underline-offset:3px;text-decoration-color:#516148}
+.tony-contact-line a:hover{color:var(--tc-lime)}
+.tony-menu-button>span{font:650 15px/1 var(--font-body),Arial,sans-serif}
+@media(min-width:1100px){
+  .tony-menu-button{display:flex;align-items:center;justify-content:center;gap:8px;width:auto;padding:0 16px;border-radius:14px}
+}
+@media(max-width:1099px){
+  .tony-menu-button>span{display:none}
+  .tony-contact-line{width:calc(100% - 32px)}
+}
+@media(max-width:599px){
+  .tony-contact-line{flex-wrap:wrap;justify-content:center;gap:0 16px;padding:3px 0;text-align:center;font-size:12px}
+  .tony-contact-line>span{min-height:24px}
+  .tony-contact-line>span::before{display:none}
+  .tony-contact-line a{min-height:28px}
+}
 /* ---------- Phones and tablets (< 1100px) ---------- */
 @media(max-width:1099px){
-  .tony-search-trigger,.tony-qnav{display:none}
+  .tony-search-trigger{display:none}
   .tony-header-inner{width:calc(100% - 32px);height:64px;gap:10px;justify-content:space-between}
   .tony-header-actions{gap:8px}
   /* Tablets have room for the main action next to the cart; phones keep it in the menu and on the page. */
@@ -110,77 +95,54 @@
   .tony-wa-pill svg{width:24px;height:24px}
   .tony-wa-text b{font-size:20px}
 }
+@media(min-width:360px) and (max-width:389px){
+  .tony-header-inner{width:calc(100% - 24px)}
+  .tony-wa-pill{padding-inline:8px;gap:5px}
+}
 @media(max-width:359px){
   .tony-header-inner{width:calc(100% - 24px);gap:6px}
   .tony-wa-pill{width:48px;padding:0;justify-content:center}
   .tony-wa-text{display:none}
   .tony-header-actions{gap:6px}
 }
-/* Desktop widths where the quick nav is tight. */
+/* Compact desktop toolbar. */
 @media(min-width:1100px) and (max-width:1279px){
-  .tony-header-inner,.tony-qnav,.tony-disc-inner{width:calc(100% - 32px)}
+  .tony-header-inner{width:calc(100% - 32px)}
   .tony-header-inner{gap:12px}
-  .tony-qnav-list{gap:0}
-  .tony-qnav-link{padding:0 8px;gap:6px;font-size:13.5px}
-  .tony-qnav-link svg{width:18px;height:18px}
   .tony-wa-pill{padding:0 16px 0 12px}
   .tony-wa-text b{font-size:23px}
 }
 
-/* ---------- Menu (native modal dialog) ---------- */
-.tony-mobile{position:fixed;inset:0 0 0 auto;margin:0;padding:0;width:min(600px,100%);max-width:100%;height:100dvh;max-height:100dvh;border:0;border-left:1px solid var(--tc-line-strong);background:var(--tc-bg);color:var(--tc-ink);overflow:hidden;overscroll-behavior:contain}
-.tony-mobile::backdrop{background:rgb(2 5 3 / .74);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
-.tony-mobile-inner{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
-.tony-mobile-top{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:72px;padding:calc(8px + env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) 8px max(20px,env(safe-area-inset-left));border-bottom:1px solid var(--tc-line)}
-.tony-menu-close{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:0 14px 0 18px;border:0;border-radius:999px;background:var(--tc-tile-2);box-shadow:inset 0 0 0 1px var(--tc-line-strong);color:var(--tc-ink);font:700 15px var(--font-body),sans-serif;cursor:pointer}
-@media(hover:hover) and (pointer:fine){.tony-menu-close:hover{background:rgb(180 255 53 / .14);color:var(--tc-lime)}}
-.tony-mobile-body{display:flex;flex-direction:column;gap:14px;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#3d5a2c transparent;padding:18px max(20px,env(safe-area-inset-right)) 28px max(20px,env(safe-area-inset-left))}
-.tony-menu-search{height:60px;flex:none}
-.tony-menu-create{flex:none}
-.tony-menu-create svg{width:22px;height:22px}
-.tony-mobile-nav{display:flex;flex-direction:column;gap:22px;margin-top:8px}
-.tony-menu-sec-title{margin:0 0 14px;font:700 clamp(26px,6vw,32px)/.95 var(--font-display),Impact,sans-serif;text-transform:uppercase;letter-spacing:-.01em}
-/* Round picture chips (story style), 4 per row on phones and 7 in the desktop panel. */
-.tony-chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:16px 6px;margin:0;padding:0;list-style:none}
-.tony-chip{display:flex;flex-direction:column;align-items:center;gap:7px;padding:2px 0;border-radius:14px;color:var(--tc-ink);text-align:center;text-decoration:none;font:700 15.5px/1.02 var(--font-display),'Arial Narrow',sans-serif;letter-spacing:.01em}
-.tony-chip-img{position:relative;display:block;width:68px;height:68px;flex:none;overflow:hidden;border-radius:50%;background:conic-gradient(from 200deg,var(--tc-lime),#2bd46b,var(--tc-lime));transition:transform 320ms var(--tc-ease)}
-.tony-chip-img img{position:absolute;inset:3px;width:calc(100% - 6px);height:calc(100% - 6px);border:3px solid var(--tc-bg);border-radius:50%;background:var(--tc-tile);object-fit:cover;object-position:50% 20%}
-.tony-chip--all .tony-chip-img{display:grid;place-items:center;background:var(--tc-tile-2);box-shadow:inset 0 0 0 1px var(--tc-line-strong);color:var(--tc-lime)}
-.tony-chip-name{max-width:100%;overflow-wrap:normal;hyphens:auto}
-@media(hover:hover) and (pointer:fine){.tony-chip:hover .tony-chip-img{transform:scale(1.06)}.tony-chip:hover{color:var(--tc-lime)}}
-/* Picture tiles, two per row. */
-.tony-menu-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0;padding:0;list-style:none}
-.tony-menu-tiles>.is-wide{grid-column:1/-1}
-.tony-menu-tile{width:100%;height:150px;padding:0;border:0;font:inherit;text-align:left;cursor:pointer;transition:box-shadow 200ms ease}
-.tony-menu-tiles>.is-wide .tony-menu-tile{height:168px}
-.tony-menu-tile>img{object-position:50% 28%}
-.tony-menu-tiles>.is-wide .tony-menu-tile>img{object-position:60% 40%}
-.tony-menu-tile .tc-tile-label{left:16px;right:14px;bottom:14px}
-.tony-menu-tile .tc-tile-label b{font-size:clamp(22px,5.4vw,27px)}
-.tony-menu-tile .tc-tile-label small{margin-top:4px;font-size:13px}
-.tony-menu-tile .tc-go{position:absolute;top:12px;right:12px;width:40px;height:40px}
-.tony-menu-tile .tc-go svg{width:20px;height:20px}
-.tc-tile.tony-menu-tile--wa{background:linear-gradient(135deg,#1fbf5c,#128a40);box-shadow:none}
-.tony-menu-tile--wa::after{display:none}
-.tony-menu-tile--wa .tc-go{background:#fff;color:#128a40}
-.tony-menu-tile-glyph{position:absolute;right:-22px;bottom:-26px;z-index:-1;color:#fff;opacity:.16}
-@media(hover:hover) and (pointer:fine){.tony-menu-tile:hover{box-shadow:inset 0 0 0 2px var(--tc-lime)}.tony-menu-tile--wa:hover{box-shadow:inset 0 0 0 2px #fff}}
-/* Small text links. */
-.tony-menu-more{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
-.tony-menu-more a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px 0 12px;border-radius:999px;background:var(--tc-tile);box-shadow:inset 0 0 0 1px var(--tc-line);color:#dbe5d2;font:600 14px var(--font-body),sans-serif;text-decoration:none}
-.tony-menu-more svg{width:18px;height:18px;color:var(--tc-lime)}
-.tony-menu-more a[aria-current=page]{color:var(--tc-lime);box-shadow:inset 0 0 0 1px var(--tc-lime)}
-@media(hover:hover) and (pointer:fine){.tony-menu-more a:hover{color:var(--tc-lime);box-shadow:inset 0 0 0 1px var(--tc-line-strong)}}
-/* Pinned WhatsApp bar. */
-.tony-mobile-support{padding:12px max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));border-top:1px solid var(--tc-line);background:#060c08}
-.tony-menu-wa{display:flex;align-items:center;gap:14px;min-height:64px;padding:0 20px;border-radius:20px;background:linear-gradient(135deg,var(--tc-wa-hi),var(--tc-wa));color:#fff;text-decoration:none}
-.tony-menu-wa>span{display:grid;line-height:1}
-.tony-menu-wa small{font:700 12px var(--font-body),sans-serif;letter-spacing:.06em;text-transform:uppercase;opacity:.92}
-.tony-menu-wa b{font:700 30px/1 var(--font-display),Impact,sans-serif}
-.tony-menu-wa-go{margin-left:auto;width:24px;height:24px}
-.tony-mobile :is(button,a){touch-action:manipulation;-webkit-tap-highlight-color:rgb(180 255 53 / .16)}
-@media(max-width:599px){.tony-mobile{width:100%;border:0}}
-
+/* A single readable menu with progressive disclosure on every screen. */
+.tony-mobile{position:fixed;inset:0 0 0 auto;margin:0;padding:0;width:min(560px,100%);max-width:100%;height:100dvh;max-height:100dvh;border:0;border-left:1px solid var(--tc-line-strong);background:#0b1711;color:var(--tc-ink);overflow:hidden;overscroll-behavior:contain}
+.tony-mobile::backdrop{background:rgb(2 5 3 / .72)}
+.tony-mobile-inner{height:100%;min-height:0;display:grid;grid-template-rows:auto minmax(0,1fr)}
+.tony-mobile-top{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:70px;padding:calc(10px + env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) 10px max(24px,env(safe-area-inset-left));border-bottom:1px solid var(--tc-line);background:linear-gradient(110deg,#19261a,#0b1711 70%)}
+.tony-mobile-top h2{margin:0;color:var(--tc-ink);font:700 34px/1 var(--font-display),Impact,sans-serif;text-transform:uppercase}
+.tony-menu-close{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:0 12px;border:1px solid var(--tc-line-strong);border-radius:12px;background:var(--tc-tile);color:var(--tc-ink);font:650 14px var(--font-body),sans-serif;cursor:pointer}
+.tony-mobile-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#416437 transparent;padding:18px max(24px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left))}
+.tony-menu-search{height:46px;margin-bottom:15px;font-size:15px}
+.tony-menu-list,.tony-menu-sublist,.tony-menu-services ul{list-style:none;padding:0;margin:0}
+.tony-menu-list>li{border-bottom:1px solid var(--tc-line)}
+.tony-menu-list a,.tony-menu-list summary,.tony-menu-services a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;padding:7px 6px;color:inherit;text-decoration:none;line-height:1.25;cursor:pointer}
+.tony-menu-list>li>a,.tony-menu-list>li>details>summary{font:650 clamp(17px,2.1vw,21px)/1.25 var(--font-body),Arial,sans-serif}
+.tony-menu-list summary{list-style:none}
+.tony-menu-list summary::-webkit-details-marker{display:none}
+.tony-menu-list summary svg{flex:none;color:var(--tc-lime)}
+.tony-menu-list details[open]>summary svg{transform:rotate(180deg)}
+.tony-menu-list details[open]>summary,.tony-menu-list a[aria-current=page],.tony-menu-services a[aria-current=page]{color:var(--tc-lime)}
+.tony-menu-sublist{margin:0 0 12px 7px;padding-left:13px;border-left:2px solid #375031;color:#d4e0d3;font:525 15px/1.35 var(--font-body),Arial,sans-serif}
+.tony-menu-sublist li>a,.tony-menu-sublist li>details>summary{min-height:44px}
+.tony-menu-sublist>li:first-child>a{font-weight:700}
+.tony-menu-services{margin-top:24px}
+.tony-menu-services h3{margin:0 0 7px;color:var(--tc-mute);font:650 13px/1.3 var(--font-body),Arial,sans-serif}
+.tony-menu-services ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 16px}
+.tony-menu-services a{justify-content:flex-start;gap:6px;color:#dfe9d9;font:600 14px/1.25 var(--font-body),Arial,sans-serif}
+.tony-menu-services a svg{flex:none;color:var(--tc-mute)}
+.tony-mobile :is(button,a,summary){touch-action:manipulation;-webkit-tap-highlight-color:rgb(180 255 53 / .14)}
+@media(hover:hover) and (pointer:fine){.tony-menu-list :is(a,summary):hover,.tony-menu-services a:hover,.tony-menu-close:hover{color:var(--tc-lime);background:#15231a}}
+@media(max-width:599px){.tony-mobile{width:100%;border:0}.tony-mobile-body{padding-inline:max(16px,env(safe-area-inset-left)) max(16px,env(safe-area-inset-right))}.tony-mobile-top{padding-inline:16px}.tony-menu-list :is(a,summary){min-height:48px}}
+@media(max-height:440px){.tony-mobile-top{min-height:50px;padding-block:3px}.tony-mobile-top h2{font-size:26px}.tony-mobile-body{padding-top:10px}}
 /* ---------- Search palette (native modal dialog) ---------- */
 .tony-search{--top:clamp(16px,9vh,96px);position:fixed;inset:var(--top) 0 auto;margin:0 auto;padding:0;width:min(800px,calc(100% - 32px));max-width:none;max-height:calc(100dvh - var(--top) - 16px);border:0;border-radius:28px;background:#0b1610;color:var(--tc-ink);box-shadow:inset 0 0 0 1px var(--tc-line-strong),0 40px 90px rgb(0 0 0 / .6);overflow:hidden;overscroll-behavior:contain}
 .tony-search::backdrop{background:rgb(2 5 3 / .74);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
@@ -237,6 +199,7 @@
 .tony-search-hint kbd{margin-right:2px}
 /* Scroll lock while the menu or the search is open; the gutter keeps the page from jumping sideways. */
 html:has(.tony-mobile[open],.tony-search[open]){overflow:hidden;scrollbar-gutter:stable}
+@media(max-width:599px){html:has(.tony-mobile[open],.tony-search[open]){scrollbar-gutter:auto}}
 @media(max-width:899px){.tony-search-hint,.tony-search-input>kbd{display:none}}
 @media(max-width:599px){
   .tony-search{inset:0;width:100%;height:100dvh;max-height:100dvh;border-radius:0;box-shadow:none}
@@ -258,22 +221,19 @@ html:has(.tony-mobile[open],.tony-search[open]){overflow:hidden;scrollbar-gutter
 .tony-mobile::backdrop,.tony-search::backdrop{transition:opacity 300ms ease,display 300ms allow-discrete,overlay 300ms allow-discrete}
 .tony-mobile:not([open])::backdrop,.tony-search:not([open])::backdrop{opacity:0}
 @starting-style{.tony-mobile[open]::backdrop,.tony-search[open]::backdrop{opacity:0}}
-@keyframes tony-menu-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.tony-mobile[open] :is(.tony-menu-search,.tony-menu-create,.tony-menu-sec,.tony-menu-tiles>li,.tony-menu-more){animation:tony-menu-rise 460ms var(--tc-ease) both;animation-delay:calc(var(--i,0) * 40ms)}
-.tony-menu-create{--i:1}.tony-menu-sec{--i:2}.tony-menu-tiles>li:nth-child(1){--i:3}.tony-menu-tiles>li:nth-child(2){--i:4}.tony-menu-tiles>li:nth-child(3){--i:5}.tony-menu-tiles>li:nth-child(4){--i:6}.tony-menu-tiles>li:nth-child(5){--i:7}.tony-menu-tiles>li:nth-child(6){--i:8}.tony-menu-tiles>li:nth-child(7){--i:9}.tony-menu-more{--i:10}
 .tony-search{transition:opacity 220ms ease,transform 300ms var(--tc-ease),display 300ms allow-discrete,overlay 300ms allow-discrete}
 .tony-search:not([open]){opacity:0;transform:translateY(-12px)}
 @starting-style{.tony-search[open]{opacity:0;transform:translateY(-12px)}}
 @media(prefers-reduced-motion:reduce){
   .tony-mobile,.tony-search{transition:none!important}
   .tony-mobile::backdrop,.tony-search::backdrop{transition:none!important}
-  .tony-mobile[open] *,.tony-disc-panel{animation:none!important}
+  .tony-mobile[open] *{animation:none!important}
   .tony-header *,.tony-subbar *,.tony-mobile *,.tony-search *{transition:none!important}
   .tony-header::before{transition:none}.tony-header::after{animation:none}
 }
 html[data-tony-effects=off] :is(.tony-mobile,.tony-search){transition:none}
 html[data-tony-effects=off] .tony-mobile::backdrop,html[data-tony-effects=off] .tony-search::backdrop{transition:none}
-html[data-tony-effects=off] :is(.tony-mobile[open] *,.tony-disc-panel){animation:none!important}
+html[data-tony-effects=off] .tony-mobile[open] *{animation:none!important}
 html[data-tony-effects=off] .tony-header::after{animation:none}
 html[data-tony-effects=off] .tony-header::before{transition:none}
-html[data-tony-effects=off] :is(.tony-header .official-logo,.tony-disc-card img,.tony-chip-img,.tony-wa-pill){transition:none}
+html[data-tony-effects=off] :is(.tony-header .official-logo,.tony-wa-pill){transition:none}

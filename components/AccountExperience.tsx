@@ -4,7 +4,7 @@ import {useRouter,useSearchParams} from 'next/navigation';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {accountRequest,authEnabled,restoreAccount,safeAccountReturn,useAccount} from '@/lib/auth';
 import {captureLocalPrivacyScope,eraseLocalPrivacyData} from '@/lib/privacy-storage';
-import {TonyFace} from './TonyArt';
+import TonyWordmark from './TonyWordmark';
 import './account.css';
 
 type Mode='login'|'registro'|'recuperar'|'verify'|'reset'|'cambiar'|'eliminar';
@@ -56,7 +56,7 @@ export default function AccountExperience(){
   const dashboard=loggedIn&&!['cambiar','verify','reset','eliminar'].includes(mode);
   const needsPassword=mode==='login'||mode==='registro'||mode==='reset'||mode==='cambiar';
   return <section className="account-card section-wrap" data-private={privateFocus&&!showPassword} data-peek={privateFocus&&showPassword} aria-busy={busy}>
-    <TonyFace className="account-face"/><p className="eyebrow">TONY SPORTSWEAR · TU IDENTIDAD</p><h1 key={dashboard?'dash':mode} className="account-swap">{dashboard?'TU EQUIPO EMPIEZA AQUÍ.':headings[mode]}</h1>
+    <TonyWordmark className="account-face"/><p className="eyebrow">TONY SPORTSWEAR · TU IDENTIDAD</p><h1 key={dashboard?'dash':mode} className="account-swap">{dashboard?'TU EQUIPO EMPIEZA AQUÍ.':headings[mode]}</h1>
     {!authEnabled?<><p>El acceso con correo estará disponible cuando Tony active las cuentas. Mientras tanto, puedes explorar el catálogo y consultar con el equipo.</p><Link className="button primary" href="/colecciones">Explorar las colecciones ↗</Link><a className="text-link" href="https://wa.me/50370155571" target="_blank" rel="noopener noreferrer">Consultar por WhatsApp ↗</a><Link className="account-note" href="/privacidad#solicitudes">Solicitar la eliminación de mis datos</Link></>:account.status==='loading'?<p role="status">Comprobando tu sesión…</p>:dashboard?<><p>Sesión iniciada como <strong className="account-email">{account.user?.email}</strong></p><Link className="button primary" href="/configurador">Crear mi uniforme ↗</Link><div className="account-options"><Link href="/carrito">Mi carrito</Link><Link href="/recientes">Mis recientes</Link><button type="button" onClick={()=>switchMode('cambiar')}>Cambiar contraseña</button><button type="button" disabled={busy} onClick={()=>void logout()}>Cerrar sesión</button><button type="button" disabled={busy} onClick={()=>switchMode('eliminar')}>Eliminar mi cuenta</button></div><p className="account-note">Los diseños se guardan en este navegador y se separan por cuenta. No se sincronizan automáticamente entre dispositivos.</p></>:mode==='eliminar'?<>
       <p>Vas a eliminar la cuenta de <strong className="account-email">{account.user?.email}</strong>. Se cerrarán sus sesiones y se borrarán sus diseños guardados en este navegador.</p>
       <p>Guarda antes las referencias de tus pedidos o pagos pendientes. Para consultar o solicitar el borrado de información que ya enviaste, usa el contacto de <Link href="/privacidad">privacidad</Link>.</p>

@@ -1,7 +1,7 @@
 import { test, expect, devices, type Page } from '@playwright/test';
 
 async function ready(page: Page, route = '/') {
-  await page.addInitScript(() => sessionStorage.setItem('tony:intro:v2', 'seen'));
+  await page.addInitScript(() => sessionStorage.setItem('tony:intro:wordmark:v1', 'seen'));
   await page.goto(route);
   await expect(page.locator('html')).toHaveAttribute('data-tony-effects', 'on');
   // On desktop the motion runtime loads on its own after hydration: wait until it runs before moving or clicking.
@@ -14,22 +14,31 @@ async function scrollInstant(page: Page, top: number) {
   await page.evaluate(y => { document.documentElement.style.scrollBehavior = 'auto'; window.scrollTo(0, y); }, top);
 }
 
+async function menuLink(page: Page, label: 'Tony News' | 'Promociones') {
+  await page.getByRole('button',{name:'Abrir menú'}).click();
+  const menu=page.getByRole('dialog',{name:'Menú de Tony Sportswear'});
+  if (label==='Promociones') await menu.getByText('Promociones',{exact:true}).click();
+  const link=menu.getByRole('link',{name:label==='Promociones'?'Ver todas las promociones':label,exact:true});
+  await link.scrollIntoViewIfNeeded();
+  return link;
+}
+
 test('el logo abre la intro inmediatamente y vuelve a Inicio desde una página interna', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await ready(page, '/contacto');
   const logo = page.locator('.tony-header-inner .brand');
   await logo.click();
-  await expect(page.locator('.lagarto-intro[open]')).toBeVisible();
+  await expect(page.locator('.brand-intro[open]')).toBeVisible();
   // The logo prefetches Inicio on intent, not on sight: a fresh dev server may still be compiling it at the click.
   await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
-  await expect(page.locator('.lagarto-intro .lagarto-head--reference')).toHaveCount(1);
-  // The intro's mark is the only one on the page with the reference face.
-  await expect(page.locator('.lagarto-head--reference')).toHaveCount(1);
+  await expect(page.locator('.brand-intro .intro-wordmark img')).toHaveCount(1);
+  // The landing animation renders a single wordmark.
+  await expect(page.locator('.intro-wordmark img')).toHaveCount(1);
   await page.keyboard.press('Escape');
-  await expect(page.locator('.lagarto-intro')).toHaveCount(0);
+  await expect(page.locator('.brand-intro')).toHaveCount(0);
   await expect(page.locator('body')).not.toHaveCSS('overflow', 'hidden');
   await logo.click();
-  await expect(page.locator('.lagarto-intro[open]')).toBeVisible();
+  await expect(page.locator('.brand-intro[open]')).toBeVisible();
   await page.getByRole('button', { name: 'Saltar intro', exact: true }).click();
 });
 
@@ -87,12 +96,10 @@ test('cada clic deja un rasguño breve y limitado, nunca al arrastrar, con clic 
   await ready(page, '/contacto');
   const scratches = () => page.evaluate(() => (window as unknown as { __scratches: number[] }).__scratches.length);
   // Client-side navigation must not duplicate listeners: one click, one scratch.
-  const quickNav = page.getByRole('navigation', { name: 'Accesos rápidos', exact: true });
   for (const [name, url] of [['Tony News', /\/tony-news$/], ['Promociones', /\/promociones$/]] as const) {
-    await quickNav.getByRole('link', { name, exact: true }).click();
+    await (await menuLink(page,name)).click();
     await expect(page).toHaveURL(url);
   }
-  // Contacto is linked from the footer only.
   await page.getByRole('contentinfo').getByRole('link', { name: 'Contacto', exact: true }).click();
   await expect(page).toHaveURL(/\/contacto$/);
   const stage = page.locator('.tony-scratch-stage');
@@ -127,7 +134,7 @@ test('cada clic deja un rasguño breve y limitado, nunca al arrastrar, con clic 
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
 });
 
-test('cada 5,5 s sin tocar nada Tony asoma desde abajo, se queda mirando y huye al tocar o desplazarse', async ({ page }) => {
+test('el logo de inactividad aparece tras 5,5 s y se oculta al tocar o desplazarse', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   // Freeze time before the page loads so a slow load can't let him in early.
@@ -164,7 +171,7 @@ test('cada 5,5 s sin tocar nada Tony asoma desde abajo, se queda mirando y huye 
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
 });
 
-test('al cambiar de apartado Tony se acerca, guiña y deja pasar sin bloquear clics', async ({ page }) => {
+test('al cambiar de apartado aparece el logo y la transición permite seguir navegando', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await page.addInitScript(() => {
@@ -181,8 +188,7 @@ test('al cambiar de apartado Tony se acerca, guiña y deja pasar sin bloquear cl
   await expect(overlay).toHaveClass(/is-armed/, { timeout: 5000 });
   const phases = () => page.evaluate(() => (window as unknown as { __phases: string[] }).__phases.join(' '));
   expect(await phases()).toBe('');
-  const quickNav = page.getByRole('navigation', { name: 'Accesos rápidos', exact: true });
-  const link = (await quickNav.getByRole('link', { name: 'Tony News', exact: true }).boundingBox())!;
+  const link = (await (await menuLink(page,'Tony News')).boundingBox())!;
   await page.mouse.click(link.x + link.width / 2, link.y + link.height / 2);
   await expect(overlay).toHaveAttribute('data-phase', 'cover');
   await expect(page.locator('html')).toHaveAttribute('data-route-cover', 'true');
@@ -192,14 +198,14 @@ test('al cambiar de apartado Tony se acerca, guiña y deja pasar sin bloquear cl
   await expect(page).toHaveURL(/\/tony-news$/);
   await expect.poll(phases, { timeout: 10000 }).toBe('cover wink reveal idle');
   await expect(page.locator('html')).not.toHaveAttribute('data-route-cover', /.*/);
-  const next = (await quickNav.getByRole('link', { name: 'Promociones', exact: true }).boundingBox())!;
+  const next = (await (await menuLink(page,'Promociones')).boundingBox())!;
   await page.mouse.click(next.x + next.width / 2, next.y + next.height / 2);
   await expect(page).toHaveURL(/\/promociones$/);
   await expect.poll(phases, { timeout: 10000 }).toBe('cover wink reveal idle cover wink reveal idle');
   await expect(page.locator('html')).not.toHaveAttribute('data-route-cover', /.*/);
   // The logo opens the intro instead of the section wink.
   await page.locator('.tony-header-inner .brand').click();
-  await expect(page.locator('.lagarto-intro[open]')).toBeVisible();
+  await expect(page.locator('.brand-intro[open]')).toBeVisible();
   expect(await phases()).toBe('cover wink reveal idle cover wink reveal idle');
 });
 
@@ -224,7 +230,7 @@ test('el título del apartado que llega espera bajo las escamas y sube cuando se
       reveals.push({ heading: heading.textContent!.trim(), progressed });
     }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-route-cover'] });
   });
-  const link = (await page.getByRole('navigation', { name: 'Accesos rápidos', exact: true }).getByRole('link', { name: 'Promociones', exact: true }).boundingBox())!;
+  const link = (await (await menuLink(page,'Promociones')).boundingBox())!;
   await page.mouse.click(link.x + link.width / 2, link.y + link.height / 2);
   await expect(page).toHaveURL(/\/promociones$/);
   await expect(page.locator('.route-transition')).toHaveAttribute('data-phase', 'idle');
@@ -238,7 +244,7 @@ test('el título del apartado que llega espera bajo las escamas y sube cuando se
   expect(Math.max(...arrival!.progressed), JSON.stringify(reveals)).toBeLessThan(50);
 });
 
-test('el control de pausa se recuerda y retira brillo, rasguños y lagartos', async ({ page }) => {
+test('el control de pausa se recuerda y retira brillo, marcas y logo de inactividad', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   await ready(page);
   await page.getByRole('button', { name: 'Pausar efectos', exact: true }).click();
@@ -280,7 +286,7 @@ test('movimiento reducido conserva texto y navegación sin intro ni mascotas', a
   await page.goto('/contacto');
   await page.locator('.tony-header-inner .brand').click();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.locator('.lagarto-intro')).toHaveCount(0);
+  await expect(page.locator('.brand-intro')).toHaveCount(0);
   // The home heading arrives already in place: no entrance, fully opaque, untransformed.
   const heading = page.locator('main.home-page h1');
   await expect(heading).toBeVisible();

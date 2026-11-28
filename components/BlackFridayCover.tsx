@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Icon from '@/components/Icon';
-import {siteAsset} from '@/lib/asset-path';
+import TonyWordmark from './TonyWordmark';
 import {BLACK_FRIDAY, PROMOTIONS_PAGE} from '@/lib/promotions';
 import {responsive} from '@/lib/responsive-image';
 import './black-friday-cover.css';
@@ -10,7 +10,7 @@ export default function BlackFridayCover({promotionPage = false}: {promotionPage
     {promotionPage && <h1 className="tc-sr">Promociones</h1>}
     <img className="bf-cover-photo" {...responsive(BLACK_FRIDAY.image, '(max-width: 640px) 100vw, 1160px')} alt="" width={1200} height={800} decoding="async" loading={promotionPage ? 'eager' : 'lazy'}/>
     <div className="bf-cover-copy">
-      <p className="bf-cover-brand"><img src={siteAsset('/assets/brand/sello-portadas.webp')} alt="" width={52} height={53}/>Tony Sportwear</p>
+      <p className="bf-cover-brand"><TonyWordmark alt="Tony Sportwear"/></p>
       <h2 id="bf-title" className="tc-display bf-cover-title">Black <em>Friday</em></h2>
       <p className="bf-cover-offer">30% <span>OFF</span></p>
       <p className="bf-cover-dates">{BLACK_FRIDAY.dates}</p>

@@ -10,7 +10,7 @@ body>main,.tony-footer{position:relative;z-index:1}
 .tony-scale-joints{position:absolute;top:0;left:0;width:calc(100% + var(--scale-tile));height:calc(100% + var(--scale-tile));background:url('/assets/escamas-tony-uniones.svg') 0 0/var(--scale-tile) var(--scale-tile) repeat;will-change:transform}
 
 .tony-scratch-stage{position:fixed;inset:0;z-index:1100;overflow:hidden;pointer-events:none;contain:strict}
-.tony-scratch-stage svg{position:absolute;top:0;left:0;width:var(--scratch-size);height:var(--scratch-size);opacity:0;fill:#ff9650;overflow:visible}
+.tony-scratch-stage svg{position:absolute;top:0;left:0;width:var(--scratch-size);height:var(--scratch-size);opacity:0;color:#ff9650;overflow:visible}
 
 /* Discreet by default: a round pause control in the corner that reveals its label on hover or focus. */
 .tony-effects-toggle{position:fixed;z-index:80;bottom:16px;left:16px;height:40px;min-width:40px;max-width:40px;display:inline-flex;align-items:center;gap:8px;padding:0 11px;overflow:hidden;white-space:nowrap;border:1px solid var(--edge-strong);border-radius:999px;background:rgb(12 15 13 / .9);box-shadow:0 6px 20px rgb(0 0 0 / .35);backdrop-filter:blur(10px);font-size:12px;font-weight:600;color:var(--bone);line-height:1.2;transition:max-width 260ms var(--ease),border-color 160ms ease,background 160ms ease}

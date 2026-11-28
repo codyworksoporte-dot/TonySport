@@ -1,2 +1,34 @@
-const {chromium}=require('playwright');
-(async()=>{const browser=await chromium.launch({channel:'msedge',headless:true});const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('http://127.0.0.1:3000',{waitUntil:'domcontentloaded'});await page.waitForSelector('.lagarto-intro[open]');await page.evaluate(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=1100;}));await page.screenshot({path:'docs/intro-rip-refinement.png'});await page.evaluate(()=>document.getAnimations().forEach(a=>a.currentTime=3250));await page.screenshot({path:'docs/intro-mascot-refinement.png'});await page.getByRole('button',{name:'Saltar intro',exact:true}).click();await page.locator('.tony-header-inner').screenshot({path:'docs/brand-refinement.png'});console.log(JSON.stringify({errors,logo:await page.locator('.tony-header .official-logo').evaluate(e=>({complete:e.complete,src:e.currentSrc,fit:getComputedStyle(e).objectFit,blend:getComputedStyle(e).mixBlendMode}))}));await browser.close()})().catch(e=>{console.error(e);process.exit(1)});
+const { mkdir } = require('node:fs/promises');
+const { chromium } = require('playwright');
+
+async function review() {
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  try {
+    await mkdir('output/brand-intro', { recursive: true });
+    for (const width of [390, 1440]) {
+      const page = await browser.newPage({ viewport: { width, height: width === 390 ? 844 : 900 }, reducedMotion: 'no-preference' });
+      await page.clock.install();
+      await page.clock.pauseAt(Date.now() + 250);
+      await page.goto(process.env.TONY_PREVIEW_URL || 'http://127.0.0.1:3000/', { waitUntil: 'commit' });
+      const dialog = page.getByRole('dialog', { name: 'Entrada de Tony Sportswear' });
+      await dialog.locator('.intro-wordmark img').evaluate(img => img.decode());
+      const moments = width === 390 ? [810, 1250] : [1000, 1760];
+      for (const [index, time] of moments.entries()) {
+        await dialog.evaluate((node, currentTime) => {
+          for (const animation of node.getAnimations({ subtree: true })) {
+            animation.pause();
+            animation.currentTime = currentTime;
+          }
+        }, time);
+        await page.screenshot({ path: `output/brand-intro/${width}-${index === 0 ? 'impacto' : 'brillo'}.png` });
+      }
+      await page.keyboard.press('Escape');
+      await dialog.waitFor({ state: 'detached' });
+      await page.close();
+    }
+  } finally {
+    await browser.close();
+  }
+}
+
+review().catch(error => { console.error(error); process.exitCode = 1; });

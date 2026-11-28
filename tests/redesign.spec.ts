@@ -34,10 +34,10 @@ const REMOVED: [label: string, pattern: RegExp][] = [
   ['Reseñas', /\bresenas?\b/],
   ['Recientes', /\brecientes\b/],
   ['Guía', /\bguias?\b/],
-  ['Entregas', /\bentregas\b/],
+
 ];
 // Their routes still exist (the order flow uses some), but nothing in the chrome may lead there.
-const REMOVED_ROUTE = /^\/(catalogo|resenas|recientes|entregas)(\/|$)|tonyplay/i;
+const REMOVED_ROUTE = /^\/(catalogo|resenas|recientes)(\/|$)|tonyplay/i;
 
 // Accent-free, lower case, single spaces: "Reseñas" → "resenas" (NFD splits ñ into n + U+0303, then the marks go).
 const ACCENTS = new RegExp(`[${String.fromCharCode(0x300)}-${String.fromCharCode(0x36f)}]`, 'g');
@@ -45,7 +45,7 @@ const normalize = (text: string) => text.normalize('NFD').replace(ACCENTS, '').t
 
 test.beforeEach(async ({page}) => {
   await page.addInitScript(() => {
-    try { sessionStorage.setItem('tony:intro:v2', 'seen'); } catch { /* Storage blocked: nothing to skip. */ }
+    try { sessionStorage.setItem('tony:intro:wordmark:v1', 'seen'); } catch { /* Storage blocked: nothing to skip. */ }
     try { localStorage.setItem('tony-assistant-hint-v1', '1'); } catch { /* Idem. */ }
   });
 });
@@ -56,26 +56,6 @@ async function expectNewTab(link: Locator, href: string | RegExp) {
   await expect(link).toHaveAttribute('rel', /\bnoopener\b/);
 }
 
-/** The 13 disciplines (and "Ver todas") as links to their section of /producto, in the brief's order. */
-async function expectDisciplines(scope: Locator) {
-  await expect(scope.getByRole('link')).toHaveText([...DISCIPLINES.map(([, name]) => name), 'Ver todas']);
-  for (const [id, name] of DISCIPLINES) {
-    await expect(scope.getByRole('link', {name, exact: true})).toHaveAttribute('href', `/producto#categoria-${id}`);
-  }
-  await expect(scope.getByRole('link', {name: 'Ver todas', exact: true})).toHaveAttribute('href', '/producto');
-}
-
-/** "Descarga la App Tony" opens a dialog with both official stores; Escape closes it and focus comes back. */
-async function expectAppDialog(page: Page, trigger: Locator) {
-  await trigger.click();
-  const dialog = page.getByRole('dialog', {name: 'Descarga la App Tony', exact: true});
-  await expect(dialog).toBeVisible();
-  await expectNewTab(dialog.getByRole('link', {name: /Google Play/}), GOOGLE_PLAY);
-  await expectNewTab(dialog.getByRole('link', {name: /App Store/}), APP_STORE);
-  await page.keyboard.press('Escape');
-  await expect(dialog).toBeHidden();
-  await expect(trigger).toBeFocused();
-}
 
 const searchDialog = (page: Page) => page.getByRole('dialog', {name: SEARCH_TITLE, exact: true});
 const searchBox = (page: Page) => searchDialog(page).getByRole('searchbox', {name: 'Buscar una sección', exact: true});
@@ -128,7 +108,7 @@ test.describe('encabezado en escritorio (≥1100 px)', () => {
     await expectNewTab(pill, WHATSAPP);
   });
 
-  test('la búsqueda se abre con la píldora del encabezado, con Ctrl+K y con la píldora de la portada', async ({page}) => {
+  test('la búsqueda se abre desde el encabezado y con Ctrl+K', async ({page}) => {
     await page.goto('/');
     const headerPill = page.getByRole('banner').getByRole('button', {name: SEARCH_LABEL, exact: true});
     await expect(headerPill).toBeVisible();
@@ -149,35 +129,29 @@ test.describe('encabezado en escritorio (≥1100 px)', () => {
 
     await expectSearchOpens(page, () => page.keyboard.press('Control+k'), headerPill);
 
-    const homePill = page.getByRole('main').getByRole('button', {name: HOME_SEARCH, exact: true});
-    await expect(homePill).toBeVisible();
-    await expectSearchOpens(page, () => homePill.click(), homePill);
+    await expect(page.getByRole('main').getByRole('button', {name: HOME_SEARCH, exact: true})).toHaveCount(0);
   });
 
-  test('los accesos rápidos llevan a Promociones, Consulta tu pedido, Ayuda, la App Tony y las 13 disciplinas', async ({page}) => {
+  test('el menú concentra los accesos a pedidos, tienda, disciplinas y ayuda', async ({page}) => {
     await page.goto('/');
-    const quick = page.getByRole('navigation', {name: 'Accesos rápidos', exact: true});
-    await expect(quick).toBeVisible();
-    await expect(quick.getByRole('link', {name: 'Promociones', exact: true})).toHaveAttribute('href', '/promociones');
-    await expectNewTab(quick.getByRole('link', {name: /^Consulta tu pedido/}), ORDER_LOOKUP);
-    await expectNewTab(quick.getByRole('link', {name: 'Ayuda por WhatsApp', exact: true}), WHATSAPP_ANY);
-    await expectAppDialog(page, quick.getByRole('button', {name: 'Descarga la App Tony', exact: true}));
-
-    const disciplines = quick.getByRole('button', {name: 'Escoge tu disciplina', exact: true});
-    await expect(disciplines).toHaveAttribute('aria-expanded', 'false');
-    await disciplines.click();
-    await expect(disciplines).toHaveAttribute('aria-expanded', 'true');
-    const panel = page.locator(`[id="${await disciplines.getAttribute('aria-controls')}"]`);
-    await expect(panel.getByRole('heading', {name: DISCIPLINES_TITLE, exact: true})).toBeVisible();
-    await expectDisciplines(panel);
+    await expect(page.getByRole('navigation',{name:'Accesos rápidos'})).toHaveCount(0);
+    const trigger=page.getByRole('button',{name:'Abrir menú'});
+    await trigger.click();
+    const menu=page.getByRole('dialog',{name:'Menú de Tony Sportswear'});
+    await expectNewTab(menu.getByRole('link',{name:/^Consulta tu pedido/}),ORDER_LOOKUP);
+    await expectNewTab(menu.getByRole('link',{name:/^Ayuda por WhatsApp/}),WHATSAPP_ANY);
+    await menu.getByText('Tienda en línea',{exact:true}).click();
+    await expect(menu.getByRole('link',{name:'Ver toda la tienda'})).toHaveAttribute('href','/tienda');
+    await menu.getByText('Productos',{exact:true}).click();
+    await expect(menu.getByRole('link',{name:'Ver todos los productos'})).toHaveAttribute('href','/producto');
     await page.keyboard.press('Escape');
-    await expect(panel).toBeHidden();
-    await expect(disciplines).toBeFocused();
+    await expect(menu).toBeHidden();
+    await expect(trigger).toBeFocused();
   });
 
-  test('encabezado, menú, búsqueda y pie no ofrecen Catálogo y diseños, TonyPlay, Reseñas, Recientes, Guía ni Entregas', async ({page}) => {
+  test('el menú conserva solo las secciones vigentes', async ({page}) => {
     await page.goto('/');
-    // textContent and labels, so the closed menu, the hidden disciplines panel and screen-reader text count too.
+    await page.getByRole('button',{name:'Abrir menú'}).click();
     const chrome = await page.evaluate(() => {
       const roots = Array.from(document.querySelectorAll('header.tony-header, .tony-subbar, #tony-mobile-menu, dialog.tony-search, footer.tony-footer'));
       const texts: string[] = [], paths: string[] = [];
@@ -200,7 +174,7 @@ test.describe('encabezado en escritorio (≥1100 px)', () => {
     expect(chrome.paths.filter(path => REMOVED_ROUTE.test(path))).toEqual([]);
   });
 
-  test('buscar las secciones retiradas no las devuelve y "Entregas" lleva a Consulta tu pedido', async ({page}) => {
+  test('buscar las secciones retiradas no las devuelve y Entregas ofrece domicilio y seguimiento', async ({page}) => {
     await page.goto('/');
     await page.getByRole('banner').getByRole('button', {name: SEARCH_LABEL, exact: true}).click();
     const dialog = searchDialog(page), input = searchBox(page), count = dialog.locator('.tony-search-count');
@@ -218,7 +192,8 @@ test.describe('encabezado en escritorio (≥1100 px)', () => {
         expect(result.path, `buscar "${word}" devolvió ${result.path}`).not.toMatch(REMOVED_ROUTE);
       }
     }
-    // The last word was "Entregas": the order lookup takes its place.
+    await input.fill('Entregas');
+    await expect(dialog.getByRole('link',{name:'Servicio a domicilio',exact:true})).toHaveAttribute('href','/entregas');
     await expect(input).toHaveValue('Entregas');
     await expectNewTab(dialog.locator('.tony-search-results').getByRole('link', {name: 'Consulta tu pedido', exact: true}), ORDER_LOOKUP);
 
@@ -265,18 +240,16 @@ test.describe('encabezado y menú en el teléfono', () => {
     await expect(trigger).toHaveAttribute('aria-expanded', 'true');
     await expect(menu.getByRole('button', {name: 'Cerrar menú', exact: true})).toBeFocused();
 
-    const nav = menu.getByRole('navigation', {name: 'Navegación principal', exact: true});
-    const disciplines = nav.getByRole('region', {name: DISCIPLINES_TITLE, exact: true});
-    await expect(disciplines.getByRole('heading', {name: DISCIPLINES_TITLE, exact: true})).toBeVisible();
-    await expectDisciplines(disciplines);
-    await expect(nav.getByRole('link', {name: /Promociones/})).toHaveAttribute('href', '/promociones');
-    await expectNewTab(nav.getByRole('link', {name: /^Consulta tu pedido/}), ORDER_LOOKUP);
-    await expectNewTab(nav.getByRole('link', {name: /^Ayuda por WhatsApp/}), WHATSAPP_ANY);
-    // The App dialog opens over the menu; closing it leaves the menu open.
-    await expectAppDialog(page, nav.getByRole('button', {name: 'Descarga la App Tony', exact: true}));
-    await expect(menu).toBeVisible();
-    await expectNewTab(menu.getByRole('link', {name: WA_PILL, exact: true}), WHATSAPP);
-
+    const nav=menu.getByRole('navigation',{name:'Navegación principal',exact:true});
+    await nav.getByText('Productos',{exact:true}).click();
+    await expect(nav.locator('.tony-menu-list > li > details[open] > ul > li')).toHaveCount(DISCIPLINES.length + 1);
+    await nav.getByText('Promociones',{exact:true}).click();
+    await expect(nav.getByRole('link',{name:'Ver todas las promociones'})).toHaveAttribute('href','/promociones');
+    await nav.getByText('App Tony',{exact:true}).click();
+    await expectNewTab(nav.getByRole('link',{name:/^Android/}),GOOGLE_PLAY);
+    await expectNewTab(nav.getByRole('link',{name:/^iOS/}),APP_STORE);
+    await expectNewTab(menu.getByRole('link',{name:/^Consulta tu pedido/}),ORDER_LOOKUP);
+    await expectNewTab(menu.getByRole('link',{name:/^Ayuda por WhatsApp/}),WHATSAPP_ANY);
     await page.keyboard.press('Escape');
     await expect(menu).toBeHidden();
     await expect(trigger).toBeFocused();
@@ -436,16 +409,12 @@ test.describe('accesibilidad de los diálogos nuevos', () => {
     await page.keyboard.press('Escape');
     await expect(dialog).toBeHidden();
 
-    const quick = page.getByRole('navigation', {name: 'Accesos rápidos', exact: true});
-    await quick.getByRole('button', {name: 'Descarga la App Tony', exact: true}).click();
-    await expect(page.getByRole('dialog', {name: 'Descarga la App Tony', exact: true})).toBeVisible();
-    await expectNoAxeViolations(page, 'diálogo App Tony', '.app-dl-dialog[open]');
-    await page.keyboard.press('Escape');
-
-    const disciplines = quick.getByRole('button', {name: 'Escoge tu disciplina', exact: true});
-    await disciplines.click();
-    await expect(disciplines).toHaveAttribute('aria-expanded', 'true');
-    await expectNoAxeViolations(page, 'panel de disciplinas', '.tony-subbar');
+    await page.getByRole('button',{name:'Abrir menú'}).click();
+    const nav=page.getByRole('dialog',{name:'Menú de Tony Sportswear'});
+    await nav.getByText('App Tony',{exact:true}).click();
+    await expectNoAxeViolations(page,'submenú de descargas','#tony-mobile-menu');
+    await nav.getByText('Productos',{exact:true}).click();
+    await expectNoAxeViolations(page,'submenú de productos','#tony-mobile-menu');
     await page.keyboard.press('Escape');
 
     await page.getByRole('button', {name: 'Abrir asistente Tony', exact: true}).click();

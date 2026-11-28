@@ -76,7 +76,7 @@
 .ta-welcome .ta-avatar{box-shadow:0 0 0 4px rgb(5 10 7 / .55),0 10px 24px rgb(0 0 0 / .45)}
 /* Tony's head fills the ring on a dark disc; the lime ring stays as the brand accent. */
 .ta-avatar--tony{overflow:hidden;background:radial-gradient(circle at 50% 40%,#183024 0,#071009 75%);box-shadow:0 0 0 2px var(--tc-lime),0 0 0 5px rgb(180 255 53 / .16)}
-.ta-avatar--tony img{width:118%;height:118%;max-width:none;object-fit:cover;object-position:52% 38%;transform:translate(-2%,4%)}
+.ta-avatar--tony img{display:block;width:96%;height:auto;object-fit:contain}
 .ta-welcome-text{margin:0;max-width:22ch;color:var(--tc-ink);font:700 27px/.98 var(--font-display),Impact,sans-serif;text-transform:uppercase;letter-spacing:-.005em;text-wrap:balance;text-shadow:0 2px 14px rgb(0 0 0 / .45)}
 .ta-welcome-text em{display:block;margin-top:5px;color:var(--tc-lime);font-style:normal}
 /* The floating panel already shows the avatar just above: the tile keeps the photo clear. */

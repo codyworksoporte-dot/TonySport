@@ -10,7 +10,7 @@ import {techniqueLabel} from '@/lib/studio';
 import stores from '@/data/tony-stores.json';
 import Icon from './Icon';
 import StudioCanvas, {exportStudioPNG} from './StudioCanvas';
-import TonyMascot from './TonyMascot';
+import TonyWordmark from './TonyWordmark';
 import {CartIcon} from './CartLink';
 import {usePedidoCart} from '@/lib/pedido/storage';
 import PedidoCartPanel from './pedido/PedidoCartPanel';
@@ -25,7 +25,7 @@ function download(text: string, name: string, mime = 'text/plain;charset=utf-8')
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function CartDesign({item, index, removing, eating, onRemove}: {item: CartItem; index: number; removing: boolean; eating: boolean; onRemove: (item: CartItem, button: HTMLButtonElement) => void}) {
+function CartDesign({item, index, removing, departing, onRemove}: {item: CartItem; index: number; removing: boolean; departing: boolean; onRemove: (item: CartItem, button: HTMLButtonElement) => void}) {
   const [side, setSide] = useState<'front'|'back'>('front'), [flipped, setFlipped] = useState(false), [exporting, setExporting] = useState(false), [message, setMessage] = useState('');
   const canvas = useRef<HTMLDivElement>(null);
   const {order, assets} = item;
@@ -51,7 +51,7 @@ function CartDesign({item, index, removing, eating, onRemove}: {item: CartItem; 
     link.download = `tony-${key}.${value.startsWith('data:image/jpeg') ? 'jpg' : value.startsWith('data:image/webp') ? 'webp' : 'png'}`;
     link.click(); setMessage('Archivo descargado. Adjunta el original a tu cotización.');
   }
-  return <article id={`cart-${item.id}`} className={`cart-design${eating ? ' is-eaten' : ''}`} aria-labelledby={`cart-title-${item.id}`} aria-busy={removing} data-cart-item={item.id}>
+  return <article id={`cart-${item.id}`} className={`cart-design${departing ? ' is-departing' : ''}`} aria-labelledby={`cart-title-${item.id}`} aria-busy={removing} data-cart-item={item.id}>
     <div className="cart-design-surface">
       <div className="cart-art"><span className="cart-art-index">DISEÑO {String(index + 1).padStart(2, '0')}</span><div className="cart-view-tabs" role="group" data-side={side} aria-label={`Vista de ${order.team}`}><button type="button" aria-pressed={side === 'front'} onClick={() => show('front')}>Frente</button><button type="button" aria-pressed={side === 'back'} onClick={() => show('back')}>Espalda</button></div>
         <div className="cart-canvas" ref={canvas} data-side={side} data-flipped={flipped}><div key={side} className="cart-canvas-face"><StudioCanvas design={order.design} garment={order.garment} team={order.team} player={players[0]} assets={assets} side={side} line={order.line} selectedId={null} onSelect={noop} onLayerChange={noop} onGestureStart={noop} onGestureEnd={noop} readOnly/></div></div><span className="cart-preview-note">VISTA ORIENTATIVA · DISEÑO GUARDADO</span>
@@ -65,7 +65,7 @@ function CartDesign({item, index, removing, eating, onRemove}: {item: CartItem; 
       <details className="cart-item-details"><summary>Jugadores, archivos y detalles <Icon name="plus"/></summary><div className="cart-detail-content"><div className="cart-roster-wrap"><table><caption>Personalización de {order.team}</caption><thead><tr><th>Nombre</th><th>Talla</th><th>Dorsal</th><th>Rol</th></tr></thead><tbody>{players.map(player => <tr key={player.id}><th scope="row">{player.name}</th><td>{player.size}</td><td>{player.number}</td><td>{player.role === 'goalkeeper' ? 'Portero' : 'Jugador'}</td></tr>)}</tbody></table></div>{order.notes && <p><strong>Indicaciones:</strong> {order.notes}</p>}<div className="cart-file-links"><button type="button" onClick={() => {download(rosterCSV(order), 'tony-lista-jugadores.csv', 'text/csv;charset=utf-8'); setMessage('Lista de jugadores descargada.');}}>Descargar lista de jugadores ↗</button>{Object.keys(assets).map(key => <button type="button" key={key} onClick={() => original(key)}>↓ {key === 'front' ? 'Referencia frontal' : key === 'back' ? 'Referencia posterior' : key === 'crest' ? 'Escudo original' : order.design.layers.find(layer => layer.assetKey === key)?.name || 'Imagen del diseño'}</button>)}</div></div></details>
       {message && <p className="cart-item-message" role="status">{message}</p>}
     </div>
-    {eating && <div className="cart-bite" aria-hidden="true"><div className="cart-bite-mascot"><TonyMascot/></div><span>¡ÑAM!</span></div>}
+    {departing && <TonyWordmark className="cart-removal-logo" aria-hidden="true"/>}
   </article>;
 }
 
@@ -104,7 +104,7 @@ export default function CartExperience() {
       const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (!reduced) setDeparting({item: target, index: Math.max(0, index)});
       const finish = () => {setDeparting(null); setRemoving(''); pendingRemoval.current = false; listTitle.current?.focus({preventScroll: true});};
-      if (reduced) finish(); else timer.current = setTimeout(finish, 950);
+      if (reduced) finish(); else timer.current = setTimeout(finish, 320);
     } catch (cause) {if (mounted.current) {setFailure(cartError(cause)); setRemoving(''); pendingRemoval.current = false; restoreFocus();}}
   }
   const quoteText = ['Hola, Tony. Quiero cotizar los diseños de mi carrito.', ...items.map((item, index) => `${index + 1}. ${item.order.team}: ${item.order.quantity} ${item.order.line === 'kit' ? 'uniformes completos' : 'camisas'}, ${techniqueLabel(item.order.garment.technique)}. Tallas: ${Object.entries(sizesOf(item)).map(([size, count]) => `${size} × ${count}`).join(', ')}.`), `Total: ${total} unidades.`, 'Adjuntaré el resumen completo y las vistas de mis diseños. Quedo pendiente del precio y la entrega.'].join('\n');
@@ -118,7 +118,7 @@ export default function CartExperience() {
     <div className="cart-wrap cart-status-area"><p className="cart-live" role="status">{notice}</p>{failure && <p className="cart-failure" role="alert">{failure}</p>}</div>
     <PedidoCartPanel cart={pedido}/>
     {loading ? <div className="cart-wrap cart-loading" role="status"><CartIcon/><p>Recuperando tus diseños…</p></div> : error ? <section className="cart-wrap cart-empty"><span className="cart-empty-icon"><CartIcon/></span><h2>VAMOS A RECUPERARLO.</h2><p role="alert">{error}</p><button className="button primary" onClick={() => void refresh()} type="button">Volver a intentar <Icon/></button></section> : displayed.length === 0 ? (pedido.loading || pedido.error || pedido.items.length > 0 ? null : <section className="cart-wrap cart-empty"><div className="cart-empty-photo"><SectionImage photo="recientes" shade="none" /></div><p className="eyebrow">TODO EMPIEZA CON TU EQUIPO</p><h2 ref={listTitle} tabIndex={-1}>TU PRÓXIMO DISEÑO<br/>TIENE UN LUGAR <em>AQUÍ.</em></h2><p>Guarda un equipo desde el configurador. Su diseño, sus tallas y sus imágenes quedarán en este navegador para retomarlos después.</p><Link href="/" className="button primary">Volver al inicio <Icon/></Link><Link href="/producto" className="cart-empty-secondary">Explorar producto ↗</Link></section>) : <div className="cart-layout cart-wrap">
-      <section className="cart-items" aria-labelledby="cart-list-title"><div className="cart-list-heading"><h2 id="cart-list-title" ref={listTitle} tabIndex={-1}>{items.length} {items.length === 1 ? 'DISEÑO GUARDADO' : 'DISEÑOS GUARDADOS'}</h2><span>EN ESTE NAVEGADOR</span></div>{displayed.map((item, index) => <CartDesign key={item.id} item={item} index={index} removing={removing === item.id} eating={departing?.item.id === item.id} onRemove={requestRemove}/>)}</section>
+      <section className="cart-items" aria-labelledby="cart-list-title"><div className="cart-list-heading"><h2 id="cart-list-title" ref={listTitle} tabIndex={-1}>{items.length} {items.length === 1 ? 'DISEÑO GUARDADO' : 'DISEÑOS GUARDADOS'}</h2><span>EN ESTE NAVEGADOR</span></div>{displayed.map((item, index) => <CartDesign key={item.id} item={item} index={index} removing={removing === item.id} departing={departing?.item.id === item.id} onRemove={requestRemove}/>)}</section>
       <aside className="cart-summary" aria-labelledby="cart-summary-title"><p className="eyebrow">DEL DISEÑO A LA CANCHA</p><h2 id="cart-summary-title">TODO TU EQUIPO.<br/><em>CADA DETALLE.</em></h2><i className="cart-summary-stub" aria-hidden="true"/><dl><div><dt>Diseños</dt><dd><span key={items.length} className="cart-tick">{items.length}</span></dd></div><div><dt>Total de unidades</dt><dd><span key={total} className="cart-tick">{total}</span></dd></div><div className="cart-price"><dt>Precio total</dt><dd>Por cotizar</dd></div></dl><p>Una unidad equivale a un uniforme completo o una camisa, según cada diseño. Tony confirmará el precio y la entrega contigo.</p>
         <label htmlFor="cart-branch">Tu sucursal</label><select id="cart-branch" ref={branchSelect} value={branch} aria-invalid={!!branchError} aria-describedby={branchError ? 'cart-branch-error' : undefined} onChange={event => {setBranch(event.target.value); setBranchError('');}}><option value="">Elige dónde cotizar</option>{stores.map(store => <option key={store.name} value={store.name}>{store.name} · {store.zone}</option>)}</select>{branchError && <p id="cart-branch-error" className="cart-field-error" role="alert">{branchError}</p>}{selectedBranch && <p className="cart-branch-confirm" role="status"><Icon name="check"/>Te atiende Tony {selectedBranch.name}.</p>}
         {selectedBranch && items.length > 0 ? <a className="button primary cart-quote" href={`https://wa.me/503${selectedBranch.phone.replace(/\D/g, '')}?text=${encodeURIComponent(quoteText)}`} target="_blank" rel="noopener noreferrer">Cotizar por WhatsApp <Icon name="whatsapp"/></a> : <button className="button primary cart-quote" type="button" disabled={items.length === 0} onClick={requireBranch}>Cotizar por WhatsApp <Icon name="whatsapp"/></button>}<button className="cart-download" type="button" onClick={downloadSummary} disabled={items.length === 0}>Descargar resumen completo <Icon name="diagonal"/></button><div className="cart-summary-foot"><Icon name="shield"/><p>Esta es una solicitud de cotización. No se ha realizado ningún cobro ni confirmado una compra. Adjunta los diseños y el resumen a tu conversación.</p></div>

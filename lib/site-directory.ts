@@ -11,6 +11,7 @@ export type DirectoryEntry = {href: string; label: string; group: string; terms:
 
 const sections: DirectoryEntry[] = [
   {href: '/', label: 'Inicio', group: 'TONY', terms: 'pagina principal portada'},
+  {href: '/tienda', label: 'Tienda en línea', group: 'ACCESOS', terms: 'comprar catálogo productos buscar precio jerseys camisas implementos'},
   {href: CREATE_ORDER_HREF, label: 'Crear mi pedido', group: 'ACCESOS', terms: 'crea tu pedido uniforme camisa editor cantidad jugadores nombre numero dorsal talla escudo diseño personalizar cotizar configurador'},
   {href: PROMOTIONS_PAGE, label: 'Promociones', group: 'ACCESOS', terms: `black friday promos ofertas descuentos rebajas campañas ${PROMOTIONS.map(promo => promo.title).join(' ')}`, image: NAV.promociones.image},
   {href: NAV.consulta.href, label: 'Consulta tu pedido', group: 'ACCESOS', terms: 'estado de mi pedido seguimiento rastrear orden entrega envio entregas domicilio', external: true, image: NAV.consulta.image},
@@ -73,6 +74,7 @@ const companyEntries: DirectoryEntry[] = [
 ];
 
 const helpEntries: DirectoryEntry[] = [
+  {href: '/entregas', label: 'Servicio a domicilio', group: 'AYUDA', terms: 'entregas envíos cobertura dirección domicilio'},
   {href: '/ayuda', label: 'Preguntas frecuentes', group: 'AYUDA', terms: 'faq dudas respuestas tallas pedidos centro de ayuda'},
   {href: '/contacto', label: 'Contacto', group: 'AYUDA', terms: 'contactanos whatsapp correo telefono escribir'},
   {href: '/ayuda#reclamos', label: 'Cambios, garantías y reclamos', group: 'AYUDA', terms: 'devoluciones cancelar cancelacion reembolso retracto reversion atencion cliente problema pedido'},

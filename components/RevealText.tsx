@@ -43,7 +43,7 @@ export default function RevealText({ children, as: Tag = 'h2', className = '', .
       if (!inView || played || !effectsAllowed() || document.hidden) return;
       const boot = (window as Window & { __tonyIntroBoot?: { pending: boolean } }).__tonyIntroBoot;
       // Wait for the intro, or for a section change to uncover the page.
-      if (boot?.pending || document.querySelector('.lagarto-intro[open]') || document.documentElement.dataset.routeCover) return;
+      if (boot?.pending || document.querySelector('.brand-intro[open]') || document.documentElement.dataset.routeCover) return;
       played = true;
       if (matchMedia('(max-width: 900px), (pointer: coarse)').matches) {
         // One short fade instead of a GPU layer and animation for every letter.

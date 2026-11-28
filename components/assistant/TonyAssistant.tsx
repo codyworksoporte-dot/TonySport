@@ -7,6 +7,7 @@
 // Other components can open it: window.dispatchEvent(new CustomEvent('tony:open-assistant', {detail: {question: '…'}}))
 // (`detail` is optional; with a question, the assistant asks it right away).
 import {usePathname} from 'next/navigation';
+import {createPortal} from 'react-dom';
 import {useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent} from 'react';
 import Icon from '@/components/Icon';
 import {greeting} from '@/lib/assistant/greeting';
@@ -50,6 +51,9 @@ export default function TonyAssistant() {
   const path = usePathname() || '/';
   // The order flow has its own advisor; the assistant stays out of its way.
   const hidden = /^\/configurador(\/|$)/.test(path);
+  const atHome = path === '/';
+  const [homeLauncher, setHomeLauncher] = useState<HTMLElement | null>(null);
+  useEffect(() => { setHomeLauncher(atHome ? document.getElementById('home-assistant-slot') : null); }, [atHome]);
 
   const [phase, setPhase] = useState<Phase>('closed');
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
@@ -168,7 +172,7 @@ export default function TonyAssistant() {
 
   // First visit: a small bubble after a few seconds, once. It waits for the intro and any open dialog.
   useEffect(() => {
-    if (hidden) return;
+    if (hidden || atHome) return;
     let seen = true;
     try { seen = localStorage.getItem(HINT_KEY) === '1'; } catch { /* Without storage it could nag on every page: skip it. */ }
     if (seen) return;
@@ -190,7 +194,7 @@ export default function TonyAssistant() {
       window.removeEventListener('tony:intro-start', pause);
       window.removeEventListener('tony:intro-complete', resume);
     };
-  }, [hidden]);
+  }, [hidden, atHome]);
 
   // Opening moves focus into the panel: the text field with a mouse, the panel itself on touch (no surprise keyboard).
   const isOpen = phase === 'open';
@@ -242,18 +246,18 @@ export default function TonyAssistant() {
   const openSearch = () => { closePanel(false); window.dispatchEvent(new Event('tony:open-search')); };
 
   if (hidden) return null;
-  return <div className="ta-root" data-phase={phase} data-hint={hint || undefined}>
-    {hint && !open && <div className="ta-hint">
-      <button type="button" className="ta-hint-text" onClick={openPanel}>¿Te ayudo a encontrar algo?</button>
-      <button type="button" className="ta-hint-close" aria-label="Cerrar sugerencia" onClick={dismissHint}><Icon name="close" size={18}/></button>
-    </div>}
-
-    <button ref={launcher} type="button" className="ta-launcher" aria-label={open ? 'Cerrar asistente Tony' : 'Abrir asistente Tony'}
+  const trigger = <button ref={launcher} type="button" className="ta-launcher" aria-label={open ? 'Cerrar asistente Tony' : 'Abrir asistente Tony'}
       aria-expanded={phase === 'open'} aria-controls={open ? panelId : undefined} onClick={() => (phase === 'open' ? closePanel() : openPanel())}
       onPointerEnter={warmEngine} onFocus={warmEngine} onTouchStart={warmEngine}>
       <span className="ta-launcher-icon" aria-hidden="true"><Icon name={phase === 'open' ? 'close' : 'sparkle'} size={28}/></span>
       <span className="ta-launcher-label" aria-hidden="true">Asistente Tony</span>
-    </button>
+    </button>;
+  return <div className="ta-root" data-phase={phase} data-hint={hint || undefined}>
+    {hint && !open && !atHome && <div className="ta-hint">
+      <button type="button" className="ta-hint-text" onClick={openPanel}>¿Te ayudo a encontrar algo?</button>
+      <button type="button" className="ta-hint-close" aria-label="Cerrar sugerencia" onClick={dismissHint}><Icon name="close" size={18}/></button>
+    </div>}
+    {atHome ? homeLauncher && createPortal(trigger, homeLauncher) : trigger}
 
     {open && <>
       <div className="ta-backdrop" aria-hidden="true" onClick={() => closePanel()}/>

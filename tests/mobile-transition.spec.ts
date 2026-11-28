@@ -4,6 +4,7 @@ test.use({viewport:{width:390,height:844},isMobile:true,hasTouch:true,reducedMot
 type Sample = {phase:string;covered:boolean;at:number};
 async function observe(page:Page) {
   await page.addInitScript(()=>{
+    sessionStorage.setItem('tony:intro:wordmark:v1','seen');
     const samples:Sample[]=[];
     (window as unknown as {__transitions:Sample[]}).__transitions=samples;
     new MutationObserver(records=>records.forEach(record=>{
@@ -69,7 +70,7 @@ test('touch navigation shows Tony over the full viewport without delaying routin
   await page.locator('.tony-header-inner .brand').tap();
   await expect(page).toHaveURL(/\/$/);
   await expect.poll(()=>phases(page)).toBe('cover wink reveal idle cover wink reveal idle cover wink reveal idle cover wink reveal idle');
-  await expect(page.locator('.lagarto-intro[open]')).toHaveCount(0);
+  await expect(page.locator('.brand-intro[open]')).toHaveCount(0);
 });
 
 test('motion changes interrupt the mobile transition and leave navigation usable',async({page})=>{

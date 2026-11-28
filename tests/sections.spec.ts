@@ -234,81 +234,38 @@ test('crear pedido se ofrece en el encabezado y en Inicio, no dentro de las secc
     await expect(page.locator('.site-header').getByRole('link', { name: 'Crear pedido', exact: true }), route).toHaveAttribute('href', '/configurador');
   }
   await page.goto('/');
-  await page.getByRole('navigation', { name: 'Opciones principales' }).getByRole('link', { name: /^Crear mi pedido/ }).click();
+  await page.getByRole('region', {name:'Crear mi pedido'}).getByRole('link', {name:'Empezar mi pedido'}).click();
   await expect(page).toHaveURL(/\/configurador$/);
   await expect(page.getByRole('button', { name: 'CREAR MI PEDIDO ↗', exact: true })).toBeVisible();
   await expect(page.locator('.site-header').getByRole('link', { name: 'Crear pedido' })).toHaveCount(0);
 });
 
-test('el acceso rápido de escritorio ofrece los destinos principales y un panel de disciplinas que Escape cierra', async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 1000 });
+test('la franja de contacto y el menú textual permiten abrir los destinos oficiales en escritorio', async ({ page }) => {
+  await page.setViewportSize({width:1440,height:1000});
   await page.goto('/');
-  // The utility bar, the old nav with its mega menus and the "Buscar en el sitio" button are gone.
-  await expect(page.locator('.tony-utility, .tony-nav, #tony-product-menu, #tony-company-menu, #tony-customer-menu')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Buscar en el sitio' })).toHaveCount(0);
-  for (const name of ['Producto', 'Somos Tony', 'Para ti']) await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
-  const quick = page.getByRole('navigation', { name: 'Accesos rápidos', exact: true });
-  await expect(quick).toBeVisible();
-  await expect(quick.getByRole('link', { name: 'Contactos' })).toHaveCount(0);
-  for (const [name, href] of [['Promociones', '/promociones'], ['Implementos', '/implementos'], ['Tiendas', '/tiendas'], ['Tony News', '/tony-news']] as const) {
-    await expect(quick.getByRole('link', { name, exact: true })).toHaveAttribute('href', href);
-  }
-  const lookup = quick.getByRole('link', { name: 'Consulta tu pedido (se abre en otra pestaña)', exact: true });
-  await expect(lookup).toHaveAttribute('href', ORDER_LOOKUP);
-  await expect(lookup).toHaveAttribute('target', '_blank');
-  const help = quick.getByRole('link', { name: 'Ayuda por WhatsApp', exact: true });
-  expect(new URL((await help.getAttribute('href'))!).pathname).toBe('/50370155571');
-  await expect(help).toHaveAttribute('target', '_blank');
-  // App Tony opens the download dialog and gives focus back when it closes.
-  const app = quick.getByRole('button', { name: 'Descarga la App Tony', exact: true });
-  await app.click();
-  const appDialog = page.getByRole('dialog', { name: 'Descarga la App Tony' });
-  await expect(appDialog.getByRole('link', { name: /Google Play/ })).toHaveAttribute('href', /^https:\/\/play\.google\.com\//);
-  await expect(appDialog.getByRole('link', { name: /App Store/ })).toHaveAttribute('href', /^https:\/\/apps\.apple\.com\//);
+  const strip=page.locator('.tony-contact-line');
+  await expect(strip).toContainText('Si no te lo tenemos te lo hacemos');
+  await expect(strip.getByRole('link')).toHaveAttribute('href','mailto:info@tonysportselsalvador.com');
+  await expect(page.getByRole('navigation',{name:'Accesos rápidos'})).toHaveCount(0);
+  const open=page.getByRole('button',{name:'Abrir menú'});
+  await open.click();
+  const menu=page.getByRole('dialog',{name:'Menú de Tony Sportswear'});
+  await menu.getByText('App Tony',{exact:true}).click();
+  await expect(menu.getByRole('link',{name:/^iOS/})).toHaveAttribute('href',/^https:\/\/apps\.apple\.com\//);
+  await menu.getByText('Productos',{exact:true}).click();
+  await expect(menu.getByRole('link',{name:'Ver todos los productos',exact:true})).toHaveAttribute('href','/producto');
+  await expectNoAxeViolations(page,'menú textual de productos','#tony-mobile-menu');
   await page.keyboard.press('Escape');
-  await expect(appDialog).toBeHidden();
-  await expect(app).toBeFocused();
-
-  const trigger = quick.getByRole('button', { name: 'Escoge tu disciplina', exact: true });
-  const panel = page.locator('#tony-disciplinas');
-  await expect(trigger).toHaveAttribute('aria-controls', 'tony-disciplinas');
-  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-  await expect(panel).toBeHidden();
-  await trigger.click();
-  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-  await expect(panel.getByRole('heading', { name: 'Escoge tu disciplina deportiva' })).toBeVisible();
-  const cards = panel.getByRole('link');
-  await expect(cards).toHaveText([...disciplineNames, 'Ver todas']);
-  for (const [index, href] of [...disciplineHrefs, '/producto'].entries()) await expect(cards.nth(index)).toHaveAttribute('href', href);
-  await expect(panel.locator('img[alt=""]')).toHaveCount(13);
-  await expectNoAxeViolations(page, 'panel de disciplinas abierto', '.tony-subbar');
-  // Escape from inside the panel closes it and returns focus to its button.
-  await cards.nth(5).focus();
-  await page.keyboard.press('Escape');
-  await expect(panel).toBeHidden();
-  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-  await expect(trigger).toBeFocused();
-  // Enter opens it again; a click outside closes it.
-  await page.keyboard.press('Enter');
-  await expect(panel).toBeVisible();
-  const box = (await panel.boundingBox())!;
-  const outside = { x: 8, y: Math.round(box.y + box.height + 24) };
-  expect(await page.evaluate(({ x, y }) => !document.elementFromPoint(x, y)?.closest('a,button,input,select,textarea,dialog,.tony-qnav'), outside)).toBe(true);
-  await page.mouse.click(outside.x, outside.y);
-  await expect(panel).toBeHidden();
-  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-  // Choosing a discipline closes the panel and lands on its section.
-  await trigger.click();
-  await cards.filter({ hasText: 'Logos 3D' }).click();
-  await expect(page).toHaveURL(/\/producto#categoria-logos-3d$/);
-  await expect(panel).toBeHidden();
-  await expectLanded(page, 'categoria-logos-3d');
-  // Below 1100 px the quick nav gives way to a full-width search row.
-  await page.setViewportSize({ width: 1099, height: 1000 });
-  await expect(quick).toBeHidden();
-  await expect(page.locator('.tony-subbar-search').getByRole('button', { name: SEARCH_LABEL, exact: true })).toBeVisible();
+  await expect(menu).toBeHidden();
+  await expect(open).toBeFocused();
+  await open.click();
+  await menu.getByText('Productos',{exact:true}).click();
+  await menu.getByRole('link',{name:'Logos 3D Alto Relieve',exact:true}).click();
+  await expectLanded(page,'categoria-logos-3d');
+  await expect(menu).toBeHidden();
+  await page.setViewportSize({width:1099,height:1000});
+  await expect(page.locator('.tony-subbar-search').getByRole('button',{name:SEARCH_LABEL,exact:true})).toBeVisible();
 });
-
 test('la búsqueda del encabezado parte de accesos y disciplinas, se recupera sin resultados y lleva a la sección elegida', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/tiendas');
@@ -342,8 +299,7 @@ test('la búsqueda del encabezado parte de accesos y disciplinas, se recupera si
   await expect(dialog).toBeHidden();
   await expectLanded(page, 'categoria-bkb');
   // Same-page fragments move the page and the address, and Back returns to the previous section.
-  await page.getByRole('navigation', { name: 'Accesos rápidos', exact: true }).getByRole('button', { name: 'Escoge tu disciplina', exact: true }).click();
-  await page.locator('#tony-disciplinas').getByRole('link', { name: 'Fútbol', exact: true }).click();
+  await page.getByRole('list', {name:'Disciplinas',exact:true}).getByRole('link',{name:'Fútbol',exact:true}).click();
   await expect(page).toHaveURL(/\/producto#categoria-futbol$/);
   await expectLanded(page, 'categoria-futbol');
   await page.goBack();
@@ -505,14 +461,14 @@ test('todas las secciones y sus estados móviles caben a 320 y 390 píxeles', as
       if (route === '/resenas') await page.getByRole('button', { name: 'Revisar mi reseña' }).click();
       await expectFits(page, `${route} en ${width}px`);
     }
-    // The menu is a sheet of picture chips and tiles: no accordions left.
+    // The same product directory is reachable from the menu at any viewport width.
     await page.getByRole('button', { name: 'Abrir menú', exact: true }).click();
     const menu = page.getByRole('dialog', { name: 'Menú de Tony Sportswear' });
     await expect(menu.getByRole('button', { name: 'Cerrar menú' })).toBeFocused();
     for (const name of ['Líneas', 'Universo Tony', 'Producto', 'Somos Tony', 'Para ti']) await expect(menu.getByRole('button', { name })).toHaveCount(0);
     const nav = menu.getByRole('navigation', { name: 'Navegación principal' });
-    await expect(nav.locator('.tony-chip')).toHaveText([...disciplineNames, 'Ver todas']);
-    await nav.getByRole('link', { name: 'Logos 3D', exact: true }).click();
+    await nav.getByText('Productos',{exact:true}).click();
+    await nav.getByRole('link', { name: 'Logos 3D Alto Relieve', exact: true }).click();
     await expect(page).toHaveURL(/\/producto#categoria-logos-3d$/);
     await expect(menu).toBeHidden();
     await expectLanded(page, 'categoria-logos-3d');

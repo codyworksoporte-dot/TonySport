@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { removePedidoCart, type usePedidoCart } from '@/lib/pedido/storage';
 import type { PedidoDraft } from '@/lib/pedido/types';
 import { siteAsset } from '@/lib/asset-path';
-import TonyMascot from '../TonyMascot';
+import TonyWordmark from '../TonyWordmark';
 import './customer-panels.css';
 
 type CartState = ReturnType<typeof usePedidoCart>;
@@ -42,7 +42,7 @@ export default function PedidoCartPanel({ cart }: { cart: CartState }) {
       await removePedidoCart(item.id); if (!mounted.current) return;
       setMessage(`${item.teamName || 'El diseño'} se retiró del carrito. El borrador que estabas editando se conserva.`);
       const finish = () => { setDeparting(null); setBusy(false); pending.current = false; heading.current?.focus({ preventScroll: true }); };
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.tonyEffects === 'off') finish(); else { setDeparting(item); timer.current = setTimeout(finish, 950); }
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.tonyEffects === 'off') finish(); else { setDeparting(item); timer.current = setTimeout(finish, 320); }
     } catch (cause) { if (mounted.current) { setFailure(cause instanceof Error ? cause.message : 'No pudimos retirar el diseño. Vuelve a intentarlo.'); setBusy(false); pending.current = false; focusTrigger(); } }
   }
   const displayed = [...items]; if (departing && !displayed.some(item => item.id === departing.id)) displayed.push(departing);
@@ -50,9 +50,9 @@ export default function PedidoCartPanel({ cart }: { cart: CartState }) {
   if (error) return <section className="pedido-saved-panel cart-wrap"><p className="pedido-customer-error" role="alert">{error}</p><button type="button" onClick={() => void refresh()} className="pedido-saved-secondary">Volver a intentar</button></section>;
   if (!displayed.length && !message && !failure) return null;
   return <section className="pedido-saved-panel cart-wrap" aria-labelledby="pedido-cart-title"><div className="pedido-customer-heading"><div><p className="eyebrow">CONFIGURADOR TONY</p><h2 ref={heading} tabIndex={-1} id="pedido-cart-title">Tus diseños <em>guardados.</em></h2></div><span>{items.length} {items.length === 1 ? 'diseño' : 'diseños'}</span></div><p className="pedido-customer-note">Retoma cada equipo para completar su pedido. El pago y la confirmación se realizan individualmente.</p>
-    <div className="pedido-saved-list">{displayed.map(item => <article className={`pedido-saved-card cart-design${departing?.id === item.id ? ' is-eaten' : ''}`} key={item.id} id={`pedido-cart-${item.id}`} aria-busy={busy && departing?.id === item.id}>
+    <div className="pedido-saved-list">{displayed.map(item => <article className={`pedido-saved-card cart-design${departing?.id === item.id ? ' is-departing' : ''}`} key={item.id} id={`pedido-cart-${item.id}`} aria-busy={busy && departing?.id === item.id}>
       <div className="pedido-saved-surface cart-design-surface"><CartPreview item={item} /><div className="pedido-saved-copy"><div className="pedido-saved-top"><span>EN PREPARACIÓN</span><button type="button" className="pedido-saved-delete" disabled={busy} aria-label={`Eliminar ${item.teamName || 'diseño'} del nuevo carrito`} onClick={event => { trigger.current = event.currentTarget; setConfirm(item); setFailure(''); }}>Eliminar ×</button></div><h3>{item.teamName || 'Tu equipo'}</h3><p className="pedido-saved-code">{item.design.catalogCode || 'Diseño propio'} · {item.product === 'uniform' ? 'Uniforme completo' : 'Camisa'}</p><dl><div><dt>Cantidad</dt><dd>{item.quantity} de campo{item.goalkeepers.length > 0 ? ` + ${item.goalkeepers.length} ${item.goalkeepers.length === 1 ? 'portero' : 'porteros'}` : ''}</dd></div><div><dt>Técnica</dt><dd>Full sublimado</dd></div><div><dt>Tela</dt><dd>{item.config.fabric || 'Por elegir'}</dd></div><div><dt>Acabado</dt><dd>{[item.config.brand3d ? 'Marca 3D' : '', item.config.crest3d ? 'Escudo 3D' : ''].filter(Boolean).join(' · ') || 'Sublimado'}</dd></div></dl><div className="pedido-saved-sizes" aria-label="Tallas del equipo">{Object.entries(pedidoSizes(item)).map(([size, count]) => <span key={size}>{size} <b>× {count}</b></span>)}</div><Link className="pedido-saved-resume" href={`/configurador?pedido=${encodeURIComponent(item.id)}`}>Continuar este pedido <span aria-hidden="true">↗</span></Link></div></div>
-      {departing?.id === item.id && <div className="cart-bite" aria-hidden="true"><div className="cart-bite-mascot"><TonyMascot /></div><span>¡ÑAM!</span></div>}
+      {departing?.id === item.id && <TonyWordmark className="cart-removal-logo" aria-hidden="true"/>}
     </article>)}</div>
     {message && <p className="pedido-customer-success" role="status">{message}</p>}{failure && <p className="pedido-customer-error" role="alert">{failure}</p>}
     <dialog ref={dialog} className="cart-confirm" aria-labelledby="pedido-remove-title" aria-describedby="pedido-remove-description" onCancel={() => setConfirm(null)} onClose={focusTrigger}><p className="eyebrow">CONFIRMA ANTES DE CONTINUAR</p><h2 id="pedido-remove-title">¿Retirar este <em>diseño?</em></h2><p id="pedido-remove-description">Se retirará <strong>{confirm?.teamName || 'este equipo'}</strong> del carrito. El borrador del editor se conserva.</p><div><button ref={cancel} type="button" className="cart-keep" onClick={() => setConfirm(null)}>Conservar diseño</button><button type="button" className="cart-confirm-remove" onClick={remove}>Sí, eliminar</button></div></dialog>

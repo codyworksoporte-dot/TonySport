@@ -1,5 +1,4 @@
 import { AMBIENT, SENSITIVE_TARGETS } from './ambient-config';
-import { TONY_ART, ratioOf } from './tony-art';
 
 /**
  * One imperative controller for all decorative motion: the joint glow, the
@@ -79,7 +78,7 @@ export function startAmbient(elements: AmbientElements, initialPath: string) {
     if (peekMode !== 'off') return;
     if (performance.now() - lastInteraction < peekConfig.idleMs - 20) { armPeek(); return; }
     if (document.hidden || busy || quiet || document.documentElement.dataset.routeCover) { armPeek(900); return; }
-    const box = peek.getBoundingClientRect(), width = box.width || 260, height = box.height || width * ratioOf(TONY_ART.peek);
+    const box = peek.getBoundingClientRect(), width = box.width || 260, height = box.height || width * 547 / 1080;
     // Rise where he covers the least: buttons and links weigh more than text, open floor weighs nothing.
     let target = 0, best = Infinity;
     for (const fraction of peekConfig.stopCandidates) {

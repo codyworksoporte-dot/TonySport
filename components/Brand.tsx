@@ -1,9 +1,8 @@
 'use client';
 
-import Image from 'next/image';
+import TonyWordmark from './TonyWordmark';
 import { useRouter } from 'next/navigation';
 import { flushSync } from 'react-dom';
-import { siteAsset } from '@/lib/asset-path';
 import IntentLink from './IntentLink';
 import './brand.css';
 
@@ -21,16 +20,7 @@ export default function Brand() {
       router.push('/');
       if (['/', '/TonySport', '/TonySport/'].includes(window.location.pathname)) window.scrollTo({ top: 0, behavior: 'instant' });
     }}>
-      {/* Drawn 46–64 px tall: the 240 px copy (240×216) stays sharp on 3x screens at a third of the bytes. */}
-      <Image
-        src={siteAsset('/assets/brand/tony-logo-240.webp')}
-        alt="TONY Sportswear"
-        width={480}
-        height={432}
-        sizes="(max-width: 900px) 56px, 72px"
-        className="official-logo"
-        preload
-      />
+      <TonyWordmark alt="TONY Sportswear" className="official-logo"/>
     </IntentLink>
   );
 }

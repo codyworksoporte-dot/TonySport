@@ -41,8 +41,7 @@ const GROUPS = [
   { name: 'Portadas de productos y secciones', files: storefrontCovers, widths: [240, 400, 640], webp: PHOTO },
   { name: 'Diseños de la portada', files: homeDesigns, widths: [320, 560, 720], webp: PHOTO },
   { name: 'Portadas pequeñas', files: smallCovers, widths: [240], webp: PHOTO },
-  // 240: header and footer logo (58–72 px CSS). 640 / 960: the section-change and intro emblem (lib/tony-art.ts).
-  { name: 'Logo', files: async () => ['/assets/brand/tony-logo.webp'], widths: [240, 640, 960], webp: LOGO },
+  { name: 'Logo', files: async () => ['/assets/brand/tony-wordmark.webp'], widths: [240, 640], webp: LOGO },
 ];
 
 // Decorative textures written by scripts/rasterize-scales.mjs at canvas quality .88 (run this again after it),

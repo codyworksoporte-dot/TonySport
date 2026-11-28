@@ -14,7 +14,7 @@
 .pd-grid>li:nth-child(4n+2) .pd-tile{--pd-accent:#ff943f}
 .pd-grid>li:nth-child(4n+3) .pd-tile{--pd-accent:#64ceff}
 .pd-grid>li:nth-child(4n+4) .pd-tile{--pd-accent:#c58cff}
-.pd-tile::before{content:"";position:absolute;pointer-events:none;top:12px;left:12px;width:clamp(32px,3.4vw,46px);aspect-ratio:1;border-radius:50%;background:#0b1610 url('/assets/brand/sello-portadas.webp') center/cover no-repeat;box-shadow:0 0 0 1px var(--pd-accent),0 0 14px color-mix(in srgb,var(--pd-accent) 55%,transparent)}
+.pd-tile::before{content:"";position:absolute;pointer-events:none;top:12px;left:12px;width:clamp(60px,7vw,88px);aspect-ratio:1080/547;border-radius:4px;background:#080b09 url('/assets/brand/tony-wordmark-240.webp') center/contain no-repeat}
 .pd-tile::after{background:linear-gradient(180deg,transparent 42%,#020904eb),linear-gradient(125deg,transparent 0 81%,color-mix(in srgb,var(--pd-accent) 55%,transparent) 81.2%,transparent 81.9% 85%,color-mix(in srgb,var(--pd-accent) 30%,transparent) 85.2%,transparent 85.8%);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pd-accent) 42%,transparent);border-radius:inherit}
 .pd-tile>img{object-fit:cover;object-position:center}
 @media(min-width:1100px){

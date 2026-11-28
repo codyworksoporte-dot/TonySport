@@ -82,7 +82,7 @@
 @keyframes tc-rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .tc-rise{animation:tc-rise 620ms var(--tc-ease) both;animation-delay:calc(var(--i,0) * 55ms)}
 /* Entrances wait while something covers the page (the section-change scales, the crocodile intro), so they play when seen. */
-html[data-route-cover] .tc-rise,html:has(.lagarto-intro[open]) .tc-rise{animation-play-state:paused}
+html[data-route-cover] .tc-rise,html:has(.brand-intro[open]) .tc-rise{animation-play-state:paused}
 @media(prefers-reduced-motion:reduce){.tc-rise{animation:none}.tc-tile>img,.tc-card-media img,.tc-btn,.tc-card,.tc-go{transition:none!important}}
 html[data-tony-effects=off] .tc-rise{animation:none}
 html[data-tony-effects=off] :is(.tc-tile>img,.tc-card-media img,.tc-btn,.tc-card,.tc-go){transition:none!important}

@@ -1,31 +1,5 @@
-/* The bottom edge of the viewport plays the shield: the art is cut at the
-   shield's edge, so its flat base sits on the viewport's edge. The box is as tall
-   as the art (TonyFace sets its proportions) minus a sliver sunk below the edge,
-   so a roar that tilts the head never lifts the base into view. Nothing clips
-   the box: the viewport's own edge hides what is below it, and the roar and the
-   breath grow the head past the box's top and sides. */
-.tony-peek{position:fixed;z-index:36;left:0;bottom:0;width:var(--peek-width);overflow:visible;pointer-events:none;visibility:hidden;will-change:transform;transition:visibility 0s linear 480ms}
-.tony-peek:not([data-state=off]){visibility:visible;transition-delay:0s}
-.tp-face-wrap{position:relative;margin-bottom:-1.6%;transform-origin:50% 100%}
-.tp-face{width:100%;transform-origin:var(--tony-hinge)}
-
-/* Hidden below the edge. */
-.tp-face-wrap{translate:0 106%;transition:translate 240ms cubic-bezier(.5,0,.75,0)}
-/* Coming up: he heaves himself over the edge in one push, claws first in the drawing. */
-.tony-peek[data-state=enter] .tp-face-wrap,.tony-peek[data-state=look] .tp-face-wrap{translate:0 0;transition:translate 560ms cubic-bezier(.16,1,.3,1) 60ms}
-/* His eye catches fire on the way up and keeps smouldering while he stares. */
-.tony-peek[data-state=enter] .tf-glow{animation:tp-ignite 700ms cubic-bezier(.16,1,.3,1) 380ms both}
-.tony-peek[data-state=look] .tf-glow{animation:tp-glow 2.8s var(--ease-in-out) infinite}
-/* Staring back: a slow heavy breath, a roar around the jaw now and then, a blink. */
-.tony-peek[data-state=look] .tp-face-wrap{animation:tp-breathe 4.2s var(--ease-in-out) infinite}
-.tony-peek[data-state=look] .tp-face{animation:tp-roar 6.4s cubic-bezier(.36,0,.2,1) 300ms infinite}
-.tony-peek[data-state=look] .tf-lid{animation:tf-blink 5.2s linear 1.6s infinite}
-@keyframes tp-breathe{0%,100%{transform:none}50%{transform:scale(1.018)}}
-/* Scale and turn around the hinge together: the base only ever moves down, behind the edge. */
-@keyframes tp-roar{0%,100%{transform:none}4%{transform:rotate(-2.2deg) scale(1.06)}7%{transform:rotate(1.2deg) scale(1.05)}10%{transform:rotate(-1deg) scale(1.045)}13%{transform:rotate(.5deg) scale(1.03)}18%{transform:none}}
-@keyframes tp-ignite{0%{opacity:0;transform:scale(.3)}45%{opacity:1;transform:scale(1.3)}100%{opacity:.85;transform:scale(1)}}
-@keyframes tp-glow{0%,100%{opacity:.85;transform:scale(1)}50%{opacity:.45;transform:scale(.88)}}
-/* Running away: he drops fast. */
-.tony-peek[data-state=flee] .tp-face-wrap{translate:0 112%;transition:translate 220ms cubic-bezier(.55,0,1,.45)}
-.tony-peek[data-state=flee] .tf-glow{opacity:.6}
-@media(prefers-reduced-motion:reduce){.tony-peek{display:none}}
+.tony-peek { position:fixed; z-index:32; left:0; bottom:6px; width:var(--peek-width); pointer-events:none; visibility:hidden }
+.tony-peek:not([data-state=off]) { visibility:visible }
+.idle-wordmark { display:block; width:100%; height:auto; border-radius:4px; opacity:0; transition:opacity 220ms ease-out }
+.tony-peek:is([data-state=enter],[data-state=look]) .idle-wordmark { opacity:.85 }
+@media (prefers-reduced-motion:reduce) { .tony-peek { display:none } }

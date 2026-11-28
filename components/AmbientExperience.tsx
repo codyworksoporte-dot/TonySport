@@ -81,9 +81,7 @@ export default function AmbientExperience() {
     <div className="tony-ambient tony-peek" ref={peekRef} style={variables} data-state="off" aria-hidden="true">{ready && !compact && <TonyPeek/>}</div>
     <div ref={scratchRef} className="tony-ambient tony-scratch-stage" style={variables} aria-hidden="true">
       {Array.from({ length: scratch.maxActive }, (_, index) => <svg key={index} viewBox="0 0 40 40" focusable="false">
-        <path d="M29.5 4.5C25 13.6 18.8 23.6 9.5 33.5c11.4-8.6 17.8-18.6 20-29Z"/>
-        <path d="M34 11c-3.6 7-8.3 14-14.6 20.4 8.1-5.6 13.1-12.4 14.6-20.4Z"/>
-        <path d="M35.5 19.5c-2 3.9-4.6 7.2-8 10 4-1.9 6.9-5.3 8-10Z" opacity=".75"/>
+        <circle cx="20" cy="20" r="10" fill="none" stroke="currentColor" strokeWidth="2.5"/>
       </svg>)}
     </div>
     <button type="button" className="tony-effects-toggle" onClick={toggle} disabled={!ready || reduced} aria-pressed={active} title={reduced ? 'Se respeta la preferencia de movimiento reducido de tu dispositivo' : undefined}>

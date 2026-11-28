@@ -23,16 +23,6 @@ export const NAV = {
 /** What the search shows before anything is typed (here, not in site-directory.ts, so the closed search stays light). */
 export const SEARCH_SHORTCUTS: NavLink[] = [NAV.crear, NAV.promociones, NAV.tiendas, NAV.consulta, NAV.implementos, NAV.app, NAV.ayuda];
 
-/** Small text links at the end of the menu. */
-export const MENU_MORE: NavLink[] = [
-  {label: 'Somos Tony', href: '/nosotros', icon: 'arrow'},
-  {label: 'Patrocinios', href: '/patrocinio', icon: 'arrow'},
-  {label: 'Calidad', href: '/calidad', icon: 'arrow'},
-  {label: 'Preguntas frecuentes', href: '/ayuda', icon: 'help'},
-  {label: 'Mi cuenta', href: '/cuenta', icon: 'user'},
-  {label: 'Mi carrito', href: '/carrito', icon: 'bag'},
-];
-
 /** The three short footer columns. */
 export const FOOTER_COLUMNS: {title: string; links: NavLink[]}[] = [
   {title: 'Tienda', links: [

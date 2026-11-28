@@ -1,7 +1,6 @@
 import {test,expect} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import stores from '../data/tony-stores.json';
-import catalog from '../data/pedido/catalog.json';
 
 // La entrada animada se prueba por separado (intro.spec.ts); aquí se revisa el contenido estable.
 // La burbuja de bienvenida del asistente (solo en la primera visita) se da por vista para que no tape lo que se toca.
@@ -15,9 +14,7 @@ const WCAG=['wcag2a','wcag2aa','wcag21aa','wcag22aa'];
 // navegación, lo usa el pedido) y el configurador. Las páginas nuevas del brief se revisan en redesign.spec.ts.
 const ROUTES=['/','/ayuda','/contacto','/nosotros','/catalogo','/configurador'];
 const ORDER_LOOKUP='https://www.tonysportselsalvador.com/sistema/consulta_ts/';
-const WHATSAPP=/^https:\/\/wa\.me\/50370155571(\?.*)?$/;
 const DISCIPLINES=[['futbol','Fútbol'],['bkb','Baloncesto'],['voleibol','Voleibol'],['ciclismo','Ciclismo'],['runners','Running'],['racing','Racing'],['empresarial','Empresarial'],['camisas-polos','Camisas y polos'],['replicas','Réplicas'],['hoddies','Hoddies'],['implementos','Implementos'],['moldes','Moldes'],['logos-3d','Logos 3D']] as const;
-const FAMILIES=[['balones','Balones de fútbol'],['futsal','Fútbol sala'],['baloncesto','Baloncesto'],['guantes','Guantes de portero'],['espinilleras','Espinilleras'],['beisbol','Béisbol'],['mallas','Mallas'],['accesorios','Accesorios']] as const;
 
 test('páginas navegables sin errores de hidratación ni barreras WCAG detectadas',async({page})=>{
   test.setTimeout(90_000);
@@ -81,71 +78,42 @@ test('menú móvil, búsqueda, Escape, preguntas frecuentes y página no encontr
   await expect(page.getByRole('heading',{level:1})).toContainText('SE NOS ESCAPÓ');
 });
 
-test('la portada pregunta «¿Qué necesitas hoy?» y responde con botones gigantes que llevan a crear el pedido',async({page})=>{
+test('la portada prioriza el pedido y reúne tienda, promociones y descargas', async ({page}) => {
   await page.goto('/');
-  const main=page.getByRole('main');
-  await expect(main.getByRole('heading',{level:1})).toHaveCount(1);
-  await expect(main.getByRole('heading',{level:1})).toHaveText('¿Qué necesitas hoy?');
+  const main = page.getByRole('main');
+  await expect(main.getByRole('heading', {level: 1})).toHaveText('Crear mi pedido');
+  await expect(main.getByRole('link', {name: 'Empezar mi pedido'})).toHaveAttribute('href', '/configurador');
+  const ways = main.getByRole('region', {name: 'Tres formas de hacer tu pedido'});
+  expect(await ways.getByRole('link').evaluateAll(links => links.map(link => link.getAttribute('href'))))
+    .toEqual(['/configurador', '/tienda', '/promociones']);
+  const disciplines = main.getByRole('region', {name: 'Escoge tu disciplina deportiva'});
+  for (const [id,name] of DISCIPLINES) await expect(disciplines.getByRole('link',{name,exact:true})).toHaveAttribute('href', '/producto#categoria-' + id);
+  await expect(main.getByRole('heading', {name: /Diseños para tu equipo|Implementos deportivos/})).toHaveCount(0);
+  await expect(main.getByRole('link', {name: 'Android'})).toHaveAttribute('href', /^https:\/\/play\.google\.com\//);
+  await expect(main.getByRole('link', {name: 'iOS', exact: true})).toHaveAttribute('href', /^https:\/\/apps\.apple\.com\//);
+  const strip = main.getByRole('region', {name: 'Promociones destacadas'});
+  await expect(strip.getByRole('heading')).toContainText('Black Friday');
+  await strip.getByRole('button', {name: 'Promoción siguiente'}).click();
+  await expect(strip).toContainText('12 uniformes de la línea Slim Fit');
+  await strip.getByRole('button', {name: 'Promoción anterior'}).click();
+  await expect(strip.getByRole('heading')).toContainText('Black Friday');
+});
 
-  // Los botones gigantes con foto.
-  const bento=main.getByRole('navigation',{name:'Opciones principales'});
-  await expect(bento.getByRole('link')).toHaveCount(8);
-  await expect(bento.getByRole('button')).toHaveCount(1);
-  const tiles:[RegExp,string][]=[[/^Crear mi pedido/,'/configurador'],[/^Promociones/,'/promociones'],[/^Uniformes/,'/producto#categoria-futbol'],[/^Camisas/,'/producto#categoria-camisas-polos'],[/^Implementos/,'/implementos'],[new RegExp(`^Tiendas ${stores.length} tiendas$`),'/tiendas']];
-  for(const [name,href] of tiles)await expect(bento.getByRole('link',{name})).toHaveAttribute('href',href);
-  for(const [name,href] of [[/^Consulta tu pedido/,ORDER_LOOKUP],[/^Ayuda por WhatsApp/,WHATSAPP]] as const){
-    const tile=bento.getByRole('link',{name});
-    await expect(tile).toHaveAttribute('href',href);await expect(tile).toHaveAttribute('target','_blank');
+test('los siete anuncios cambian sin repetirse y el último cierre persiste en la pestaña', async ({page}) => {
+  await page.goto('/');
+  const ad = page.getByRole('complementary', {name: 'Anuncios de Tony'});
+  const seen = new Set<string>();
+  for (let number = 1; number <= 7; number++) {
+    await expect(ad).toContainText(number + '/7');
+    seen.add(await ad.getByRole('link').innerText());
+    await ad.getByRole('button', {name: 'Cerrar anuncio'}).click();
   }
-  const appTile=bento.getByRole('button',{name:'Descarga la App Tony',exact:true});
-  await appTile.click();
-  const app=page.getByRole('dialog',{name:'Descarga la App Tony',exact:true});
-  await expect(app.getByRole('link',{name:/Google Play/})).toHaveAttribute('href',/^https:\/\/play\.google\.com\//);
-  await expect(app.getByRole('link',{name:/App Store/})).toHaveAttribute('href',/^https:\/\/apps\.apple\.com\//);
-  await page.keyboard.press('Escape');await expect(app).toBeHidden();await expect(appTile).toBeFocused();
-
-  // Las 13 disciplinas en círculos y "Ver todas".
-  const disciplines=main.getByRole('region',{name:'Escoge tu disciplina deportiva'});
-  await expect(disciplines.getByRole('listitem').getByRole('link')).toHaveText([...DISCIPLINES.map(([,name])=>name),'Ver todas las disciplinas']);
-  for(const [id,name] of DISCIPLINES)await expect(disciplines.getByRole('link',{name,exact:true})).toHaveAttribute('href',`/producto#categoria-${id}`);
-  expect(await disciplines.getByRole('link',{name:'Ver todas las disciplinas',exact:true}).evaluateAll(links=>links.map(link=>link.getAttribute('href')))).toEqual(['/producto','/producto']);
-
-  // Siete diseños reales que abren el pedido con ese diseño elegido: cuatro de fútbol y luego uno de voleibol, uno de
-  // baloncesto y uno empresarial. La octava tarjeta completa la rejilla y lleva al catálogo completo.
-  const designCards=main.getByRole('region',{name:'Diseños para tu equipo'}).getByRole('listitem').getByRole('link');
-  await expect(designCards).toHaveCount(8);
-  const picked=await designCards.evaluateAll(links=>links.map(link=>({href:link.getAttribute('href'),name:link.textContent?.replace(/\s+/g,' ').trim()??'',image:link.querySelector('img')?.getAttribute('src')??''})));
-  const lines=picked.slice(0,7).map(design=>{
-    const code=/^Personalizar el diseño (TONY-(\d{3})) (Fútbol|Voleibol|Baloncesto|Empresarial)$/.exec(design.name);
-    expect(code,design.name).not.toBeNull();
-    expect(design.href).toBe(`/configurador?diseno=${code![1]}`);
-    expect(design.image).toContain(`tony-${code![2]}`);
-    expect(catalog.designs.find(item=>item.code===code![1])?.category).toBe(code![3]);
-    return code![3];
-  });
-  expect(lines).toEqual(['Fútbol','Fútbol','Fútbol','Fútbol','Voleibol','Baloncesto','Empresarial']);
-  expect(new Set(picked.slice(0,7).map(design=>design.href)).size).toBe(7);
-  expect(picked[7].href).toBe('/configurador');
-  expect(picked[7].name).toBe(`Ver los ${catalog.designs.length} diseños 4 líneas: Fútbol, Voleibol, Baloncesto, Empresarial`);
-
-  // Las ocho familias de implementos, cada una en su sección de /implementos.
-  const implementsRegion=main.getByRole('region',{name:'Implementos deportivos'});
-  await expect(implementsRegion.getByRole('listitem').getByRole('link')).toHaveText(FAMILIES.map(([,name])=>name));
-  for(const [id,name] of FAMILIES)await expect(implementsRegion.getByRole('link',{name,exact:true})).toHaveAttribute('href',`/implementos#${id}`);
-  await expect(main.getByRole('region',{name:'Promociones Tony'}).getByRole('link')).toHaveAttribute('href','/promociones');
-
-  // La portada anterior (hero, índices 01–08, tutorial, preguntas, cifras sociales, accesos a reseñas y recientes) ya no existe.
-  await expect(main.locator('.hero, .section-index, #como-funciona, #tutorial, #preguntas, details, .social-community, .home-client-hub')).toHaveCount(0);
-  await expect(main.locator('a[href="/catalogo"], a[href="/recientes"], a[href="/resenas"]')).toHaveCount(0);
-
-  const create=page.getByRole('banner').getByRole('link',{name:'Crear pedido',exact:true});
-  await expect(create).toBeVisible();await expect(create).toHaveAttribute('href','/configurador');
-  await bento.getByRole('link',{name:/^Crear mi pedido/}).click();
-  // El servidor de desarrollo puede estar compilando el pedido: espera automática acotada, no una pausa.
-  await expect(page).toHaveURL(/\/configurador$/,{timeout:15_000});
-  await expect(page.getByRole('button',{name:'CREAR MI PEDIDO ↗',exact:true})).toBeVisible();
-  // Dentro del configurador el encabezado no repite "Crear pedido".
-  await expect(create).toHaveCount(0);
+  expect(seen.size).toBe(7);
+  await expect(ad).toHaveCount(0);
+  await expect(page.getByRole('link', {name: 'Empezar mi pedido'})).toBeFocused();
+  await page.reload();
+  await expect(ad).toHaveCount(0);
+  await expect(page.getByRole('region', {name: 'Promociones destacadas'})).toBeVisible();
 });
 
 test('el pie reúne el contacto, tres columnas cortas y la línea legal',async({page})=>{

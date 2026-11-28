@@ -6,27 +6,25 @@ import Brand from './Brand';
 import CartLink from './CartLink';
 import Icon from './Icon';
 import MenuDialog from './header/MenuDialog';
-import QuickNav from './header/QuickNav';
 import SearchDialog, {warmSearchIndex} from './header/SearchDialog';
 import {CREATE_ORDER_HREF, SEARCH_LABEL} from '@/lib/nav';
-import {TONY_WHATSAPP, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
+import {TONY_EMAIL, TONY_WHATSAPP, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
 import './site-navigation.css';
 
 /** Any component can open the site search: window.dispatchEvent(new Event('tony:open-search')). */
 export const OPEN_SEARCH_EVENT = 'tony:open-search';
 
-export default function Header({storeCount}: {storeCount: number}) {
-  const path = usePathname();
+export default function Header() {
+  const path = usePathname().replace(/\/$/, '') || '/';
+  const previousPath = useRef(path);
   const onConfigurator = path === CREATE_ORDER_HREF || path.startsWith(`${CREATE_ORDER_HREF}/`);
-  const header = useRef<HTMLElement>(null), subbar = useRef<HTMLDivElement>(null);
+  const header = useRef<HTMLElement>(null);
   const menuDialog = useRef<HTMLDialogElement>(null), searchDialog = useRef<HTMLDialogElement>(null);
   const menuTrigger = useRef<HTMLButtonElement>(null), searchReturn = useRef<HTMLElement | null>(null);
   const [menuOpen, setMenuOpen] = useState(false), [searchOpen, setSearchOpen] = useState(false), [mac, setMac] = useState(false);
 
   function closeAll() {
     setMenuOpen(false); setSearchOpen(false);
-    // The App Tony dialog of the quick nav must not stay open (and modal) over a new page.
-    subbar.current?.querySelectorAll<HTMLDialogElement>('dialog[open]').forEach(dialog => dialog.close());
   }
   function openMenu() { setSearchOpen(false); setMenuOpen(true); }
   function openSearch() {
@@ -39,7 +37,10 @@ export default function Header({storeCount}: {storeCount: number}) {
   const openSearchRef = useRef(openSearch);
   openSearchRef.current = openSearch;
 
-  useEffect(() => { closeAll(); }, [path]);
+  useEffect(() => {
+    if (previousPath.current !== path) closeAll();
+    previousPath.current = path;
+  }, [path]);
   useEffect(() => {
     const replay = () => closeAll();
     const open = () => openSearchRef.current();
@@ -75,15 +76,18 @@ export default function Header({storeCount}: {storeCount: number}) {
           </a>
           <CartLink className="tony-header-cart"/>
           {!onConfigurator && <Link className="tc-btn tc-btn--lime tony-header-create" href={CREATE_ORDER_HREF}>Crear pedido<Icon name="plus"/></Link>}
-          <button ref={menuTrigger} type="button" className="tony-menu-button" aria-label="Abrir menú" aria-haspopup="dialog" aria-controls="tony-mobile-menu" aria-expanded={menuOpen} onClick={openMenu}><Icon name="menu" size={26}/></button>
+          <button ref={menuTrigger} type="button" className="tony-menu-button" aria-label="Abrir menú" aria-haspopup="dialog" aria-controls="tony-mobile-menu" aria-expanded={menuOpen} onClick={openMenu}><Icon name="menu" size={24}/><span>Menú</span></button>
         </div>
       </div>
     </header>
-    <div ref={subbar} className="tony-subbar">
-      <QuickNav path={path}/>
+    <div className="tony-subbar">
       <div className="tony-subbar-search">{searchButton(true)}</div>
+      <div className="tony-contact-line">
+        <span>Si no te lo tenemos te lo hacemos</span>
+        <a href={`mailto:${TONY_EMAIL}`}>{TONY_EMAIL}</a>
+      </div>
     </div>
-    <MenuDialog open={menuOpen} dialogRef={menuDialog} path={path} storeCount={storeCount} onDismiss={() => setMenuOpen(false)} onSearch={openSearch}
+    <MenuDialog open={menuOpen} dialogRef={menuDialog} path={path} onDismiss={() => setMenuOpen(false)} onSearch={openSearch}
       onClosed={() => { setMenuOpen(false); if (!searchDialog.current?.open) menuTrigger.current?.focus({preventScroll: true}); }}/>
     <SearchDialog open={searchOpen} dialogRef={searchDialog} onDismiss={() => setSearchOpen(false)}
       onClosed={() => { setSearchOpen(false); const target = searchReturn.current; searchReturn.current = null; if (target?.isConnected && !menuDialog.current?.open) target.focus({preventScroll: true}); }}/>
