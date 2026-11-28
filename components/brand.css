@@ -1,3 +1,3 @@
-.brand > .official-logo { display:block; width:clamp(108px,11vw,156px); height:auto; aspect-ratio:1080 / 547; object-fit:contain; border:0; border-radius:4px }
+.brand > .official-logo { display:block; width:clamp(108px,11vw,156px); height:auto; object-fit:contain; border:0 }
 html .tony-footer .brand > .official-logo { width:150px; height:auto }
 @media (max-width:899px) { html .tony-header .brand > .official-logo, html .tony-mobile-top .brand > .official-logo { width:clamp(86px,24vw,125px); height:auto; max-height:55px } }

@@ -5,6 +5,7 @@ type Sample = {phase:string;covered:boolean;at:number};
 async function observe(page:Page) {
   await page.addInitScript(()=>{
     sessionStorage.setItem('tony:intro:wordmark:v1','seen');
+    sessionStorage.setItem('tony:inicio:carteles:v2','[]');
     const samples:Sample[]=[];
     (window as unknown as {__transitions:Sample[]}).__transitions=samples;
     new MutationObserver(records=>records.forEach(record=>{
@@ -43,15 +44,17 @@ test('touch navigation shows Tony over the full viewport without delaying routin
   const release=await holdNews(page);
   await news(page);
   await expect(transition).toHaveAttribute('data-phase','cover');
-  await expect(transition.locator('.rt-mobile')).toHaveCSS('opacity','1');
-  expect(await transition.boundingBox()).toEqual({x:0,y:0,width:390,height:844});
-  expect(await transition.locator('.rt-mobile').boundingBox()).toEqual({x:0,y:0,width:390,height:844});
-  await expect(transition.locator('.rt-mobile')).toHaveCSS('background-color','rgb(11, 23, 16)');
-  await expect(page.locator('html')).toHaveAttribute('data-route-cover','true');
-  const animated=await transition.evaluate(el=>[...new Set(el.getAnimations({subtree:true}).flatMap(a=>(a.effect as KeyframeEffect).getKeyframes().flatMap(f=>Object.keys(f))))]);
-  expect(animated.filter(p=>!['offset','computedOffset','easing','composite'].includes(p)).sort()).toEqual(['opacity','transform']);
-  await expect(transition).toHaveCSS('pointer-events','none');
-  await page.screenshot({path:'output/mobile-transition-after.png'});
+  const surface=await transition.evaluate(el=>{
+    const mobile=el.querySelector<HTMLElement>('.rt-mobile')!;
+    const box=(node:Element)=>{const {x,y,width,height}=node.getBoundingClientRect();return {x,y,width,height};};
+    const animated=[...new Set(el.getAnimations({subtree:true}).flatMap(a=>(a.effect as KeyframeEffect).getKeyframes().flatMap(f=>Object.keys(f))))];
+    return {outer:box(el),inner:box(mobile),opacity:getComputedStyle(mobile).opacity,background:getComputedStyle(mobile).backgroundColor,
+      pointer:getComputedStyle(el).pointerEvents,covered:document.documentElement.dataset.routeCover,
+      animated:animated.filter(p=>!['offset','computedOffset','easing','composite'].includes(p)).sort()};
+  });
+  const screen={x:0,y:0,width:390,height:844};
+  expect(surface).toEqual({outer:screen,inner:screen,opacity:'1',background:'rgb(11, 23, 16)',
+    pointer:'none',covered:'true',animated:['opacity','transform']});
   // The section arrives now; Tony winks and lets it through as soon as it does.
   release();
   await expect(page).toHaveURL(/\/tony-news$/);
@@ -82,8 +85,7 @@ test('motion changes interrupt the mobile transition and leave navigation usable
   await expect(page.locator('.route-transition')).toHaveAttribute('data-phase','idle');
   await expect(page.locator('.route-transition')).toBeHidden();
   await expect(page).toHaveURL(/\/tony-news$/);
-  await page.emulateMedia({reducedMotion:'no-preference'});
-  await page.getByRole('button',{name:'Pausar efectos',exact:true}).tap();
+  await expect(page.getByRole('button',{name:'Pausar efectos',exact:true})).toHaveCount(0);
   await page.locator('.tony-header-inner .brand').tap();
   await expect(page).toHaveURL(/\/$/);
   await expect(page.locator('.route-transition')).toHaveAttribute('data-phase','idle');

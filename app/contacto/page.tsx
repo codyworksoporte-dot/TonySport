@@ -42,16 +42,16 @@ export default function ContactoPage() {
         <Link className="tc-tile tc-rise" style={rise(3)} href="/tiendas">
           {/* The first photo the page shows (on phones the other two start below it): loads at once, at default
               priority, since it is not the LCP and must not take bandwidth from the render-blocking CSS. */}
-          <LeadImage className="tp-img-top" {...responsive('/assets/sections/tiendas-tony.webp', TILE3_SIZES)} width={960} height={1200} fetchPriority="auto"/>
+          <LeadImage className="tp-img-top" {...responsive('/assets/secciones/tiendas/portada.webp', TILE3_SIZES)} width={600} height={600} fetchPriority="auto"/>
           <span className="tc-tile-label"><span><b>Tiendas</b><small>{stores.length} en El Salvador</small></span><span className="tc-go"><Icon name="pin"/></span></span>
         </Link>
         <a className="tc-tile tc-rise" style={rise(4)} href={ORDER_LOOKUP_URL} target="_blank" rel="noopener noreferrer">
-          <img className="tp-img-top" {...responsive('/assets/sections/entregas-tony.webp', TILE3_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+          <img className="tp-img-top" {...responsive('/assets/secciones/consulta/portada.webp', TILE3_SIZES)} alt="" width={600} height={600} loading="lazy" decoding="async"/>
           <span className="tc-tile-label"><span><b>Consulta tu pedido</b><small>Con tu número de orden</small></span><span className="tc-go"><Icon name="diagonal"/></span></span>
           <span className="tc-sr">{NEW_TAB}</span>
         </a>
         <Link className="tc-tile tc-rise" style={rise(5)} href="/ayuda">
-          <img className="tp-img-top" {...responsive('/assets/sections/recientes-tony.webp', TILE3_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+          <img className="tp-img-top" {...responsive('/assets/secciones/ayuda/portada.webp', TILE3_SIZES)} alt="" width={600} height={600} loading="lazy" decoding="async"/>
           <span className="tc-tile-label"><span><b>Preguntas frecuentes</b><small>Respuestas rápidas</small></span><span className="tc-go"><Icon name="help"/></span></span>
         </Link>
       </div>

@@ -76,6 +76,22 @@
   background: var(--tc-tile); text-decoration: none; color: var(--tc-ink);
 }
 .shop-products .shop-product { min-height: 112px; }
+.shop-custom-order { grid-column: 1 / -1; }
+.shop-products .shop-custom-order .shop-product {
+  position: relative; isolation: isolate; overflow: hidden; min-height: clamp(124px, 14vw, 182px);
+  padding: clamp(18px, 3vw, 34px); border-color: #779935; background: #112019;
+}
+.shop-custom-order .shop-product::before {
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(100deg, #09180ff5 13%, #142918ec 41%, #10341940 70%, transparent 90%);
+}
+.shop-custom-order .shop-product .shop-thumb {
+  position: absolute; z-index: -2; inset: 0 0 0 auto; width: 66%; height: 100%; border-radius: 0;
+  object-position: 64% 47%;
+}
+.shop-custom-order .shop-product-copy { max-width: 64%; }
+.shop-custom-order .shop-product-copy strong { font-family: var(--font-display), sans-serif; font-size: clamp(28px, 3.2vw, 46px); line-height: 1; text-transform: uppercase; }
+.shop-custom-order .shop-product > svg { align-self: end; border-radius: 50%; padding: 9px; width: 40px; height: 40px; background: var(--tc-lime); color: #142018; }
 .shop-product > svg { flex: none; color: var(--tc-lime); margin-left: auto; }
 .shop-thumb { flex: none; width: 64px; height: 72px; object-fit: cover; border-radius: 7px; background: var(--tc-tile-2); }
 .shop-product-copy { display: grid; gap: 5px; min-width: 0; overflow-wrap: anywhere; }

@@ -1,12 +1,43 @@
-import SectionImage from '@/components/SectionImage';
-import type { Metadata } from 'next';
-import { SponsorshipProposal } from '@/components/EditorialTools';
-import { EditorialShell, EditorialHero, SectionLabel, SourceNote } from '@/components/TonyEditorial';
-export const metadata: Metadata = {title:'Patrocinio y propuestas de colaboración',description:'Presenta tu club, academia o proyecto deportivo a Tony. Prepara y revisa una propuesta antes de compartirla por WhatsApp o correo.'};
+import type {Metadata} from 'next';
+import Link from 'next/link';
+import {SponsorshipProposal} from '@/components/EditorialTools';
+import {EditorialShell} from '@/components/TonyEditorial';
+import {siteAsset} from '@/lib/asset-path';
+import './patrocinio.css';
+
+export const metadata: Metadata = {
+  title:'Patrocinio deportivo de Tony',
+  description:'Conoce los clubes de fútbol que Tony presenta en su archivo de patrocinios y prepara la propuesta de tu equipo.',
+};
+
+const clubs = [
+  {slug:'dragon', name:'C.D. Dragón', photo:'Presentación de la indumentaria de C.D. Dragón', credit:'Stefany Andrade / Diario El Mundo, 2022', source:'https://diario.elmundo.sv/deportes/dragon-presento-su-nueva-piel-para-el-apertura-2022'},
+  {slug:'platense', name:'C.D. Platense', photo:'Jugadores de C.D. Platense con la camiseta amarilla del club'},
+  {slug:'cacahuatique', name:'C.D. Cacahuatique', photo:'Jugadores de C.D. Cacahuatique reunidos junto al trofeo'},
+  {slug:'marte-soyapango', name:'C.F. Marte Soyapango', photo:'Formación del C.F. Marte Soyapango con su uniforme azul', credit:'Diario El Mundo, 2022', source:'https://diario.elmundo.sv/deportes/jugadores-de-equipo-de-segunda-division-denuncian-deuda-salarial-de-dos-meses'},
+];
+const source = 'https://www.tonysportselsalvador.com/patrocinadores/';
+
 export default function SponsorshipPage() {
-  return <EditorialShell className="te-sponsorship"><EditorialHero label="Patrocinio" eyebrow="LAS GRANDES IDEAS JUEGAN EN EQUIPO" title={<>Una propuesta.<br /><em>Muchas ganas de jugar.</em></>} description="Cuéntanos quiénes son, qué están construyendo y cómo imaginan una colaboración con Tony. Una conversación bien preparada es el primer paso." aside={<div className="te-sponsorship-emblem"><SectionImage photo="patrocinio" shade="bottom" priority /><strong>TU CLUB.<br /><em>TU VOZ.</em></strong></div>} />
-    <section className="te-band"><div className="te-wrap te-band-inner"><strong>El talento también necesita una identidad.</strong><p>Presenta una propuesta concreta. Compartirla no implica aprobación de patrocinio ni compromisos económicos.</p></div></section>
-    <section className="te-wrap"><SectionLabel number="01">Equipos que Tony presenta</SectionLabel><div className="te-section-heading"><h2>El fútbol forma parte<br /><em>de esta historia.</em></h2><p>En su página de patrocinadores, Tony muestra a estos clubes. La publicación no indica una temporada de vigencia.</p></div><div className="te-club-names">{['C.D. Dragón','C.D. Platense','C.D. Cacahuatique','C.F. Marte Soyapango'].map((club,index) => <div key={club}><span>0{index+1}</span><h3>{club}</h3></div>)}</div><SourceNote href="https://www.tonysportselsalvador.com/patrocinadores/">Equipos mencionados en la publicación de patrocinadores de Tony.</SourceNote></section>
-    <section className="te-wrap te-rule" id="propuesta"><div className="te-proposal-layout"><aside className="te-proposal-aside"><SectionLabel number="02">Tu siguiente conversación</SectionLabel><h2>Una buena propuesta<br /><em>se entiende desde el inicio.</em></h2><p>Clubes, academias y organizaciones pueden usar este espacio para preparar su presentación.</p><ol className="te-proposal-points"><li><span>01</span>Explica quiénes son y en qué categoría participan.</li><li><span>02</span>Cuenta qué necesitan y qué les gustaría aportar a una colaboración.</li><li><span>03</span>Incluye a la persona responsable para continuar la conversación.</li></ol></aside><SponsorshipProposal /></div></section>
+  return <EditorialShell className="te-sponsorship">
+    <div className="club-wrap">
+      <nav aria-label="Ruta de navegación" className="club-path"><Link href="/">Inicio</Link> / Patrocinio</nav>
+      <header className="club-intro">
+        <div><p className="club-kicker">Fútbol salvadoreño</p><h1>Patrocinio <em>Tony.</em></h1></div>
+        <div><p>Conocé los clubes que forman parte de nuestro archivo de patrocinios.</p><a href="#propuesta">Presentar mi equipo <span aria-hidden="true">↓</span></a></div>
+      </header>
+      <section className="club-grid" aria-label="Clubes patrocinados por Tony">
+        {clubs.map(({slug,name,photo,credit,source:creditUrl},index) => <article key={slug} className={`club-card club-${slug}`}>
+          <img className="club-photo" src={siteAsset(`/assets/patrocinio/foto-${slug}.webp`)} alt={photo} width="520" height="360" loading={index === 0 ? 'eager' : 'lazy'}/>
+          <div className="club-identity"><img className="club-crest" src={siteAsset(`/assets/patrocinio/escudo-${slug}.webp`)} alt={`Escudo de ${name}`} width="64" height="64" loading="lazy"/><h2>{name}</h2></div>
+          {credit && <small className="club-credit">Foto de archivo · <a href={creditUrl} target="_blank" rel="noopener noreferrer">{credit}</a></small>}
+        </article>)}
+      </section>
+      <p className="club-source"><a href={source} target="_blank" rel="noopener noreferrer">Ver el archivo de patrocinio de Tony ↗</a></p>
+    </div>
+    <section className="te-wrap te-rule" id="propuesta"><div className="te-proposal-layout">
+      <aside className="te-proposal-aside"><p className="club-kicker">Clubes y academias</p><h2>Presentá <em>tu equipo.</em></h2><p>Contanos dónde juegan, qué necesitan y quién es la persona de contacto. Podés revisar tu propuesta antes de compartirla con Tony.</p></aside>
+      <SponsorshipProposal/>
+    </div></section>
   </EditorialShell>;
 }

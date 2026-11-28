@@ -6,7 +6,7 @@ import LeadImage from '@/components/media/LeadImage';
 import {APP_PHOTO_SIZES} from '@/components/pages/photo-sizes';
 import {rise} from '@/components/pages/rise';
 import {siteAsset} from '@/lib/asset-path';
-import {responsive} from '@/lib/responsive-image';
+import {responsive,srcSetOf} from '@/lib/responsive-image';
 import '@/components/pages/pages.css';
 
 export const metadata: Metadata = {
@@ -24,7 +24,10 @@ export default function AppTonyPage() {
 
       <div className="tp-app-grid">
         <div className="tc-tile tp-app-photo tc-rise" style={rise(1)}>
-          <LeadImage {...responsive('/assets/sections/app-tony-tony.webp', APP_PHOTO_SIZES)} width={960} height={1200}/>
+          <picture>
+            <source media="(max-width: 760px)" srcSet={srcSetOf('/assets/secciones/app-tony/horizontal.webp')} sizes="100vw"/>
+            <LeadImage {...responsive('/assets/secciones/app-tony/portada.webp', APP_PHOTO_SIZES)} width={960} height={1200}/>
+          </picture>
           <span className="tc-tile-label"><span><b>Tony en tu teléfono</b><small>Android y iPhone</small></span></span>
         </div>
         <div className="tp-app-panel tc-rise" style={rise(2)}>

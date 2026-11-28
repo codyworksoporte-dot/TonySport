@@ -2,18 +2,19 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { usePathname } from 'next/navigation';
-import { AMBIENT } from '@/lib/ambient-config';
-import { siteAsset } from '@/lib/asset-path';
 import { whenPageSettles } from '@/lib/page-settled';
 import TonyWordmark from './TonyWordmark';
 import './route-transition.css';
 
 type Phase = 'idle' | 'cover' | 'wink' | 'reveal';
-const { transition } = AMBIENT;
+const transition = {
+  mobile: {arriveMs: 240, winkMs: 280, revealMs: 200},
+  arriveMs: 480, winkMs: 300, revealMs: 380, timeoutMs: 3200,
+};
 const MOBILE = '(max-width: 900px), (pointer: coarse)';
 
 /**
- * Changing section: the scales close over the page, a ring spreading from the
+ * Changing section: a green surface covers the page, a ring spreading from the
  * link you clicked; the Tony logo slams in, it settles once the
  * new section is ready, then lets you in. Every moving part is a transform or an
  * opacity, so the compositor keeps it smooth while the new page renders.
@@ -23,6 +24,7 @@ export default function RouteTransition() {
   const pathname = usePathname();
   const [art, setArt] = useState<'pending' | 'mobile' | 'full'>('pending');
   const root = useRef<HTMLDivElement>(null);
+  const destination = useRef<string | null>(null);
   const run = useRef({ phase: 'idle' as Phase, coveredAt: 0, mobile: false, timers: [] as number[], warm: 0, generation: 0, artShown: false });
   const shown = useRef(pathname);
   /**
@@ -53,16 +55,14 @@ export default function RouteTransition() {
   /**
    * Load and decode the artwork ahead of time, then draw every layer once, nearly
    * transparent on desktop. The mobile cover uses a flat surface and cached
-   * logo, without downloading the desktop texture or adding blur.
+   * logo.
    */
   const arm = () => {
     const element = root.current;
     if (!element || matchMedia(MOBILE).matches || !allowed() || element.classList.contains('is-armed')) return;
     const generation = ++run.current.generation;
     element.classList.add('is-armed');
-    const texture = new Image();
-    texture.src = siteAsset('/assets/escamas-tony-brasa.webp');
-    const decoded = [texture, ...element.querySelectorAll('img')].map(image => image.decode().catch(() => { /* Drawn when it arrives. */ }));
+    const decoded = [...element.querySelectorAll('img')].map(image => image.decode().catch(() => { /* Drawn when it arrives. */ }));
     Promise.all(decoded).then(() => {
       if (generation !== run.current.generation || run.current.phase !== 'idle' || !root.current || !allowed()) return;
       element.classList.add('is-warming');
@@ -101,10 +101,10 @@ export default function RouteTransition() {
       if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>('a[href]') : null;
       if (!anchor || (anchor.target && anchor.target !== '_self') || anchor.hasAttribute('download')) return;
-      // The logo replays the intro, which is its own entrance.
-      if (anchor.closest('[data-no-transition]') || (anchor.closest('.brand') && !matchMedia(MOBILE).matches)) return;
+      if (anchor.closest('[data-no-transition]')) return;
       const url = new URL(anchor.href, location.href);
       if (url.origin !== location.origin || url.pathname === location.pathname || !allowed()) return;
+      destination.current = url.pathname.replace(/\/$/, '');
       cover(event.clientX || innerWidth / 2, event.clientY || innerHeight / 2);
     };
     const onIntro = () => { clear(); stopWarming(); set('idle'); setCovered(false); };
@@ -138,7 +138,7 @@ export default function RouteTransition() {
     };
   }, []);
 
-  // Desktop: once the artwork is drawn, load and decode it (and the scales texture) ahead of the first change.
+  // Desktop: once the artwork is drawn, load and decode it ahead of the first change.
   useEffect(() => {
     if (art !== 'full') return;
     const idle = window.requestIdleCallback?.(arm, { timeout: 2500 }) ?? window.setTimeout(arm, 1200);
@@ -149,11 +149,13 @@ export default function RouteTransition() {
     // Effects can run twice for the same page (Strict Mode): only a new path counts.
     if (shown.current === pathname) return;
     shown.current = pathname;
+    const expectedArrival = destination.current === location.pathname.replace(/\/$/, '');
+    destination.current = null;
     if (run.current.phase === 'cover') {
       // Let the logo settle, however fast the page was.
       clear();
       later(wink, Math.max(0, (run.current.mobile ? transition.mobile.arriveMs : transition.arriveMs) - (performance.now() - run.current.coveredAt)));
-    } else if (allowed()) {
+    } else if (!expectedArrival && allowed()) {
       // Back and forward buttons: the same visit over the page that just arrived.
       cover(innerWidth / 2, innerHeight / 2);
       clear();

@@ -2,14 +2,13 @@ import { COLLECTION_PRODUCTS, COLLECTIONS } from '@/lib/collections';
 import { IMPLEMENTS } from '@/lib/implements';
 import { fitted } from '@/lib/responsive-image';
 import { siteAsset } from '@/lib/asset-path';
-import { storefrontImage } from '@/lib/storefront-image';
 import inventory from '@/data/tienda.json';
 
 export type ShopProduct = {
   id: number;
   name: string;
   href: string;
-  image: string | null;
+  image: string;
   categories: string[];
   group: string;
   price: number | null;
@@ -42,16 +41,33 @@ function displayName(name: string) {
 const byId = new Map([...COLLECTION_PRODUCTS, ...inventory.newProducts].map(item => [item.id, item]));
 const gearNames = new Map(IMPLEMENTS.map(item => [item.id, item.name]));
 const renamed = inventory.updatedCategories as Record<string, string[]>;
-export const SHOP_PRODUCTS = inventory.pricesInCents.map(([id, price]): ShopProduct => {
+const CUSTOM_ORDER = 38223;
+const shopCovers: Record<number, `/assets/${string}`> = {
+  [CUSTOM_ORDER]: '/assets/tienda/crear-pedido.webp',
+  38313: '/assets/tienda/replicas-bordadas-futbol.webp',
+  38248: '/assets/tienda/replicas-bordadas.webp',
+  27582: '/assets/tienda/motorcycle-manga-larga.webp',
+};
+const familyCovers: Record<string, `/assets/${string}`> = {
+  implementos: '/assets/productos/implementos/portada.webp',
+  replicas: '/assets/productos/replicas/portada.webp',
+  uniformes: '/assets/productos/futbol/portada.webp',
+  camisas: '/assets/productos/camisas-polos/portada.webp',
+};
+// Pin the configurator in the catalogue without changing the chronological sidebar.
+const catalogue = [...inventory.pricesInCents].sort(([a], [b]) => Number(b === CUSTOM_ORDER) - Number(a === CUSTOM_ORDER));
+export const SHOP_PRODUCTS = catalogue.map(([id, price]): ShopProduct => {
   const product = byId.get(id!)!;
   const categories = renamed[product.id] ?? product.categories;
   const name = gearNames.get(product.id) ?? displayName(product.name);
   const family = familyRules.find(rule => categories.some(category => rule.match.test(category)));
+  const image = shopCovers[product.id] ?? (product.cover as `/assets/${string}` | null)
+    ?? familyCovers[family?.value ?? ''] ?? '/assets/tienda/crear-pedido.webp';
   return {
     id: product.id, name,
     price: price === null ? null : price / 100,
-    href: product.id === 38223 ? '/configurador' : product.href,
-    image: product.cover ? siteAsset(fitted(product.cover as `/assets/${string}`, 240)) : storefrontImage('tienda-' + product.id) ?? null,
+    href: product.id === CUSTOM_ORDER ? '/configurador' : product.href,
+    image: siteAsset(fitted(image, product.id === CUSTOM_ORDER ? 600 : 240)),
     categories: family ? [...categories, family.value] : categories,
     group: family?.label ?? displayName(categoryNames.get(categories[0]) ?? categories[0].replaceAll('-', ' ')),
   };

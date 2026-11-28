@@ -65,7 +65,8 @@
 /* ---------- APP TONY ---------- */
 .tp-app-grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:18px;align-items:stretch}
 .tp-app-photo{min-height:560px;margin:0}
-.tp-app-photo>img{object-position:50% 20%}
+.tp-app-photo>picture{position:absolute;inset:0;z-index:0}
+.tp-app-photo>picture img{display:block;width:100%;height:100%;object-fit:cover;object-position:center}
 .tp-app-panel{overflow:hidden;border-radius:var(--tc-r);background:var(--tc-tile);box-shadow:inset 0 0 0 1px var(--tc-line-strong)}
 .tp-app-panel .app-dl{padding-bottom:10px}
 /* The big "Premios de la app" card below already links the prizes; one link is enough here. */
@@ -79,7 +80,7 @@
 @media(max-width:899px){
   .tp-app-grid{grid-template-columns:1fr;gap:12px}
   .tp-app-photo{min-height:0;height:clamp(210px,38vw,300px)}
-  .tp-app-photo>img{object-position:50% 14%}
+  .tp-app-photo>picture img{object-position:68% 50%}
   .tp-prize{gap:14px;padding:10px 14px 10px 10px}
   .tp-prize-media{width:96px;border-radius:14px}
   .tp-prize b{font-size:25px}

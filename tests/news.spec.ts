@@ -20,14 +20,8 @@ test('Tony News conserva las cuentas oficiales y solo carga Instagram al solicit
   await expect(instagram.locator('iframe')).toHaveAttribute('src',LOURDES_PUBLICATION.embedUrl);
   await expect(instagram).toContainText('Si no aparece el contenido o pide iniciar sesión');
   await expect(page.locator('.tn-embed-tiktok')).toHaveAttribute('data-state','idle');
-  // The old line anchor is a legacy alias: it lands on the Ciclismo section, under the sticky header, at its canonical address.
-  await page.locator('a[href="/producto#ciclismo"]').click();
-  await expect(page).toHaveURL(/\/producto#categoria-ciclismo$/);
-  const title=page.locator('#categoria-ciclismo').getByRole('heading',{level:2});
-  await expect(title).toHaveText('Ciclismo');
-  await expect(title).toBeInViewport({ratio:1});
-  const header=(await page.locator('.site-header').boundingBox())!;
-  expect((await title.boundingBox())!.y).toBeGreaterThanOrEqual(header.y+header.height);
+  await expect(channels.locator('a svg')).toHaveCount(3);
+  await expect(page.locator('main a[href*="/producto#"]')).toHaveCount(0);
 });
 
 test('TikTok informa el bloqueo y permite reintentar sin perder el canal original',async({page})=>{

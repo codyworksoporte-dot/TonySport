@@ -1,5 +1,6 @@
 // Line icons share one 24px grid and a 1.5 stroke. "Solid" icons are brand glyphs drawn as filled shapes.
 const LINE = {
+  mail: 'M3 5h18v14H3zM3.5 6l8.5 7 8.5-7',
   arrow: 'M4 12h16m-6-6 6 6-6 6',
   diagonal: 'M6 18 18 6M6 6h12v12',
   menu: 'M3 6h18M3 12h18M3 18h18',

@@ -8,5 +8,5 @@ export default function TonyWordmark({ sizes, alt = '', ...props }: Props) {
   const srcSet = sizes ? [240, 640, 1080].map(width =>
     `${siteAsset(width === 1080 ? '/assets/brand/tony-wordmark.webp' : `/assets/brand/tony-wordmark-${width}.webp`)} ${width}w`
   ).join(', ') : undefined;
-  return <img src={src} srcSet={srcSet} sizes={sizes} alt={alt} width={1080} height={547} draggable={false} decoding="async" {...props}/>;
+  return <img src={src} srcSet={srcSet} sizes={sizes} alt={alt} width={1080} height={354} draggable={false} decoding="async" {...props}/>;
 }

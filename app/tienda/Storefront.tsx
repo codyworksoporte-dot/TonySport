@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 import type { CSSProperties, FormEvent } from 'react';
 import Icon from '@/components/Icon';
@@ -14,15 +14,20 @@ const fold = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g,
 const money = (value: number) => `$${value.toFixed(2)}`;
 
 function LocationFilters({onChange}: {onChange: (search: string) => void}) {
+  const router = useRouter();
   const params = useSearchParams();
   const search = params.toString();
-  useEffect(() => { onChange(search); }, [search, onChange]);
+  const isLegacyRse = params.get('categoria') === 'rse-tony';
+  useEffect(() => {
+    if (isLegacyRse) router.replace('/rse');
+    else onChange(search);
+  }, [isLegacyRse, router, search, onChange]);
   return null;
 }
 
 function ProductLink({product, compact = false}: {product: ShopProduct; compact?: boolean}) {
   const body = <>
-    {product.image && <img className="shop-thumb" src={product.image} alt="" width="84" height="84" decoding="async" loading="lazy"/>}
+    <img className="shop-thumb" src={product.image} alt="" width="84" height="84" decoding="async" loading={!compact && product.href === '/configurador' ? 'eager' : 'lazy'}/>
     <span className="shop-product-copy">
       {!compact && <small>{product.group}</small>}
       <strong>{product.name}</strong>
@@ -105,7 +110,7 @@ export default function Storefront({products, categories, latest}: Props) {
         {filtered && <button type="button" className="shop-clear" onClick={() => apply({q:'', categoria:'', min:0, max:limit})}>Limpiar filtros</button>}
       </div>
       {results.length ? <ul className="shop-products" ref={list}>{results.slice(0,visible).map(item =>
-        <li key={item.id}><ProductLink product={item}/></li>)}</ul>
+        <li key={item.id} className={item.href === '/configurador' ? 'shop-custom-order' : undefined}><ProductLink product={item}/></li>)}</ul>
         : <p className="shop-empty">Probá con otro nombre, otra categoría o un rango de precio más amplio.</p>}
       {visible < results.length && <button type="button" className="shop-more" onClick={() => {
         const first = visible;

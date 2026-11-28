@@ -68,7 +68,8 @@ const storeEntries: DirectoryEntry[] = [
 const companyEntries: DirectoryEntry[] = [
   {href: '/nosotros', label: 'Nuestra historia', group: 'SOMOS TONY', terms: 'somos tony quienes somos empresa el salvador'},
   {href: '/patrocinio', label: 'Patrocinios', group: 'SOMOS TONY', terms: 'patrocinio equipos proyectos apoyo'},
-  {href: '/comunidad', label: 'Comunidad', group: 'SOMOS TONY', terms: 'responsabilidad social conexion'},
+  {href: '/comunidad', label: 'Comunidad', group: 'SOMOS TONY', terms: 'comunidad conexion'},
+  {href: '/rse', label: 'Responsabilidad social empresarial', group: 'SOMOS TONY', terms: 'rse tony galería comunidad equipos premiaciones boxeo fútbol', image: '/assets/rse/001-420.webp'},
   {href: '/calidad', label: 'Calidad y confección', group: 'SOMOS TONY', terms: 'telas tecnicas acabados materiales sublimado bordado estampado'},
   {href: NAV.news.href, label: 'Tony News', group: 'SOMOS TONY', terms: 'noticias videos publicaciones redes tiktok instagram facebook', image: NAV.news.image},
 ];

@@ -20,7 +20,7 @@
 .advisor-studio{position:relative;display:grid;grid-template-columns:minmax(0,1fr);min-width:0;margin-bottom:22px;border-radius:26px;isolation:isolate}
 .advisor-stage-wrap{position:relative;overflow:hidden;border-radius:26px;aspect-ratio:4/5;min-height:300px;background:radial-gradient(90% 60% at 50% 34%,#2a7a3c 0%,#15452a 36%,#0a2217 68%,#06140e 100%);box-shadow:inset 0 0 0 1px #c4ed8024,inset 0 -80px 120px -60px #000c,0 40px 90px -40px #b4ff3540,0 20px 50px -20px #000a;isolation:isolate;transform:translateZ(0)}
 /* Scales of the brand, barely there, give the scene texture. */
-.advisor-stage-wrap::before{content:'';position:absolute;inset:0;z-index:0;background:url('/assets/escamas-tony-base.webp') 50% 0/520px 520px;opacity:.16;mix-blend-mode:soft-light;pointer-events:none}
+
 /* A light vignette keeps the eye on her. */
 .advisor-stage-wrap::after{content:'';position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(120% 90% at 50% 40%,transparent 50%,#04100a99 100%),linear-gradient(180deg,#0000 70%,#06140ecc 100%)}
 .advisor-aura{position:absolute;z-index:0;left:-30%;top:-25%;width:160%;aspect-ratio:1;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 18%,#b4ff3524 28%,transparent 40%,#5be37a1c 58%,transparent 70%,#c4ed8018 86%,transparent 100%);filter:blur(26px);opacity:.9;will-change:transform;animation:advisor-aura 46s linear infinite;pointer-events:none}

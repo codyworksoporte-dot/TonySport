@@ -5,10 +5,12 @@ import {useEffect, useRef, useState} from 'react';
 import Brand from './Brand';
 import CartLink from './CartLink';
 import Icon from './Icon';
+import SocialGlyph from './SocialGlyph';
 import MenuDialog from './header/MenuDialog';
 import SearchDialog, {warmSearchIndex} from './header/SearchDialog';
 import {CREATE_ORDER_HREF, SEARCH_LABEL} from '@/lib/nav';
 import {TONY_EMAIL, TONY_WHATSAPP, TONY_WHATSAPP_NUMBER} from '@/lib/site-links';
+import {TONY_CHANNELS} from '@/lib/social-news';
 import './site-navigation.css';
 
 /** Any component can open the site search: window.dispatchEvent(new Event('tony:open-search')). */
@@ -42,16 +44,14 @@ export default function Header() {
     previousPath.current = path;
   }, [path]);
   useEffect(() => {
-    const replay = () => closeAll();
     const open = () => openSearchRef.current();
     const shortcut = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === 'k') { event.preventDefault(); openSearchRef.current(); }
     };
-    window.addEventListener('tony:intro-replay', replay);
     window.addEventListener(OPEN_SEARCH_EVENT, open);
     window.addEventListener('keydown', shortcut);
     setMac(/Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent));
-    return () => { window.removeEventListener('tony:intro-replay', replay); window.removeEventListener(OPEN_SEARCH_EVENT, open); window.removeEventListener('keydown', shortcut); };
+    return () => { window.removeEventListener(OPEN_SEARCH_EVENT, open); window.removeEventListener('keydown', shortcut); };
   }, []);
   // Scroll state lives on a DOM attribute (no React state, no re-render): the glass deepens, the logo eases down and the lime reading thread shows.
   useEffect(() => {
@@ -83,8 +83,16 @@ export default function Header() {
     <div className="tony-subbar">
       <div className="tony-subbar-search">{searchButton(true)}</div>
       <div className="tony-contact-line">
-        <span>Si no te lo tenemos te lo hacemos</span>
-        <a href={`mailto:${TONY_EMAIL}`}>{TONY_EMAIL}</a>
+        <span>Si no te lo tenemos <strong>te lo hacemos</strong></span>
+        <div className="tony-contact-links">
+          <a href={`mailto:${TONY_EMAIL}`}><Icon name="mail" size={18}/>{TONY_EMAIL}</a>
+          <div className="tony-strip-social">
+            {(['facebook','instagram'] as const).map(channel => <a key={channel} href={TONY_CHANNELS[channel].url}
+              aria-label={`${TONY_CHANNELS[channel].name} de Tony (se abre en otra pestaña)`} target="_blank" rel="noopener noreferrer">
+              <SocialGlyph channel={channel} size={20}/>
+            </a>)}
+          </div>
+        </div>
       </div>
     </div>
     <MenuDialog open={menuOpen} dialogRef={menuDialog} path={path} onDismiss={() => setMenuOpen(false)} onSearch={openSearch}

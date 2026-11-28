@@ -320,10 +320,11 @@ test.describe('páginas nuevas del brief', () => {
     }
   }
 
-  test('/entregas muestra Consulta tu pedido', async ({page}) => {
+  test('/entregas ofrece coordinación y seguimiento del pedido', async ({page}) => {
     await page.goto('/entregas');
     const main = page.getByRole('main');
-    await expect(main.getByRole('heading', {level: 1})).toHaveText('Consulta tu pedido');
+    await expect(main.getByRole('heading', {level: 1})).toHaveText('Servicio a domicilio');
+    await expect(main.getByRole('link', {name: /^Coordinar entrega/})).toHaveAttribute('href', /^https:\/\/wa\.me\/50370155571/);
     await expectNewTab(main.getByRole('link', {name: /^Consultar mi pedido/}), ORDER_LOOKUP);
   });
 });

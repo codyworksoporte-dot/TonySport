@@ -72,7 +72,7 @@ export function Hero() {
         <p className="hero-description" data-rise="5">La garra se lleva dentro.<br/>La identidad, en la piel.</p>
         <div className="hero-buttons" data-rise="6">
           <Link href="/configurador" className="button primary">Crea tu uniforme <span className="button-icon"><Icon name="diagonal"/></span></Link>
-          <Link href="/producto" className="hero-secondary">Explora Producto <span>↗</span></Link>
+          <Link href="/producto" className="hero-secondary">Escoge tu disciplina deportiva <span>↗</span></Link>
         </div>
       </div>
       <div className="hero-art-label" data-rise="7"><span className="micro-cross">+</span><div><span>TU EQUIPO. TU PROPIA PIEL.</span><strong>PERSONALIZACIÓN TONY</strong></div></div>

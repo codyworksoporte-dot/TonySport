@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import LeadImage from '@/components/media/LeadImage';
-import {siteAsset} from '@/lib/asset-path';
+import {responsive} from '@/lib/responsive-image';
 import {imageFocus} from '@/lib/product-menu';
 
 type Props = {
@@ -22,7 +22,7 @@ type Props = {
 
 /** A product option as a picture and its name. Nothing else. */
 export default function PictureCard({id,name,image,href,kind,label,priority=false}:Props){
-  const photo={src:siteAsset(image),alt:'',width:440,height:440,decoding:'async' as const,style:imageFocus(image)};
+  const photo={...responsive(image,'(max-width: 599px) 48vw, (max-width: 1000px) 32vw, 440px'),alt:'',width:440,height:440,decoding:'async' as const,style:imageFocus(image)};
   const body=<>
     <span className="tc-card-media">{priority?<LeadImage {...photo} fetchPriority={priority}/>:<img {...photo} loading="lazy"/>}</span>
     <span className="tc-card-name"><span>{name.replace(/N\.º /g,'N.º ')}</span><Icon name={kind==='page'?'arrow':kind==='whatsapp'?'whatsapp':'diagonal'}/></span>

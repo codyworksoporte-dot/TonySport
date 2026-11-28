@@ -1,0 +1,22 @@
+.club-wrap{max-width:1440px;padding:24px clamp(16px,4vw,60px) 28px;margin:auto}
+.club-path{display:flex;gap:12px;color:#b8ccbb;font-size:.87rem}
+.club-path a,.club-source a,.club-credit a{text-decoration:underline;text-underline-offset:.2em}
+.club-intro{display:grid;grid-template-columns:1.35fr .65fr;align-items:end;gap:30px;margin:36px 0 30px}
+.club-kicker{color:#c4fa61;font-size:.77rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin:0}
+.club-intro h1{margin:7px 0 0;text-transform:uppercase;letter-spacing:-.035em;line-height:.93;font-size:clamp(3.2rem,7.8vw,8rem)}
+.club-intro h1 em,.te-proposal-aside h2 em{color:#baff4c}
+.club-intro>div>p:not(.club-kicker){max-width:35ch;color:#cfdeca;line-height:1.5;margin:0 0 10px}
+.club-intro a{display:inline-flex;align-items:center;gap:16px;min-height:44px;color:#baff4c;font-weight:700}
+.club-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,1.3vw,22px)}
+.club-card{display:flex;flex-direction:column;min-width:0;position:relative;isolation:isolate;overflow:hidden;border:1px solid #38533d;border-radius:16px;background:linear-gradient(145deg,#1b3527,#0b1b13 78%);--club:#8cf442}
+.club-platense{--club:#f8cd44}.club-cacahuatique{--club:#fa555d}.club-marte-soyapango{--club:#649dff}
+.club-photo{display:block;width:100%;height:auto;aspect-ratio:1.33;object-fit:cover;background:#1a2820}
+.club-platense .club-photo,.club-cacahuatique .club-photo{object-position:50% 25%}
+.club-identity{display:flex;align-items:center;gap:12px;position:relative;padding:16px 14px 10px;border-top:3px solid var(--club)}
+.club-identity h2{margin:0;color:#f2f7e9;line-height:.99;font-size:clamp(1.45rem,2vw,2.3rem)}
+.club-crest{flex:none;width:clamp(46px,4vw,63px);height:clamp(46px,4vw,63px);object-fit:contain;background:#191c20;border:1px solid #78927c;box-shadow:0 4px 12px #0005;border-radius:8px}
+.club-credit{display:block;color:#b2c6b3;font-size:.68rem;padding:0 14px 12px;margin-top:auto}
+.te .club-source{font-size:.84rem;color:#b8ccbb;margin-bottom:0}
+.te-sponsorship #propuesta{scroll-margin-top:90px}
+@media(max-width:980px){.club-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.club-photo{aspect-ratio:1.65}}
+@media(max-width:640px){.club-intro{grid-template-columns:1fr;gap:16px;margin:25px 0}.club-intro>div>p:not(.club-kicker){margin:0}.club-grid{gap:10px}.club-identity{flex-direction:column;align-items:flex-start;padding:9px 10px 11px;gap:7px}.club-photo{aspect-ratio:1.33}.club-identity h2{font-size:clamp(1.33rem,5.4vw,1.9rem)}.club-credit{padding:0 10px 10px}.club-crest{margin-top:-25px;width:43px;height:43px;z-index:1}.club-intro h1{font-size:clamp(3.05rem,12vw,5rem)}}

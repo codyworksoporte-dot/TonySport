@@ -1,6 +1,6 @@
 'use client';
 import {useEffect, useRef, useState} from 'react';
-import {useSearchParams} from 'next/navigation';
+import {useRouter, useSearchParams} from 'next/navigation';
 import {COLLECTIONS, COLLECTION_PRODUCTS, type CollectionProduct} from '@/lib/collections';
 import {siteAsset} from '@/lib/asset-path';
 import './collection-gallery.css';
@@ -9,6 +9,7 @@ type Photo = {src: string; preview: string; label: string};
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const pageSize = 20;
 export default function CollectionGallery() {
+  const router = useRouter();
   const params = useSearchParams();
   const [category, setCategory] = useState(() => COLLECTIONS.some(c => c.slug === params.get('categoria')) ? params.get('categoria')! : ''), [query, setQuery] = useState(''), [page, setPage] = useState(1);
   const [selected, setSelected] = useState<CollectionProduct | null>(null), [photos, setPhotos] = useState<Photo[]>([]), [index, setIndex] = useState(0);
@@ -16,8 +17,12 @@ export default function CollectionGallery() {
   const dialog = useRef<HTMLDialogElement>(null), trigger = useRef<HTMLElement | null>(null), resultsTitle = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
     const slug=params.get('categoria')||'';
+    if (slug === 'rse-tony') {
+      router.replace('/rse');
+      return;
+    }
     setCategory(COLLECTIONS.some(c => c.slug === slug) ? slug : ''); setPage(1);
-  }, [params]);
+  }, [params, router]);
   useEffect(() => {
     if (!selected) return;
     dialog.current?.showModal(); setPhotos([]); setLoading(true); setError(''); setIndex(0);

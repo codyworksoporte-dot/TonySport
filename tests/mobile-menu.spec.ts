@@ -2,9 +2,12 @@ import {expect,test} from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 import stores from '../data/tony-stores.json';
 import {DISCIPLINES} from '../lib/disciplines';
-import {APP_TONY, HELP_WHATSAPP, ORDER_LOOKUP_URL, TONY_EMAIL} from '../lib/site-links';
+import {HELP_WHATSAPP, ORDER_LOOKUP_URL, TONY_EMAIL} from '../lib/site-links';
 
 test.use({isMobile:true,hasTouch:true,reducedMotion:'reduce'});
+test.beforeEach(async ({page}) => {
+  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v2','[]'));
+});
 
 const SEARCH='¿Qué buscas en específico?';
 const NEW_TAB=' (se abre en otra pestaña)';
@@ -27,9 +30,10 @@ for (const viewport of [{width:320,height:568},{width:390,height:844},{width:768
     await expect(nav.locator('.tony-menu-list > li > a, .tony-menu-list > li > details > summary')).toHaveText(MAIN_LABELS);
     await expect(nav.locator('img')).toHaveCount(0);
     await nav.getByText('App Tony',{exact:true}).tap();
-    await expect(nav.getByRole('link',{name:/^Android/})).toHaveAttribute('href',APP_TONY.android);
+    await expect(nav.getByRole('link',{name:'Descargá la App Tony'})).toHaveAttribute('href','/app-tony');
+    await expect(nav.getByRole('link',{name:/^(Android|iOS)/})).toHaveCount(0);
     await nav.getByText('Productos',{exact:true}).tap();
-    await expect(nav.getByRole('link',{name:/^Android/})).toBeHidden();
+    await expect(nav.getByRole('link',{name:'Descargá la App Tony'})).toBeHidden();
     await nav.getByText('Confección de uniformes de fútbol',{exact:true}).tap();
     await expect(nav.getByRole('link',{name:'Uniformes Mundial Anime 2026',exact:true})).toHaveAttribute('href','/producto#opcion-futbol-1');
     await nav.getByText('Tienda en línea',{exact:true}).tap();

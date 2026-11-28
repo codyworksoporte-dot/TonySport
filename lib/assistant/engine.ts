@@ -107,7 +107,7 @@ const ACTIONS = {
 } satisfies Record<string, AssistantAction>;
 
 const discipline = (id: string) => DISCIPLINES.find(item => item.id === id);
-const disciplineCard = (item: Discipline): AssistantCard => ({title: item.name, image: item.cover, href: disciplineHref(item.id)});
+const disciplineCard = (item: Discipline): AssistantCard => ({title: item.name, image: item.image, href: disciplineHref(item.id)});
 const familyCard = (family: ImplementFamily): AssistantCard => {
   const question = FAMILY_QUESTION[family.id] ?? family.name;
   return {title: question, image: family.cover, ask: question};
@@ -186,7 +186,7 @@ function storesReply(read: Understanding, ask: Ask): AssistantReply {
     });
   }
   return reply('tiendas', `Tenemos ${STORES.length} tiendas en El Salvador. ¿En qué ciudad estás? Te doy la dirección.`, {
-    cards: [{title: 'Todas las tiendas', note: `${STORES.length} en el país`, image: '/assets/sections/tiendas-tony.webp', href: '/tiendas'}],
+    cards: [{title: 'Todas las tiendas', note: `${STORES.length} en el país`, image: '/assets/secciones/tiendas/portada.webp', href: '/tiendas'}],
     chips: CITY_CHIPS,
     actions: [ACTIONS.stores],
   });
@@ -321,7 +321,7 @@ export function replyTo(question: string, context: AssistantContext = {}): Assis
       });
     case 'app':
       return reply('app', 'Con la App Tony sumas puntos en tus compras y los canjeas por premios. También puedes crear tu pedido desde la app.', {
-        cards: [{title: 'App Tony', note: 'Puntos y premios', image: '/assets/sections/app-tony-tony.webp', href: '/app-tony'}],
+        cards: [{title: 'App Tony', note: 'Puntos y premios', image: '/assets/secciones/app-tony/portada.webp', href: '/app-tony'}],
         actions: [ACTIONS.android, ACTIONS.ios, ACTIONS.app], chips: ['Promociones', 'Crear mi pedido'],
       });
     case 'implementos':
@@ -334,7 +334,7 @@ export function replyTo(question: string, context: AssistantContext = {}): Assis
           actions: [ask('¿Me compartes la guía de tallas?'), ACTIONS.quality], chips: ['Crear mi pedido', 'Precios'],
         })
         : reply('calidad', 'En Calidad y confección ves telas, técnicas y acabados. Tony te ayuda a elegir la mejor opción para tu diseño.', {
-          cards: [{title: 'Calidad y confección', note: 'Telas y acabados', image: '/assets/sections/calidad-tony.webp', href: '/calidad'}],
+          cards: [{title: 'Calidad y confección', note: 'Telas y acabados', image: '/assets/secciones/calidad/portada.webp', href: '/calidad'}],
           actions: [ACTIONS.quality, ask('Tengo una consulta sobre telas y acabados.')],
         });
     case 'entregas':

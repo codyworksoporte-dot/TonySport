@@ -1,6 +1,3 @@
-// The product menu as pictures: every discipline section on /producto, and every option inside it,
-// gets a real product photo from /assets/colecciones. Names stay short; no descriptions, no prices.
-// Images were chosen by hand from the official covers, preferring the ones without baked-in prices.
 import type {CSSProperties} from 'react';
 import {PRODUCT_CATEGORIES,productInquiry,type ProductCategory} from '@/lib/products';
 import {sourceCollectionHref} from '@/lib/collections';
@@ -30,33 +27,23 @@ export type MenuSection = {
   more?:{href:string;label:string;cta:string};
 };
 
-// Option photos, keyed by the child id from lib/products.ts (`<category>-<n>`, in official menu order).
-const CHILD_IMAGE:Record<string,number> = {
-  'futbol-1':37742, // Uniformes Mundial Anime 2026
-  'futbol-2':37167, // Diseños del Mundial 2026
-  'futbol-3':37507, // Camisa y calzoneta full sublimada
-  'futbol-4':33938, // Camisa sublimada y calzoneta de tela
-  'futbol-5':32440, // Sublimado frontal y calzoneta de tela
-  'futbol-6':37623, // Uniformes juveniles
-  'futbol-7':31221, // Uniformes para dama
-  'camisas-polos-1':33344, // Stamp Line (38075 is the same flyer as Premium)
-  'camisas-polos-2':38083, // Línea Premium
-  'camisas-polos-3':26644, // Sublimado frontal
-  'camisas-polos-4':31986, // Full sublimadas (no collection of its own: nearest real photo)
-  'camisas-polos-5':31878, // Polo sublimado frontal
-  'camisas-polos-6':31907, // Polo full sublimada
-  'camisas-polos-7':28735, // Presentación tipo polo
-  'replicas-1':36997, // Réplicas sublimadas
-  'replicas-2':32341, // Réplicas bordadas
-  'replicas-3':35676, // Réplicas bordadas de fútbol
-  'bkb-1':34767, // Centro y calzoneta full sublimada
-  'bkb-2':26373, // Centro full sublimado con calzoneta de tela
-  'bkb-3':31038, // Sublimado frontal con calzoneta de tela
-  'racing-1':34600, // Racing Car Show
-  'racing-2':26646, // Racing Motorcycle (clean jersey photo instead of the priced flyer)
-  'empresarial-1':34961, // Con cinta reflectiva
-  'empresarial-2':36041, // Camisas polo lisas
+// Portadas de cada opción, en el mismo orden que el menú oficial.
+const images: Record<string, string[]> = {
+  'futbol': ['mundial-anime', 'mundial', 'full-sublimado', 'calzoneta-tela', 'sublimado-frontal', 'juveniles', 'dama'],
+  'camisas-polos': ['stamp-line', 'premium', 'sublimado-frontal', 'full-sublimada', 'polo-frontal', 'polo-full', 'presentacion'],
+  'replicas': ['sublimadas', 'bordadas', 'bordadas-futbol'],
+  'bkb': ['full-sublimado', 'calzoneta-tela', 'sublimado-frontal'],
+  'racing': ['car-show', 'motorcycle'],
+  'empresarial': ['reflectiva', 'polo-lisa'],
+  'ciclismo': ['ruta'],
+  'voleibol': ['uniforme'],
+  'runners': ['running'],
+  'moldes': ['primera-division', 'raglan', 'basico'],
+  'logos-3d': ['relieve'],
+  'hoddies': ['personalizados', 'lisos'],
 };
+
+const optionImage = (category: string, index: number): Asset => `/assets/productos/${category}/${images[category][index]}.webp`;
 
 // The official labels are long; on a picture card a short name reads better. The full label is still
 // what the WhatsApp message and the site search use.
@@ -84,16 +71,14 @@ const CHILD_NAME:Record<string,string> = {
 
 // Lines with no options in the official menu still get picture cards of their own products.
 // They link to the line's collection (from the category's official address) or to WhatsApp.
-const OWN_CARDS:Record<string,[name:string,image:number][]> = {
-  ciclismo:[['Línea Ciclismo',36856]],
-  voleibol:[['Uniformes de voleibol',35872]],
-  runners:[['Línea Runners',36555]],
-  moldes:[['Molde Primera División',36787],['Molde Ranglan',36785],['Molde Básico',36783]],
-  'logos-3d':[['Logos 3D alto relieve',36849]],
-  hoddies:[['Hoddies personalizados',34694],['Hoddies lisos',36026]],
+const OWN_CARDS:Record<string,string[]> = {
+  ciclismo:['Línea Ciclismo'],
+  voleibol:['Uniformes de voleibol'],
+  runners:['Línea Runners'],
+  moldes:['Molde Primera División','Molde Ranglan','Molde Básico'],
+  'logos-3d':['Logos 3D alto relieve'],
+  hoddies:['Hoddies personalizados','Hoddies lisos'],
 };
-
-const FALLBACK:Asset = '/assets/sections/futbol-tony.webp';
 
 // Art direction for official covers whose price or promo strip sits on one edge: the picture is zoomed
 // a little, anchored on the side away from that strip, so the card shows the product and not an old price.
@@ -101,9 +86,6 @@ const FALLBACK:Asset = '/assets/sections/futbol-tony.webp';
 // cropped; they need clean photos from the client.
 type Focus = {zoom:number;x:number;y:number};
 const FOCUS:Partial<Record<Asset,Focus>> = {
-  [cover(36849)]:{zoom:1.2,x:50,y:0}, // Logos 3D: "$1.75" strip along the bottom
-  [cover(36026)]:{zoom:1.38,x:58,y:0}, // Hoddies lisos: "$9.99" bottom left
-  [cover(34600)]:{zoom:1.4,x:50,y:100}, // Racing Car Show: "$8.99" top right
   [cover(35087)]:{zoom:1.3,x:0,y:0}, // Malla oficial: "$109.99" bottom left (keeps its title whole)
   [cover(35085)]:{zoom:1.34,x:0,y:0}, // Malla sala: "$74.99" bottom left
   [cover(35076)]:{zoom:1.36,x:40,y:0}, // Espinilleras Milan Sports: "$3.50" bottom right
@@ -125,24 +107,22 @@ function cardsOf(category:ProductCategory):MenuCard[]{
   if(category.id==='implementos')return IMPLEMENT_FAMILIES.map((family,index)=>({
     id:`opcion-implementos-${index+1}`,name:family.name,image:family.cover,href:`${IMPLEMENTS_PAGE}#${family.id}`,whatsapp:false,
   }));
-  if(category.children.length)return category.children.map(child=>{
-    const photo:number|undefined=CHILD_IMAGE[child.id];
+  if(category.children.length)return category.children.map((child,index)=>{
     return {
       id:`opcion-${child.id}`,
       name:CHILD_NAME[child.id]??child.label,
-      image:photo?cover(photo):FALLBACK,
+      image:optionImage(category.id,index),
       ...linkFor(child.sourceHref,child.label),
     };
   });
-  return (OWN_CARDS[category.id]??[]).map(([name,image],index)=>({
-    id:`opcion-${category.id}-${index+1}`,name,image:cover(image),...linkFor(category.sourceHref,name),
+  return (OWN_CARDS[category.id]??[]).map((name,index)=>({
+    id:`opcion-${category.id}-${index+1}`,name,image:optionImage(category.id,index),...linkFor(category.sourceHref,name),
   }));
 }
 
 const byId=new Map(PRODUCT_CATEGORIES.map(category=>[category.id,category]));
 
 // Lines with seven options open with a big card (2×2 on a 5-column page, which also fills the second row).
-// Camisas leads with its clean "Sublimado frontal" photo; the official first option's flyer shows a price.
 const FEATURED:Record<string,string> = {futbol:'opcion-futbol-1','camisas-polos':'opcion-camisas-polos-3'};
 
 function withFeatured(id:string,cards:MenuCard[]){

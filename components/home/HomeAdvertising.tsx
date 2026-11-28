@@ -5,97 +5,124 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Icon from '@/components/Icon';
 import type { Campaign } from '@/lib/home-campaigns';
 
-const AD_SESSION = 'tony-home-anuncios-v1';
+const SESSION = 'tony:inicio:carteles:v2';
 
-export function AdStrip({ads}: {ads: Campaign[]}) {
-  // Persist the remaining IDs in this tab so returning from an ad continues the sequence.
-  const [remaining, setRemaining] = useState(() => ads.map(ad => ad.id));
-  useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(AD_SESSION);
-      if (!raw) return;
-      const ids: unknown = JSON.parse(raw);
-      if (Array.isArray(ids) && ids.every(id => ads.some(ad => ad.id === id)) && new Set(ids).size === ids.length) setRemaining(ids);
-    } catch { /* Session storage is optional. */ }
-  }, [ads]);
-  const current = ads.find(ad => ad.id === remaining[0]);
-  if (!current) return null;
-
-  function close() {
-    const next = remaining.slice(1);
-    if (next.length) {
-      const picked = Math.floor(Math.random() * next.length);
-      [next[0], next[picked]] = [next[picked], next[0]];
-    }
-    setRemaining(next);
-    try { sessionStorage.setItem(AD_SESSION, JSON.stringify(next)); } catch {}
-    if (!next.length) document.getElementById('crear-mi-pedido')?.focus({preventScroll: true});
+function readQueue(ads: Campaign[]) {
+  const ids = ads.map(ad => ad.id);
+  try {
+    const saved: unknown = JSON.parse(sessionStorage.getItem(SESSION) ?? 'null');
+    if (Array.isArray(saved) && new Set(saved).size === saved.length && saved.every(id => ids.includes(id))) return saved as string[];
+  } catch { /* The same sequence can run in memory. */ }
+  // The headline promotion opens the session. Draw the other six without replacement.
+  for (let end = ids.length - 1; end > 1; end--) {
+    const pick = 1 + Math.floor(Math.random() * end);
+    [ids[pick], ids[end]] = [ids[end], ids[pick]];
   }
-
-  return <aside className="home-adstrip" aria-label="Anuncios de Tony">
-    <span className="home-adstrip-label">Anuncio <span>{ads.length - remaining.length + 1}/{ads.length}</span></span>
-    <Link href={current.href} className="home-adstrip-link" aria-live="polite">
-      {current.image && <img alt="" src={current.image} width={51} height={32}/>}
-      <span>{current.title}</span><Icon name="diagonal" size={16}/>
-    </Link>
-    <button type="button" aria-label="Cerrar anuncio" className="home-circle" onClick={close}><Icon name="close" size={19}/></button>
-  </aside>;
+  return ids;
 }
 
-/** The server supplies the slide markup, including its image sizes and links. Only the visible slide mounts. */
-export function CampaignCarousel({label, children, compact = false}: {
-  label: string; children: ReactNode[]; compact?: boolean;
-}) {
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [inView, setInView] = useState(false);
-  const [foreground, setForeground] = useState(true);
-  const [hover, setHover] = useState(false);
-  const [focused, setFocused] = useState(false);
-  const box = useRef<HTMLElement>(null);
-  const count = children.length;
+export function CampaignDialog({ads}: {ads: Campaign[]}) {
+  const [queue, setQueue] = useState<string[]>([]);
+  const dialog = useRef<HTMLDialogElement>(null);
+  const current = ads.find(ad => ad.id === queue[0]);
+  const active = Boolean(current);
 
   useEffect(() => {
-    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const preference = () => setPaused(motion.matches || document.documentElement.dataset.tonyEffects === 'off');
-    const visibility = () => setForeground(!document.hidden);
-    preference();
-    visibility();
-    const effects = new MutationObserver(preference);
-    effects.observe(document.documentElement, {attributes: true, attributeFilter: ['data-tony-effects']});
-    const observer = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting));
-    if (box.current) observer.observe(box.current);
-    document.addEventListener('visibilitychange', visibility);
-    motion.addEventListener('change', preference);
+    const saved = readQueue(ads);
+    setQueue(saved);
+    try { sessionStorage.setItem(SESSION, JSON.stringify(saved)); } catch {}
+  }, [ads]);
+
+  useEffect(() => {
+    const element = dialog.current;
+    if (!active || !element) return;
+    function open() {
+      // The intro can own the top layer on the first visit. Its cleanup publishes this same event.
+      if (!element?.isConnected || element.open || document.querySelector('.brand-intro[open]')) return;
+      element.showModal();
+    }
+    const timer = window.setTimeout(open, 80);
+    window.addEventListener('tony:intro-complete', open);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('tony:intro-complete', open);
+      if (element.open) element.close();
+    };
+  }, [active]);
+
+  if (!current) return null;
+  function advance(restoreFocus: boolean) {
+    const next = queue.slice(1);
+    try { sessionStorage.setItem(SESSION, JSON.stringify(next)); } catch {}
+    if (!restoreFocus) return;
+    setQueue(next);
+    if (!next.length) {
+      dialog.current?.close();
+      document.getElementById('crear-mi-pedido')?.focus({preventScroll: true});
+    }
+  }
+
+  return <dialog ref={dialog} className="campaign-dialog" aria-label="Anuncios de Tony"
+    onCancel={event => { event.preventDefault(); advance(true); }}>
+    <Link className="campaign-poster" href={current.href} onClick={() => advance(false)}>
+      <img key={current.id} src={current.image} alt={current.title} width="768" height="512" fetchPriority="high"
+        onError={() => advance(true)}/>
+    </Link>
+    <button autoFocus type="button" aria-label="Cerrar anuncio" className="poster-close" onClick={() => advance(true)}><Icon name="close" size={21}/></button>
+  </dialog>;
+}
+
+export function CampaignCarousel({label, children, compact = false}: {label: string; children: ReactNode[]; compact?: boolean}) {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const [canRotate, setCanRotate] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const container = useRef<HTMLElement>(null);
+  const touch = useRef<{x: number; y: number} | null>(null);
+  const swiped = useRef(false);
+  const count = children.length;
+  const go = (direction: number) => setIndex(previous => (previous + direction + count) % count);
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const sync = () => setCanRotate(!document.hidden && !media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    document.addEventListener('visibilitychange', sync);
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
+    if (container.current) observer.observe(container.current);
     return () => {
       observer.disconnect();
-      effects.disconnect();
-      document.removeEventListener('visibilitychange', visibility);
-      motion.removeEventListener('change', preference);
+      media.removeEventListener('change', sync);
+      document.removeEventListener('visibilitychange', sync);
     };
   }, []);
-
-  const playing = inView && foreground && !paused && !hover && !focused && count > 1;
   useEffect(() => {
-    if (!playing) return;
-    const timer = window.setTimeout(() => setIndex(value => (value + 1) % count), 7000);
+    if (count < 2 || !canRotate || !visible || focused) return;
+    const timer = window.setTimeout(() => setIndex(previous => (previous + 1) % count), 7000);
     return () => window.clearTimeout(timer);
-  }, [playing, count, index]);
+  }, [index, count, canRotate, visible, focused]);
 
-  return <section ref={box} aria-label={label} aria-roledescription="carrusel"
-    className={'home-carousel ' + (compact ? 'home-carousel--strip' : 'home-carousel--feature')}
-    onPointerEnter={event => setHover(event.pointerType === 'mouse')}
-    onPointerLeave={() => setHover(false)}
-    onFocusCapture={() => setFocused(true)}
-    onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}>
-    <div className="campaign-view" aria-live={playing ? 'off' : 'polite'}>{children[index]}</div>
-    <div className="campaign-controls" role="group" aria-label="Controles de promociones">
-      <button type="button" className="home-circle" aria-label="Promoción anterior" onClick={() => setIndex((index + count - 1) % count)}><Icon name="left" size={18}/></button>
-      <span className="campaign-count">{index + 1} / {count}</span>
-      <button type="button" className="home-circle" aria-label="Promoción siguiente" onClick={() => setIndex((index + 1) % count)}><Icon name="right" size={18}/></button>
-      <button type="button" className="home-circle campaign-play" aria-label={paused ? 'Activar rotación automática' : 'Pausar rotación automática'} onClick={() => setPaused(!paused)}>
-        <svg aria-hidden="true" viewBox="0 0 16 16" width="14" height="14" fill="currentColor">{paused ? <path d="M4 2.5 13 8l-9 5.5z"/> : <path d="M3.5 2h3v12h-3zm6 0h3v12h-3z"/>}</svg>
-      </button>
+  return <section className={'home-carousel ' + (compact ? 'home-carousel--strip' : 'home-carousel--feature')}
+    ref={container} aria-label={label} aria-roledescription="carrusel"
+    onFocusCapture={() => setFocused(true)} onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}
+    onKeyDown={event => {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {event.preventDefault(); go(event.key === 'ArrowLeft' ? -1 : 1);}
+    }}
+    onTouchStart={event => {swiped.current = false; const point = event.touches[0]; touch.current = {x: point.clientX, y: point.clientY};}}
+    onTouchEnd={event => {
+      if (!touch.current) return;
+      const delta = event.changedTouches[0].clientX - touch.current.x;
+      if (Math.abs(delta) > 42 && Math.abs(delta) > Math.abs(event.changedTouches[0].clientY - touch.current.y) * 1.5) {
+        swiped.current = true; go(delta > 0 ? -1 : 1);
+      }
+      touch.current = null;
+    }}
+    onClickCapture={event => {if (swiped.current) {event.preventDefault(); event.stopPropagation(); swiped.current = false;}}}>
+    <div className="campaign-view">{children[index]}</div>
+    <div className="campaign-nav">
+      <button type="button" aria-label="Promoción anterior" onClick={() => go(-1)}><Icon name="left" size={17}/></button>
+      <button type="button" aria-label="Promoción siguiente" onClick={() => go(1)}><Icon name="right" size={17}/></button>
     </div>
   </section>;
 }

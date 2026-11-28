@@ -7,10 +7,10 @@ const SEARCH_LABEL = '¿Qué buscas en específico?';
 
 // /resenas, /recientes and /carrito left the navigation but still serve the order flow, so they keep rendering.
 const sectionRoutes = ['/producto', '/lineas', '/implementos', '/promociones', '/consulta', '/entregas', '/app-tony', '/calidad', '/tiendas', '/patrocinio', '/comunidad', '/actualidad', '/tony-news', '/resenas', '/recientes', '/carrito'];
-// The main heading of the pages the redesign defines. /entregas now shows the same "Consulta tu pedido" page.
+// Main heading of each public section.
 const headings: Record<string, string> = {
   '/producto': 'Escoge tu disciplina deportiva', '/lineas': 'Escoge tu disciplina deportiva', '/implementos': 'Implementos deportivos',
-  '/promociones': 'Promociones', '/consulta': 'Consulta tu pedido', '/entregas': 'Consulta tu pedido', '/app-tony': 'App Tony', '/tiendas': 'Tiendas',
+  '/promociones': 'Promociones', '/consulta': 'Consulta tu pedido', '/entregas': 'Servicio a domicilio', '/app-tony': 'App Tony', '/tiendas': 'Tiendas',
 };
 // "Escoge tu disciplina deportiva": the 13 lines, in the order of every discipline grid and of the /producto sections.
 const disciplines = [
@@ -207,9 +207,8 @@ test('los enlaces antiguos de líneas y los círculos de Inicio llegan a su secc
   await page.goto('/producto#baloncesto');
   await expect(page).toHaveURL(/\/producto#categoria-bkb$/);
   await expectLanded(page, 'categoria-bkb');
-  // Tony News still links to the racing line with its old anchor.
-  await page.goto('/tony-news');
-  await page.locator('main a[href="/producto#racing"]').click();
+  // The legacy Racing address remains usable in bookmarks.
+  await page.goto('/producto#racing');
   await expect(page).toHaveURL(/\/producto#categoria-racing$/);
   await expectLanded(page, 'categoria-racing');
   // Inicio: "Escoge tu disciplina deportiva" as round picture buttons (13 lines + Ver todas).

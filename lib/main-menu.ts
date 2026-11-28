@@ -1,6 +1,6 @@
 import {PRODUCT_CATEGORIES} from './products';
 import {CREATE_ORDER_HREF} from './nav';
-import {APP_TONY, HELP_WHATSAPP, ORDER_LOOKUP_URL} from './site-links';
+import {HELP_WHATSAPP, ORDER_LOOKUP_URL} from './site-links';
 
 export type MenuDestination = {
   label: string;
@@ -15,8 +15,6 @@ export const MAIN_MENU: MenuDestination[] = [
   {label: 'Inicio', href: '/'},
   {label: 'Creá tu pedido', href: CREATE_ORDER_HREF},
   {label: 'App Tony', href: '/app-tony', overview: 'Descargá la App Tony', children: [
-    {label: 'Android', href: APP_TONY.android, external: true},
-    {label: 'iOS', href: APP_TONY.ios, external: true},
     {label: 'Premios de la app', href: '/colecciones?categoria=premios-app'},
   ]},
   {label: 'Tienda en línea', href: '/tienda', overview: 'Ver toda la tienda', children: [
@@ -44,7 +42,7 @@ export const MAIN_MENU: MenuDestination[] = [
   {label: 'Servicio a domicilio', href: '/entregas'},
   {label: 'Contacto', href: '/contacto'},
   {label: 'Tony News', href: '/tony-news'},
-  {label: 'RSE-Tony', href: '/colecciones?categoria=rse-tony'},
+  {label: 'RSE-Tony', href: '/rse'},
 ];
 
 export const MENU_SERVICE_LINKS: MenuDestination[] = [

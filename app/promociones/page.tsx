@@ -2,10 +2,8 @@ import type {Metadata} from 'next';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import BlackFridayCover from '@/components/BlackFridayCover';
-import {TILE_SIZES} from '@/components/pages/photo-sizes';
 import {rise} from '@/components/pages/rise';
 import {siteAsset} from '@/lib/asset-path';
-import {responsive} from '@/lib/responsive-image';
 import {CURRENT_PROMOTIONS, PROMOTIONS, PROMO_QUESTION, type Promotion} from '@/lib/promotions';
 import {whatsappLink} from '@/lib/site-links';
 import '@/components/pages/pages.css';
@@ -47,14 +45,14 @@ export default function PromocionesPage() {
       {CURRENT_PROMOTIONS.length > 0 && <section className="tc-sec" aria-labelledby="tp-promo-now">
         <div className="tc-sec-h"><h2 id="tp-promo-now">Vigentes</h2></div>
         <ul className="tp-promo-grid">
-          {CURRENT_PROMOTIONS.map((promo, index) => <li key={promo.id}><PromoCard promo={promo} index={index} now/></li>)}
+          {CURRENT_PROMOTIONS.map((promo, index) => <li id={promo.id} key={promo.id}><PromoCard promo={promo} index={index} now/></li>)}
         </ul>
       </section>}
 
       <section className="tc-sec" aria-labelledby="tp-promo-recent">
         <div className="tc-sec-h"><div><h2 id="tp-promo-recent">Campañas recientes</h2><p className="tp-sec-note">Así fueron nuestras últimas promociones.</p></div></div>
         <ul className="tp-promo-grid">
-          {recent.map((promo, index) => <li key={promo.id}><PromoCard promo={promo} index={index}/></li>)}
+          {recent.map((promo, index) => <li id={promo.id} key={promo.id}><PromoCard promo={promo} index={index}/></li>)}
           <li>
             <a className="tp-promo-ask tc-rise" style={rise(recent.length + 2)} href={ASK} target="_blank" rel="noopener noreferrer">
               <Icon name="whatsapp-solid" className="tp-wa-mark"/>
@@ -66,18 +64,6 @@ export default function PromocionesPage() {
         </ul>
       </section>
 
-      <section className="tc-sec" aria-label="También te puede servir">
-        <div className="tp-tiles">
-          <Link className="tc-tile tc-rise" href="/tiendas">
-            <img className="tp-img-top" {...responsive('/assets/sections/tiendas-tony.webp', TILE_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
-            <span className="tc-tile-label"><span><b>Tiendas</b><small>Pregunta en la más cercana</small></span><span className="tc-go"><Icon name="pin"/></span></span>
-          </Link>
-          <Link className="tc-tile tc-rise" href="/app-tony">
-            <img className="tp-img-top" {...responsive('/assets/sections/app-tony-tony.webp', TILE_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
-            <span className="tc-tile-label"><span><b>App Tony</b><small>Suma puntos y canjea premios</small></span><span className="tc-go"><Icon name="download"/></span></span>
-          </Link>
-        </div>
-      </section>
     </div>
   </main>;
 }

@@ -60,10 +60,11 @@ for (const [path, [width, height, widths]] of Object.entries(responsive)) {
   } catch { errors.push(`Falta ${path}`); }
   for (const copy of widths) references.add(path.replace(/\.webp$/, `-${copy}.webp`));
 }
-for (const name of await readdir('public/assets/sections')) {
-  if (!/^[a-z0-9-]+-tony\.webp$/.test(name)) continue;
-  const copies = responsive[`/assets/sections/${name}`]?.[2] ?? [];
-  if ([320, 560, 720].some(width => !copies.includes(width))) errors.push(`Faltan las copias ligeras de /assets/sections/${name}: ${regenerate}.`);
+const sectionArt = JSON.parse(await readFile('data/section-images.json', 'utf8'));
+for (const [path, info] of Object.entries(responsive)) {
+  if (/^\/assets\/(secciones|productos)\/[^/]+\/portada\.webp$/.test(path) &&
+      (JSON.stringify(sectionArt[path]) !== JSON.stringify(info) || !info[2].includes(240)))
+    errors.push(`Faltan las miniaturas de la portada ${path}: ${regenerate}.`);
 }
 
 for (const reference of references) {

@@ -8,9 +8,9 @@
 /* A one-off warm-up after arming: drawn at 1% so the GPU has everything ready (RouteTransition.arm). */
 .route-transition.is-warming[data-phase=idle] :is(.rt-panel,.rt-ring,.rt-stage){opacity:.01}
 
-/* The scales with their joints lit, brightest behind Tony: one static layer, no masks. */
+/* Light stays behind the wordmark. */
 .rt-panel{inset:0;background:#0a0d0b;will-change:opacity}
-.route-transition.is-armed .rt-panel{background:radial-gradient(circle at 50% 47%,rgb(255 106 0 / .15),transparent 36%),radial-gradient(circle at 50% 47%,rgb(10 13 11 / .18) 0,rgb(10 13 11 / .5) 24%,rgb(10 13 11 / .9) 52%),url('/assets/escamas-tony-brasa.webp') 0 0/var(--scale-tile) var(--scale-tile),#0a0d0b}
+.route-transition.is-armed .rt-panel{background:radial-gradient(ellipse at 50% 46%,#1c3925,#0a1b11 44%,#050d08 80%)}
 
 /* A ring of light spreading from the link that was clicked. */
 .rt-ring{left:calc(var(--from-x,50vw) - 160px);top:calc(var(--from-y,50vh) - 160px);width:320px;height:320px;border-radius:50%;border:2px solid #ff8a3d;background:radial-gradient(closest-side,transparent 72%,rgb(255 106 0 / .22));will-change:transform,opacity}

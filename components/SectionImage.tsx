@@ -1,4 +1,5 @@
 import { siteAsset } from '@/lib/asset-path';
+import art from '@/data/section-images.json';
 
 export type SectionPhoto =
   | 'recientes' | 'resenas' | 'tiendas' | 'entregas' | 'patrocinio'
@@ -7,12 +8,11 @@ export type SectionPhoto =
   | 'futbol' | 'baloncesto' | 'voleibol' | 'running' | 'ciclismo'
   | 'racing' | 'empresarial' | 'casual' | 'implementos';
 
-/**
- * Widths of the lighter copies every section photo has (<photo>-tony-<width>.webp, originals 960 px wide).
- * Keep in sync with SECTION_WIDTHS in scripts/generate-responsive-images.mjs; check-assets.mjs verifies them.
- */
-const SECTION_WIDTHS = [320, 560, 720];
-const ORIGINAL_WIDTH = 960;
+const productLine: Partial<Record<SectionPhoto, string>> = {
+  futbol: 'futbol', baloncesto: 'bkb', voleibol: 'voleibol', running: 'runners', ciclismo: 'ciclismo',
+  racing: 'racing', empresarial: 'empresarial', casual: 'camisas-polos', implementos: 'implementos',
+};
+const photos = art as unknown as Record<string, [number, number, number[]] | undefined>;
 // What next/image's `fill` drew (the static export does not optimize images, so it only ever served the original).
 const FILL = { position: 'absolute', height: '100%', width: '100%', left: 0, top: 0, right: 0, bottom: 0, color: 'transparent' } as const;
 
@@ -28,11 +28,15 @@ export default function SectionImage({ photo, shade = 'bottom', sizes = '(max-wi
   fit?: 'cover' | 'contain';
   priority?: boolean;
 }) {
-  const file = (width?: number) => siteAsset(`/assets/sections/${photo}-tony${width ? `-${width}` : ''}.webp`);
-  const srcSet = [...SECTION_WIDTHS.map(width => `${file(width)} ${width}w`), `${file()} ${ORIGINAL_WIDTH}w`].join(', ');
+  const line = productLine[photo];
+  const path: `/assets/${string}` = photo === 'patrocinio' ? '/assets/patrocinio/foto-dragon.webp' : line
+    ? `/assets/productos/${line}/portada.webp` : `/assets/secciones/${photo}/portada.webp`;
+  const url = siteAsset(path);
+  const meta = photos[path];
+  const srcSet = meta && [...meta[2].map(w => `${url.replace(/\.webp$/, `-${w}.webp`)} ${w}w`), `${url} ${meta[0]}w`].join(', ');
   // Inside <picture>, React adds no preload of its own for this image, on this page or in the RSC prefetch of others.
   return <picture className={`section-image section-image--${shade}`} aria-hidden="true" data-section-photo={photo}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
-    <img src={file()} srcSet={srcSet} sizes={sizes} alt="" loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : undefined} decoding="async" style={{ ...FILL, objectFit: fit, objectPosition: position }} />
+    <img src={url} srcSet={srcSet} sizes={srcSet ? sizes : undefined} alt="" loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : undefined} decoding="async" style={{ ...FILL, objectFit: fit, objectPosition: position }} />
   </picture>;
 }

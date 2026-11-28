@@ -2,7 +2,7 @@
 //
 // 1. Responsive copies: <name>-<width>.webp beside each original (the original is never touched), listed in
 //    data/responsive-images.json as { "/assets/…/name.webp": [width, height, [copy widths]] }. Components build
-//    srcset from that list (lib/responsive-image.ts); SectionImage uses the section widths below directly.
+//    srcset from that list (lib/responsive-image.ts).
 // 2. Lighter encodings in place for a few heavy decorative files, written only when the saving is real (and, for
 //    the favicon, only when every pixel stays identical), so running the script again never degrades them.
 //
@@ -13,8 +13,6 @@ import sharp from 'sharp';
 const FORCE = process.argv.includes('--force');
 const PHOTO = { quality: 78, effort: 6, smartSubsample: true };
 const LOGO = { quality: 85, alphaQuality: 95, effort: 6, smartSubsample: true };
-/** Keep in sync with components/SectionImage.tsx (SECTION_WIDTHS); check-assets.mjs verifies the files. */
-const SECTION_WIDTHS = [320, 560, 720];
 
 const text = file => readFile(file, 'utf8');
 // Lists read from the code, so the copies follow what the pages show.
@@ -22,8 +20,14 @@ async function homeDesigns() {
   const list = (await text('app/page.tsx')).match(/const DESIGNS = \[([^\]]*)\]/)?.[1] ?? '';
   return [...list.matchAll(/'TONY-(\d{3})'/g)].map(match => `/assets/pedido/catalog/tony-${match[1]}.webp`);
 }
-async function sectionPhotos() {
-  return (await readdir('public/assets/sections')).filter(name => /^[a-z0-9-]+-tony\.webp$/.test(name)).map(name => `/assets/sections/${name}`);
+async function campaignImages(folder) {
+  const entries = await readdir('public' + folder, {withFileTypes: true});
+  const nested = await Promise.all(entries.map(entry => {
+    const path = folder + '/' + entry.name;
+    if (entry.isDirectory()) return campaignImages(path);
+    return /(?<!-\d{3,4})\.webp$/.test(entry.name) ? [path] : [];
+  }));
+  return nested.flat();
 }
 async function storefrontCovers() {
   return (await readdir('public/assets/portadas')).filter(name => /(?<!-\d{3,4})\.webp$/.test(name)).map(name => `/assets/portadas/${name}`);
@@ -36,7 +40,9 @@ async function smallCovers() {
 }
 
 const GROUPS = [
-  { name: 'Fotos de sección', files: sectionPhotos, widths: SECTION_WIDTHS, webp: PHOTO },
+  ...['secciones', 'productos', 'tienda'].map(folder => ({
+    name: 'Portadas de ' + folder, files: () => campaignImages('/assets/' + folder), widths: [240, 400, 640], webp: PHOTO,
+  })),
   { name: 'Promo de la portada', files: async () => ['/assets/home/promo-campaign.webp'], widths: [560, 720], webp: PHOTO },
   { name: 'Portadas de productos y secciones', files: storefrontCovers, widths: [240, 400, 640], webp: PHOTO },
   { name: 'Diseños de la portada', files: homeDesigns, widths: [320, 560, 720], webp: PHOTO },
@@ -78,6 +84,9 @@ for (const group of GROUPS) {
 }
 const entries = Object.entries(manifest).sort(([a], [b]) => a.localeCompare(b));
 await writeFile('data/responsive-images.json', `{\n${entries.map(([path, entry]) => `  ${JSON.stringify(path)}: ${JSON.stringify(entry)}`).join(',\n')}\n}\n`);
+// SectionImage also renders in client components. Keep their art index independent of the full catalogue.
+const sectionArt = Object.fromEntries(entries.filter(([path]) => /^\/assets\/(secciones|productos)\/[^/]+\/portada\.webp$/.test(path)));
+await writeFile('data/section-images.json', JSON.stringify(sectionArt, null, 0) + '\n');
 console.log(`Copias: ${written} nuevas, ${kept} al día · data/responsive-images.json con ${entries.length} imágenes.`);
 
 for (const { file, encode, identical } of RECOMPRESS) {

@@ -7,7 +7,6 @@
 // Other components can open it: window.dispatchEvent(new CustomEvent('tony:open-assistant', {detail: {question: '…'}}))
 // (`detail` is optional; with a question, the assistant asks it right away).
 import {usePathname} from 'next/navigation';
-import {createPortal} from 'react-dom';
 import {useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent} from 'react';
 import Icon from '@/components/Icon';
 import {greeting} from '@/lib/assistant/greeting';
@@ -52,8 +51,6 @@ export default function TonyAssistant() {
   // The order flow has its own advisor; the assistant stays out of its way.
   const hidden = /^\/configurador(\/|$)/.test(path);
   const atHome = path === '/';
-  const [homeLauncher, setHomeLauncher] = useState<HTMLElement | null>(null);
-  useEffect(() => { setHomeLauncher(atHome ? document.getElementById('home-assistant-slot') : null); }, [atHome]);
 
   const [phase, setPhase] = useState<Phase>('closed');
   const [messages, setMessages] = useState<AssistantMessage[]>([]);
@@ -257,7 +254,7 @@ export default function TonyAssistant() {
       <button type="button" className="ta-hint-text" onClick={openPanel}>¿Te ayudo a encontrar algo?</button>
       <button type="button" className="ta-hint-close" aria-label="Cerrar sugerencia" onClick={dismissHint}><Icon name="close" size={18}/></button>
     </div>}
-    {atHome ? homeLauncher && createPortal(trigger, homeLauncher) : trigger}
+    {trigger}
 
     {open && <>
       <div className="ta-backdrop" aria-hidden="true" onClick={() => closePanel()}/>

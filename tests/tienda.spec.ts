@@ -1,5 +1,13 @@
 import {test, expect} from '@playwright/test';
 
+test('los enlaces históricos de RSE abren la galería institucional', async ({page}) => {
+  for (const path of ['/tienda?categoria=rse-tony', '/colecciones?categoria=rse-tony']) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/rse\/?$/);
+    await expect(page.getByRole('heading', {level: 1})).toContainText(/responsabilidad/i);
+  }
+});
+
 test('tienda combina la categoría y ambos límites, conserva el enlace y limpia la selección', async ({page}) => {
   await page.setViewportSize({width:1280, height:800});
   await page.goto('/tienda?categoria=implementos');

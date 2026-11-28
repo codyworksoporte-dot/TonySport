@@ -11,11 +11,11 @@ export type Promotion = {
 };
 
 export const PROMOTIONS: Promotion[] = [
-  { id: 'precios-patrios', title: 'Precios Patrios', when: 'Septiembre 2026', image: '/assets/colecciones/38028.webp', album: 'promo-inicio-de-ano', official: 'https://www.tonysportselsalvador.com/producto/super-promocion-mundialista/' },
-  { id: 'black-week', title: 'Black Week', when: 'Noviembre 2025', image: '/assets/colecciones/33607.webp', album: 'black-november', official: 'https://www.tonysportselsalvador.com/producto/promocion-black-weekend/' },
-  { id: 'halloween', title: 'Halloween Tony', when: 'Octubre 2025', image: '/assets/colecciones/36456.webp', album: 'promociones-2', official: 'https://www.tonysportselsalvador.com/producto/halloween/' },
-  { id: 'implementos-fin-de-ano', title: 'Implementos de fin de año', when: 'Diciembre 2024', image: '/assets/colecciones/35122.webp', official: 'https://www.tonysportselsalvador.com/producto/promo-implementos-deportivos/' },
-  { id: 'navidad', title: 'Promoción de Navidad', when: 'Diciembre 2024', image: '/assets/colecciones/34969.webp', album: 'promo-navidad', official: 'https://www.tonysportselsalvador.com/producto/promocion-de-navidad/' },
+  { id: 'precios-patrios', title: 'Precios Patrios', when: 'Septiembre 2026', image: '/assets/promociones/precios-patrios/cartel-movil.webp', album: 'promo-inicio-de-ano', official: 'https://www.tonysportselsalvador.com/producto/super-promocion-mundialista/' },
+  { id: 'black-week', title: 'Black Week', when: 'Noviembre 2025', image: '/assets/promociones/black-week/cartel.webp', album: 'black-november', official: 'https://www.tonysportselsalvador.com/producto/promocion-black-weekend/' },
+  { id: 'halloween', title: 'Halloween Tony', when: 'Octubre 2025', image: '/assets/promociones/halloween/cartel.webp', album: 'promociones-2', official: 'https://www.tonysportselsalvador.com/producto/halloween/' },
+  { id: 'implementos-fin-de-ano', title: 'Implementos de fin de año', when: 'Diciembre 2024', image: '/assets/promociones/implementos-fin-de-ano/cartel.webp', official: 'https://www.tonysportselsalvador.com/producto/promo-implementos-deportivos/' },
+  { id: 'navidad', title: 'Promoción de Navidad', when: 'Diciembre 2024', image: '/assets/promociones/navidad/cartel.webp', album: 'promo-navidad', official: 'https://www.tonysportselsalvador.com/producto/promocion-de-navidad/' },
 ];
 
 export const CURRENT_PROMOTIONS = PROMOTIONS.filter(promo => promo.current);

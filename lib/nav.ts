@@ -12,12 +12,12 @@ export const CREATE_ORDER_HREF = '/configurador';
 export const NAV = {
   crear: {label: 'Crear pedido', href: CREATE_ORDER_HREF, icon: 'plus'},
   promociones: {label: 'Promociones', href: '/promociones', icon: 'tag', image: '/assets/portadas/black-friday-400.webp'},
-  implementos: {label: 'Implementos', href: '/implementos', icon: 'ball', image: '/assets/portadas/implementos-400.webp'},
-  tiendas: {label: 'Tiendas', href: '/tiendas', icon: 'store', image: '/assets/portadas/tiendas-400.webp'},
-  consulta: {label: 'Consulta tu pedido', href: ORDER_LOOKUP_URL, icon: 'package', external: true, image: '/assets/portadas/consulta-400.webp'},
-  app: {label: 'App Tony', href: '/app-tony', icon: 'phone', image: '/assets/portadas/app-tony-400.webp'},
+  implementos: {label: 'Implementos', href: '/implementos', icon: 'ball', image: '/assets/productos/implementos/portada-240.webp'},
+  tiendas: {label: 'Tiendas', href: '/tiendas', icon: 'store', image: '/assets/secciones/tiendas/portada-240.webp'},
+  consulta: {label: 'Consulta tu pedido', href: ORDER_LOOKUP_URL, icon: 'package', external: true, image: '/assets/secciones/consulta/portada-240.webp'},
+  app: {label: 'App Tony', href: '/app-tony', icon: 'phone', image: '/assets/secciones/app-tony/portada-240.webp'},
   ayuda: {label: 'Ayuda', href: HELP_WHATSAPP, icon: 'whatsapp', external: true},
-  news: {label: 'Tony News', href: '/tony-news', icon: 'news', image: '/assets/chrome/tiles/news.webp'},
+  news: {label: 'Tony News', href: '/tony-news', icon: 'news', image: '/assets/secciones/actualidad/portada-240.webp'},
 } satisfies Record<string, NavLink>;
 
 /** What the search shows before anything is typed (here, not in site-directory.ts, so the closed search stays light). */

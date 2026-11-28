@@ -1,12 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { usePathname } from 'next/navigation';
 import TonyWordmark from './TonyWordmark';
+import { siteAsset } from '@/lib/asset-path';
 import './brand-intro.css';
 
 const SESSION_KEY = 'tony:intro:wordmark:v1';
-type IntroBoot = { pending: boolean; cancelled: boolean; release: (cancelled?: boolean) => void };
+type IntroBoot = { cancelled: boolean; release: (cancelled?: boolean) => void };
 const introBoot = () => (window as Window & { __tonyIntroBoot?: IntroBoot }).__tonyIntroBoot;
 
 function IntroLogo() {
@@ -16,88 +17,57 @@ function IntroLogo() {
     if (image.current?.complete && !image.current.naturalWidth) setFailed(true);
   }, []);
   return failed
-    ? <strong className="intro-wordmark-fallback">TONY <small>Sportswear</small></strong>
-    : <TonyWordmark ref={image} alt="Tony Sportswear" sizes="(max-width: 767px) 84vw, 620px" fetchPriority="high" onError={() => setFailed(true)}/>;
+    ? <strong className="intro-wordmark-fallback">TONY <small>SPORTWEAR</small></strong>
+    : <TonyWordmark ref={image} alt="Tony Sportwear" sizes="(max-width: 767px) 82vw, 620px" fetchPriority="high" onError={() => setFailed(true)}/>;
 }
 
 export default function BrandIntro() {
   const pathname = usePathname();
   const [playing, setPlaying] = useState(false);
-  const [ready, setReady] = useState(false);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const visitedHome = useRef(false);
   const dialog = useRef<HTMLDialogElement>(null);
-  const restoreFocus = useRef<HTMLElement | null>(null);
-  const returnHome = useRef(false);
-  const finish = useCallback(() => setPlaying(false), []);
 
   useLayoutEffect(() => {
-    setReady(true);
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const onPreferenceChange = () => {
-      setReducedMotion(preference.matches);
-      if (preference.matches) {
-        introBoot()?.release(true);
-        setPlaying(false);
-      }
-    };
-    onPreferenceChange();
-    preference.addEventListener('change', onPreferenceChange);
-    const replayFromLogo = () => {
-      returnHome.current = true;
-      if (!preference.matches) setPlaying(true);
-    };
-    window.addEventListener('tony:intro-replay', replayFromLogo);
-    return () => {
-      preference.removeEventListener('change', onPreferenceChange);
-      window.removeEventListener('tony:intro-replay', replayFromLogo);
-    };
-  }, []);
-
-  useLayoutEffect(() => {
-    if (pathname !== '/') return;
+    if (pathname !== '/') { setPlaying(false); return; }
+    if (visitedHome.current) return;
+    visitedHome.current = true;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     let seen = false;
-    try { seen = sessionStorage.getItem(SESSION_KEY) === 'seen' || localStorage.getItem('tony:ambient-effects:v1') === 'off'; } catch { /* Private browsing may disable storage. */ }
-    // Keep the synchronous first-paint hand-off when arriving directly at Inicio.
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !seen && !introBoot()?.cancelled) setPlaying(true);
-    else introBoot()?.release();
+    try { seen = sessionStorage.getItem(SESSION_KEY) === 'seen' || localStorage.getItem('tony:ambient-effects:v1') === 'off'; } catch {}
+    if (seen || reduced || introBoot()?.cancelled) { introBoot()?.release(); return; }
+    try { sessionStorage.setItem(SESSION_KEY, 'seen'); } catch {}
+    setPlaying(true);
   }, [pathname]);
 
   useLayoutEffect(() => {
     const element = dialog.current;
     if (!playing || !element) return;
-    try { sessionStorage.setItem(SESSION_KEY, 'seen'); } catch { /* The introduction still works without storage. */ }
-    restoreFocus.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const target = document.activeElement;
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const reduce = () => { if (preference.matches) setPlaying(false); };
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     element.showModal();
+    preference.addEventListener('change', reduce);
     window.dispatchEvent(new Event('tony:intro-start'));
     introBoot()?.release();
-    const timeout = window.setTimeout(finish, window.matchMedia('(max-width: 700px)').matches ? 1900 : 2600);
+    const timeout = window.setTimeout(() => setPlaying(false), window.matchMedia('(max-width: 700px)').matches ? 1900 : 2500);
     return () => {
-      window.clearTimeout(timeout);
+      clearTimeout(timeout);
+      preference.removeEventListener('change', reduce);
       if (element.open) element.close();
       document.body.style.overflow = previousOverflow;
-      const target = restoreFocus.current;
-      if (returnHome.current) {
-        const main = document.querySelector<HTMLElement>('main');
-        if (main) {
-          const tabindex = main.getAttribute('tabindex');
-          main.setAttribute('tabindex', '-1');
-          main.focus({ preventScroll: true });
-          if (tabindex === null) main.removeAttribute('tabindex'); else main.setAttribute('tabindex', tabindex);
-        }
-        returnHome.current = false;
-      } else if (target?.isConnected) target.focus({ preventScroll: true });
+      if (target instanceof HTMLElement && target.isConnected) target.focus({preventScroll:true});
       window.dispatchEvent(new Event('tony:intro-complete'));
     };
-  }, [playing, finish]);
+  }, [playing]);
 
-  return <>
-    <button type="button" className="replay-intro" onClick={() => setPlaying(true)} hidden={reducedMotion || pathname !== '/'} disabled={!ready || playing}>Repetir animación del logo</button>
-    {playing && <dialog ref={dialog} className="brand-intro" aria-label="Entrada de Tony Sportswear" onCancel={finish}>
-      <div className="intro-impact" aria-hidden="true"><i/><i/></div>
+  return playing && <dialog ref={dialog} className="brand-intro" aria-label="Entrada de Tony Sportwear" onCancel={() => setPlaying(false)}>
+    <div className="intro-floor" aria-hidden="true"><i className="intro-seams"/><i className="intro-wave"/></div>
+    <div className="intro-sign" style={{'--intro-silhouette':`url("${siteAsset('/assets/brand/tony-wordmark-640.webp')}")`} as CSSProperties}>
       <div className="intro-wordmark"><IntroLogo/></div>
-      <button autoFocus className="intro-skip" type="button" onClick={finish}>Saltar intro <span aria-hidden="true">→</span></button>
-    </dialog>}
-  </>;
+      <div className="intro-reflection" aria-hidden="true"><TonyWordmark sizes="(max-width: 767px) 82vw, 620px"/></div>
+    </div>
+    <button autoFocus className="intro-skip" type="button" onClick={() => setPlaying(false)}>Saltar intro <span aria-hidden="true">→</span></button>
+  </dialog>;
 }

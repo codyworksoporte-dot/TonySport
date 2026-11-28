@@ -1,5 +1,5 @@
 'use client';
-import SectionImage from './SectionImage';
+import {siteAsset} from '@/lib/asset-path';
 
 
 import {useEffect,useRef,useState} from 'react';
@@ -80,9 +80,12 @@ export default function SocialPublication({provider}:{provider:Provider}){
 
   return <div className={`tn-embed tn-embed-${provider}`} data-state={phase}>
     <div className="tn-embed-stage">
-      {phase==='idle'&&<div className="tn-embed-cover"><SectionImage photo={isInstagram?"tiendas":"social"} shade="left" sizes="(max-width: 760px) 90vw, 54vw" />
+      {phase==='idle'&&<div className="tn-embed-cover"><img className="tn-publish-art" alt="" width="880" height="1100"
+        src={siteAsset(`/assets/tony-news/${isInstagram ? 'lourdes' : 'cancha'}-880.webp`)}
+        srcSet={`${siteAsset(`/assets/tony-news/${isInstagram ? 'lourdes' : 'cancha'}-480.webp`)} 480w, ${siteAsset(`/assets/tony-news/${isInstagram ? 'lourdes' : 'cancha'}-880.webp`)} 880w`}
+        sizes="(max-width:760px) 94vw, 48vw" loading={isInstagram ? 'eager' : 'lazy'} decoding="async"/>
         <span className="tn-cover-top">{isInstagram?'DEL ARCHIVO DE TONY':'EL CANAL OFICIAL'}</span>
-        <div className="tn-cover-wordmark" aria-hidden="true">{isInstagram?<>LOURDES.<br/><em>TAMBIÉN<br/>ES TONY.</em></>:<>TONY<br/><em>EN<br/>MOVIMIENTO.</em></>}</div>
+        <div className="tn-cover-wordmark" aria-hidden="true">{isInstagram?<>TONY<br/><em>LOURDES.</em></>:<>TONY<br/><em>EN TIKTOK.</em></>}</div>
         <div className="tn-cover-action"><span>{isInstagram?'Instagram · 11 SEP 2026':TONY_CHANNELS.tiktok.handle}</span><button type="button" onClick={start}>{isInstagram?'Ver publicación':'Ver publicaciones de TikTok'}<Icon name="diagonal"/></button><small>{isInstagram?'Carga la publicación original de Instagram.':'Carga el perfil y las publicaciones que muestre TikTok.'}</small></div>
       </div>}
       <div ref={host} className="tn-embed-host" aria-busy={phase==='loading'} aria-hidden={phase==='loading'} inert={phase==='loading'} hidden={phase==='idle'||phase==='unavailable'}/>

@@ -26,6 +26,8 @@ if (snapshot) {
   const firstCategories = await json('products/categories?per_page=100&page=1'); categories = firstCategories.data;
   for (let page = 2; page <= firstCategories.pages; page++) categories.push(...(await json(`products/categories?per_page=100&page=${page}`)).data);
 }
+// WordPress stores the community photo gallery as a product, but it lives at /rse here.
+products = products.filter(product => !product.categories.some(category => category.slug === 'rse-tony'));
 await mkdir(destination, {recursive: true});
 const manifest = [], failures = [];
 let cursor = 0, galleryCount = 0;

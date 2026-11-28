@@ -4,6 +4,7 @@ const { chromium } = require('@playwright/test');
   const browser = await chromium.launch({channel:'msedge',headless:true});
   try {
   const page = await browser.newPage({viewport:{width:1280,height:900},reducedMotion:'reduce'});
+  await page.addInitScript(()=>sessionStorage.setItem('tony:inicio:carteles:v2','[]'));
   const base = 'http://127.0.0.1:4173/TonySport';
   const failures = [];
   page.on('pageerror', error => failures.push(`JS: ${error.message}`));
@@ -17,7 +18,7 @@ const { chromium } = require('@playwright/test');
     if (brokenLinks.length) failures.push(`Enlaces fuera del sitio en ${route}: ${brokenLinks.join(', ')}`);
   }
   await page.goto(`${base}/`, {waitUntil:'networkidle'});
-  await page.getByRole('link',{name:/Explora Producto/}).click();
+  await page.getByRole('region',{name:'Escoge tu disciplina deportiva'}).getByRole('link',{name:'Ver todas las disciplinas',exact:true}).first().click();
   await page.waitForURL(`${base}/producto/`);
   await page.goto(`${base}/configurador/`, {waitUntil:'networkidle'});
   await page.getByRole('link',{name:/Abrir un borrador del editor anterior/}).click();

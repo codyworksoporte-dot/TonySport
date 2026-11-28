@@ -11,13 +11,13 @@ test('consulta y entregas abren la consulta oficial del pedido en otra pestaña;
   for(const route of ['/consulta','/entregas']){
     await page.goto(route);
     const main=page.getByRole('main');
-    await expect(main.getByRole('heading',{level:1,name:'Consulta tu pedido',exact:true}),route).toBeVisible();
+    await expect(main.getByRole('heading',{level:1,name:route === '/consulta' ? 'Consulta tu pedido' : 'Servicio a domicilio',exact:true}),route).toBeVisible();
     const lookup=main.getByRole('link',{name:/^Consultar mi pedido/});
     await expect(lookup,route).toBeVisible();
     await expect(lookup,route).toHaveAttribute('href',ORDER_LOOKUP);
     await expect(lookup,route).toHaveAttribute('target','_blank');
     await expect(lookup,route).toHaveAttribute('rel',/(^|\s)noopener(\s|$)/);
-    const noNumber=main.getByRole('link',{name:/No tienes tu número/});
+    const noNumber=main.getByRole('link',{name:route === '/consulta' ? /No tienes tu número/ : /Coordinar entrega/});
     await expect(noNumber,route).toHaveAttribute('href',/^https:\/\/wa\.me\/50370155571\?text=/);
     await expect(noNumber,route).toHaveAttribute('target','_blank');
     // The delivery form (zone, branch and WhatsApp draft) was replaced by the lookup.

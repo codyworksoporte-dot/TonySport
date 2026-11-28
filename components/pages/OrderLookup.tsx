@@ -9,13 +9,13 @@ import './pages.css';
 
 const NO_NUMBER = whatsappLink('Hola, Tony. Quiero consultar mi pedido, pero no tengo mi número de orden.');
 
-/** "Consulta tu pedido": one big button to the official order lookup. Rendered by /consulta and /entregas. */
+/** "Consulta tu pedido": one big button to the official order lookup. */
 export default function OrderLookup() {
   return <main id="contenido" className="tp tc-page tp-lookup">
     <div className="tc-wrap">
       <section className="tp-lookup-card tc-rise" aria-labelledby="tp-lookup-title">
         <div className="tp-lookup-media">
-          <LeadImage {...responsive('/assets/sections/entregas-tony.webp', LOOKUP_PHOTO_SIZES)} width={960} height={1200}/>
+          <LeadImage {...responsive('/assets/secciones/consulta/portada.webp', LOOKUP_PHOTO_SIZES)} width={600} height={600}/>
         </div>
         <div className="tp-lookup-copy">
           <p className="tp-kicker"><Icon name="package"/>Tu pedido</p>
@@ -40,11 +40,11 @@ export default function OrderLookup() {
       <section className="tp-lookup-more" aria-label="Más ayuda con tu pedido">
         <div className="tp-tiles">
           <Link className="tc-tile tc-rise" style={rise(4)} href="/tiendas">
-            <img className="tp-img-top" {...responsive('/assets/sections/tiendas-tony.webp', TILE_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+            <img className="tp-img-top" {...responsive('/assets/secciones/tiendas/portada.webp', TILE_SIZES)} alt="" width={600} height={600} loading="lazy" decoding="async"/>
             <span className="tc-tile-label"><span><b>Tiendas</b><small>Retiro o envío a domicilio</small></span><span className="tc-go"><Icon name="pin"/></span></span>
           </Link>
           <Link className="tc-tile tc-rise" style={rise(5)} href="/ayuda">
-            <img className="tp-img-top" {...responsive('/assets/sections/recientes-tony.webp', TILE_SIZES)} alt="" width={960} height={1200} loading="lazy" decoding="async"/>
+            <img className="tp-img-top" {...responsive('/assets/secciones/ayuda/portada.webp', TILE_SIZES)} alt="" width={600} height={600} loading="lazy" decoding="async"/>
             <span className="tc-tile-label"><span><b>Preguntas frecuentes</b><small>Respuestas rápidas</small></span><span className="tc-go"><Icon name="arrow"/></span></span>
           </Link>
         </div>
