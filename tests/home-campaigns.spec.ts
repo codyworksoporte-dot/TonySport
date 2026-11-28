@@ -1,22 +1,25 @@
 import {expect, test} from '@playwright/test';
 
-test('los siete anuncios se cierran una vez por sesión y conservan su destino', async ({page}) => {
+test('los cuatro anuncios se cierran una vez por sesión y conservan su destino', async ({page}) => {
   await page.setViewportSize({width: 390, height: 844});
   await page.goto('/');
   const dialog = page.getByRole('dialog', {name: 'Anuncios de Tony'});
   await expect(dialog).toBeVisible();
   const ads = new Set<string>();
-  for (let i = 0; i < 7; i++) {
+  const posters = [];
+  for (let i = 0; i < 4; i++) {
     const link = dialog.getByRole('link');
     await expect(link.locator('img')).toHaveJSProperty('complete', true);
     expect(await link.locator('img').evaluate(image => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+    posters.push(await link.locator('img').evaluate(image => (image as HTMLImageElement).src.split('/').pop()));
     const href = await link.getAttribute('href');
     expect(href).toBeTruthy();
     ads.add(href!);
     if (i === 1) await page.keyboard.press('Escape');
     else await dialog.getByRole('button', {name: 'Cerrar anuncio'}).click();
   }
-  expect(ads.size).toBe(7);
+  expect(ads.size).toBe(4);
+  expect(posters.sort()).toEqual(['black-friday.webp', 'personalizados.webp', 'portero.webp', 'premios.webp']);
   await expect(dialog).toHaveCount(0);
   await expect(page.locator('#crear-mi-pedido')).toBeFocused();
   await page.reload();

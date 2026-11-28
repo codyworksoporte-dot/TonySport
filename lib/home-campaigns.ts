@@ -15,7 +15,4 @@ export const homeCampaigns = [
   campaign('portero', 'Uniforme de portero y gafete de regalo desde 12 uniformes de la línea Slim Fit participante', 'https://www.tonysportselsalvador.com/producto/26184/', true),
   campaign('premios', 'Canjeá tus puntos de la App Tony por premios', '/colecciones?categoria=premios-app', true),
   campaign('personalizados', 'Personalizá el uniforme de tu equipo', '/configurador'),
-  campaign('replicas', 'Explorá el catálogo de réplicas', '/producto#categoria-replicas'),
-  campaign('domicilio', 'Conocé el servicio a domicilio de Tony', '/entregas'),
-  campaign('tiendas', 'Encontrá tu tienda Tony', '/tiendas'),
 ];

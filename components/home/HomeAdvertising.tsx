@@ -11,9 +11,11 @@ function readQueue(ads: Campaign[]) {
   const ids = ads.map(ad => ad.id);
   try {
     const saved: unknown = JSON.parse(sessionStorage.getItem(SESSION) ?? 'null');
-    if (Array.isArray(saved) && new Set(saved).size === saved.length && saved.every(id => ids.includes(id))) return saved as string[];
+    if (Array.isArray(saved) && saved.every(id => typeof id === 'string')) {
+      return [...new Set<string>(saved)].filter(id => ids.includes(id));
+    }
   } catch { /* The same sequence can run in memory. */ }
-  // The headline promotion opens the session. Draw the other six without replacement.
+  // The headline promotion opens the session. Shuffle the remaining campaigns once.
   for (let end = ids.length - 1; end > 1; end--) {
     const pick = 1 + Math.floor(Math.random() * end);
     [ids[pick], ids[end]] = [ids[end], ids[pick]];

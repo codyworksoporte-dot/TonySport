@@ -99,21 +99,25 @@ test('la portada prioriza el pedido y reúne tienda, promociones y descargas', a
   await expect(strip.getByRole('heading')).toContainText('Black Friday');
 });
 
-test('los siete anuncios cambian sin repetirse y el último cierre persiste en la pestaña', async ({page}) => {
+test('una sesión anterior conserva únicamente sus anuncios pendientes vigentes', async ({page}) => {
+  await page.addInitScript(() => {
+    const key = 'tony:inicio:carteles:v2';
+    if (!sessionStorage.getItem(key)) {
+      sessionStorage.setItem(key, JSON.stringify(['replicas', 'personalizados', 'domicilio', 'premios', 'tiendas']));
+    }
+  });
   await page.goto('/');
-  const ad = page.getByRole('complementary', {name: 'Anuncios de Tony'});
-  const seen = new Set<string>();
-  for (let number = 1; number <= 7; number++) {
-    await expect(ad).toContainText(number + '/7');
-    seen.add(await ad.getByRole('link').innerText());
-    await ad.getByRole('button', {name: 'Cerrar anuncio'}).click();
-  }
-  expect(seen.size).toBe(7);
+  const ad = page.getByRole('dialog', {name: 'Anuncios de Tony'});
+  await expect(ad.getByRole('link')).toHaveAccessibleName(/personalizá el uniforme/i);
+  await ad.getByRole('button', {name: 'Cerrar anuncio'}).click();
+  await page.reload();
+  await expect(ad.getByRole('link')).toHaveAccessibleName(/canjeá tus puntos/i);
+  await ad.getByRole('button', {name: 'Cerrar anuncio'}).click();
   await expect(ad).toHaveCount(0);
   await expect(page.getByRole('link', {name: 'Empezar mi pedido'})).toBeFocused();
   await page.reload();
-  await expect(ad).toHaveCount(0);
   await expect(page.getByRole('region', {name: 'Promociones destacadas'})).toBeVisible();
+  await expect(ad).toHaveCount(0);
 });
 
 test('el pie reúne el contacto, tres columnas cortas y la línea legal',async({page})=>{
