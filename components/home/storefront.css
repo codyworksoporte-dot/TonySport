@@ -20,7 +20,7 @@ main.home-c { padding-top: 14px; }
 .order-hero-copy { padding: clamp(24px,4.5vw,70px); width: 54%; }
 .order-hero h1 { margin: 0; font: 700 clamp(64px,7.6vw,116px)/.82 var(--font-display),sans-serif; letter-spacing: -.029em; text-transform: uppercase; }
 .order-hero h1 em { display: block; color: #bdff3a; text-shadow: 0 3px 0 #304817; }
-.order-hero p { margin: 20px 0 24px; font: 600 clamp(15px,1.4vw,20px)/1.34 var(--font-body); color: #f2f7e8; }
+.order-hero p { margin: 18px 0 24px; max-width: 36ch; font: 600 clamp(16px,1.6vw,23px)/1.38 var(--font-body); text-wrap: pretty; color: #f2f7e8; }
 .home-carousel { position: relative; min-width: 0; }
 .home-carousel--strip { margin-top: 10px; }
 .strip-poster {
@@ -90,16 +90,13 @@ html:has(.campaign-dialog[open]) { overflow: hidden; }
   .order-hero { min-height: clamp(230px,53vw,340px); }
   .order-hero-art img { object-position: 66% center; }
   .order-hero::after { background: linear-gradient(90deg,#031508f0 0%,#031708bb 30%,transparent 73%); }
-  .order-hero-copy { padding: 18px 12px; text-align: left; width: 59%; }
+  .order-hero-copy { padding: 18px 12px; text-align: left; width: 65%; }
   .order-hero h1 { font-size: clamp(43px,10.7vw,77px); line-height: .87; }
-  .order-hero p { margin: 10px 0 15px; font-size: clamp(13px,3vw,16px); }
+  .order-hero p { margin: 12px 0 16px; font-size: clamp(14px,3.25vw,17px); }
   .order-hero .tc-btn { min-height: 44px; padding-inline: 12px; font-size: .79rem; gap: 7px; }
   .order-hero .tc-btn svg { width: 16px; }
   .strip-poster { height: auto; aspect-ratio: 4.45; border-radius: 7px; }
   .strip-poster img { object-fit: cover; mask-image: none; }
-  .home-sec-h { gap: 8px; align-items: center; }
-  .home-sec-h h2 { font-size: clamp(25px,7vw,36px); }
-  .home-sec-h a { font-size: .8rem; white-space: nowrap; }
   .ways-grid { grid-template-columns: 1fr; }
   .way-card { min-height: 200px; align-items: center; }
   .way-card img { object-position: right 33%; inset-inline-start: 40%; width: 60%; }

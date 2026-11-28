@@ -7,8 +7,7 @@ import {ON_SCREEN,disciplinePhoto} from './discipline-photos';
 import './product.css';
 
 /**
- * "Escoge tu disciplina deportiva": the 13 lines as giant picture buttons. Each one jumps to its
- * section on /producto (#categoria-<id>); on /producto itself the jump stays on the page.
+ * Every picture opens the designs and options of its discipline.
  */
 export default function DisciplineGrid({label='Disciplinas'}:{label?:string}){
   return <ul className="pd-grid" role="list" aria-label={label}>

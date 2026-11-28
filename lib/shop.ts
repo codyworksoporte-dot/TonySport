@@ -1,4 +1,6 @@
 import { COLLECTION_PRODUCTS, COLLECTIONS } from '@/lib/collections';
+import { DESIGN_ALBUMS, categoryAlbums } from '@/lib/scoped-collections';
+import { albumHref, collectionHref } from '@/lib/collection-path';
 import { IMPLEMENTS } from '@/lib/implements';
 import { fitted } from '@/lib/responsive-image';
 import { siteAsset } from '@/lib/asset-path';
@@ -38,6 +40,7 @@ function displayName(name: string) {
   return value.charAt(0).toLocaleUpperCase('es') + value.slice(1);
 }
 
+const multiAlbums = new Set(DESIGN_ALBUMS.filter(item => item.imageCount > 1).map(item => item.id));
 const byId = new Map([...COLLECTION_PRODUCTS, ...inventory.newProducts].map(item => [item.id, item]));
 const gearNames = new Map(IMPLEMENTS.map(item => [item.id, item.name]));
 const renamed = inventory.updatedCategories as Record<string, string[]>;
@@ -66,7 +69,7 @@ export const SHOP_PRODUCTS = catalogue.map(([id, price]): ShopProduct => {
   return {
     id: product.id, name,
     price: price === null ? null : price / 100,
-    href: product.id === CUSTOM_ORDER ? '/configurador' : product.href,
+    href: product.id === CUSTOM_ORDER ? '/configurador' : multiAlbums.has(product.id) ? albumHref(product.id) : product.href,
     image: siteAsset(fitted(image, product.id === CUSTOM_ORDER ? 600 : 240)),
     categories: family ? [...categories, family.value] : categories,
     group: family?.label ?? displayName(categoryNames.get(categories[0]) ?? categories[0].replaceAll('-', ' ')),
@@ -78,6 +81,13 @@ export const SHOP_CATEGORIES = [
   ...familyRules.map(({value, label}) => ({value, label})),
   ...Array.from(categoryNames, ([value, label]) => ({value, label: displayName(label)}))
     .filter(item => used.has(item.value) && item.value !== 'implementos-deportivos')
-    .sort((a, b) => a.label.localeCompare(b.label, 'es')),
+    .sort((a, b) => a.label.localeCompare(b.label, 'es'))
+    .map(category => {
+      const shopItems = SHOP_PRODUCTS.filter(product => product.categories.includes(category.value));
+      const albums = categoryAlbums(category.value);
+      const ids = new Set(albums.map(album => album.id));
+      const sameItems = ids.size === shopItems.length && shopItems.every(item => ids.has(item.id));
+      return {...category, galleryHref: sameItems && albums.some(item => multiAlbums.has(item.id)) ? collectionHref(category.value) : undefined};
+    }),
 ];
 export const SHOP_LATEST = inventory.latest;

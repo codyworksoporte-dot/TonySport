@@ -19,45 +19,21 @@ const disciplines = [
   ['hoddies', 'Hoddies'], ['implementos', 'Implementos'], ['moldes', 'Moldes'], ['logos-3d', 'Logos 3D'],
 ] as const;
 const disciplineNames = disciplines.map(([, name]) => name);
-const disciplineHrefs = disciplines.map(([id]) => `/producto#categoria-${id}`);
-const mobileLandings: Record<string, string> = { '/producto': 'categoria-futbol', '/implementos': 'guantes' };
+const disciplineHrefs = disciplines.map(([id]) => id === 'implementos' ? '/implementos' : `/producto/${id}`);
 const implementFamilies = [
   ['balones', 'Balones de fútbol'], ['futsal', 'Fútbol sala'], ['baloncesto', 'Baloncesto'], ['guantes', 'Guantes de portero'],
   ['espinilleras', 'Espinilleras'], ['beisbol', 'Béisbol'], ['mallas', 'Mallas'], ['accesorios', 'Accesorios'],
 ] as const;
 
-type HashWindow = Window & { __hashTargets: string[] };
-
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  // A hash link lights its target (class is-hash-target) for about two seconds. Record every element that gets
-  // the highlight, so the assertion does not depend on polling inside that short window.
-  await page.addInitScript(() => {
-    const seen: string[] = [];
-    (window as unknown as HashWindow).__hashTargets = seen;
-    new MutationObserver(records => {
-      for (const record of records) {
-        const element = record.target as Element;
-        if (element.classList?.contains('is-hash-target')) seen.push(element.id);
-      }
-    }).observe(document, { subtree: true, attributes: true, attributeFilter: ['class'] });
-  });
+  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v2', '[]'));
 });
 
-const hashTargets = (page: Page) => page.evaluate(() => (window as unknown as HashWindow).__hashTargets);
-
-/** The section or card a hash link points to is the one lit up, and it sits just under the sticky header (and sticky bars). */
-async function expectLanded(page: Page, id: string) {
-  await expect.poll(async () => (await hashTargets(page)).at(-1), { message: `#${id} se ilumina`, timeout: 10_000 }).toBe(id);
-  await expect.poll(() => page.evaluate(id => {
-    const stuck = Math.max(0, ...Array.from(document.querySelectorAll('.site-header,[data-hash-offset]'))
-      .filter(element => /sticky|fixed/.test(getComputedStyle(element).position))
-      .map(element => element.getBoundingClientRect().bottom));
-    const top = document.getElementById(id)!.getBoundingClientRect().top;
-    const atEnd = Math.ceil(scrollY + innerHeight) >= document.documentElement.scrollHeight;
-    // Never hidden under the sticky chrome; right below it unless the page cannot scroll any further.
-    return { visible: top >= stuck - 1, nearTop: top <= stuck + 40 || atEnd };
-  }, id), { message: `#${id} queda justo bajo el encabezado`, timeout: 10_000 }).toEqual({ visible: true, nearTop: true });
+async function expectScope(page: Page, path: string, title: string | RegExp) {
+  await expect(page).toHaveURL(new URL(path, page.url()).href);
+  await expect(page.getByRole('heading', { name: title, exact: true, level: 1 })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Disciplinas', exact: true })).toHaveCount(0);
 }
 
 /** Every picture inside `scope` is a real image served by the site. */
@@ -132,29 +108,22 @@ test('Líneas muestra las 13 disciplinas como botones con foto que abren su secc
   await page.keyboard.press('Tab');
   await expect(tiles.nth(1)).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/producto#categoria-bkb$/);
-  await expectLanded(page, 'categoria-bkb');
-  // An unknown section lights nothing; the grid of /producto then jumps within the page.
-  await page.evaluate(() => { (window as unknown as HashWindow).__hashTargets.length = 0; location.hash = 'categoria-inexistente'; });
-  await expect(page).toHaveURL(/\/producto#categoria-inexistente$/);
-  await page.getByRole('list', { name: 'Disciplinas', exact: true }).getByRole('link', { name: 'Racing', exact: true }).click();
-  await expect(page).toHaveURL(/\/producto#categoria-racing$/);
-  await expectLanded(page, 'categoria-racing');
-  expect([...new Set(await hashTargets(page))]).toEqual(['categoria-racing']);
+  await expectScope(page, '/producto/bkb', 'Baloncesto');
+  await page.goBack();
+  await grid.getByRole('link', { name: 'Racing', exact: true }).click();
+  await expectScope(page, '/producto/racing', 'Racing');
 });
 
 test('Producto ordena 13 secciones de tarjetas con foto, sin precios ni botones del catálogo anterior', async ({ page }) => {
-  await page.goto('/producto#categoria-futbol');
-  await expectLanded(page, 'categoria-futbol');
+  await page.goto('/producto');
   const main = page.locator('main');
   const sections = main.locator('section[id^="categoria-"]');
   await expect(sections).toHaveCount(13);
   expect(await sections.evaluateAll(list => list.map(section => section.id))).toEqual(disciplines.map(([id]) => `categoria-${id}`));
   await expect(sections.locator('h2')).toHaveText(disciplineNames);
   await expect(page.getByRole('region', { name: 'Logos 3D', exact: true })).toHaveAttribute('id', 'categoria-logos-3d');
-  // Every option is a picture card with its own anchor, opcion-<line>-<n>. Cards open their album or the
-  // implements family; an option without an album opens a WhatsApp inquiry in a new tab.
-  await expect(main.locator('.pd-card')).toHaveCount(41);
+  // Every card leads directly to a collection or equipment family.
+  await expect(main.locator('.pd-card')).toHaveCount(43);
   const summary = await sections.evaluateAll(list => list.map(section => ({
     line: section.id.replace('categoria-', ''),
     cards: Array.from(section.querySelectorAll('.pd-card')).map(card => ({
@@ -165,23 +134,19 @@ test('Producto ordena 13 secciones de tarjetas con foto, sin precios ni botones 
   for (const { line, cards } of summary) {
     expect(cards.length, line).toBeGreaterThan(0);
     for (const card of cards) {
-      expect(card.id).toMatch(new RegExp(`^opcion-${line}-\\d+$`));
+      expect(card.id).toMatch(new RegExp(`^opcion-${line}-(?:\\d+|factory|prestige)$`));
       expect(card.name, card.id).toBeTruthy();
       expect(card.pictures, card.id).toBe(1);
-      if (card.href.startsWith('https://wa.me/')) expect(card.target, card.id).toBe('_blank');
-      else expect(card.href, card.id).toMatch(/^\/(colecciones\?categoria=[\w-]+|implementos#[\w-]+)$/);
+      expect(card.href, card.id).toMatch(/^\/(colecciones|implementos|empresarial)\/[\w-]+$/);
+      expect(card.target, card.id).toBeNull();
     }
   }
   await expectImagesServed(page, page.locator('.pd-sections'));
   await expect(page.locator('#categoria-futbol')).toContainText('Uniformes Mundial Anime 2026');
   await expect(page.locator('#categoria-futbol')).toContainText('Uniformes Juveniles');
   const fullSublimadas = page.locator('#opcion-camisas-polos-4');
-  await expect(fullSublimadas).toHaveAccessibleName(/^Full sublimadas · consultar por WhatsApp \(se abre en otra pestaña\)$/);
-  await expect(fullSublimadas).toHaveAttribute('target', '_blank');
-  const inquiry = new URL((await fullSublimadas.getAttribute('href'))!);
-  expect(inquiry.origin).toBe('https://wa.me');
-  expect(inquiry.pathname).toBe('/50370155571');
-  expect(inquiry.searchParams.get('text')).toContain('Camisas Full Sublimadas');
+  await expect(fullSublimadas).toHaveAccessibleName('Full sublimadas');
+  await expect(fullSublimadas).toHaveAttribute('href', '/colecciones/camisa-full-sublimada');
   // No prices, and none of the old catalogue's extra buttons.
   await expect(main).not.toContainText('$');
   for (const name of ['Ver diseños', 'Explorar esta línea', 'Consultar con Tony', 'Consultar esta línea']) {
@@ -189,10 +154,6 @@ test('Producto ordena 13 secciones de tarjetas con foto, sin precios ni botones 
     await expect(main.getByRole('button', { name })).toHaveCount(0);
   }
   await expect(page.locator('.pd-sections a[href^="https://wa.me/"]:not(.pd-card)')).toHaveCount(0);
-  // A hash to a card lights that card.
-  await page.evaluate(() => { location.hash = 'opcion-racing-2'; });
-  await expectLanded(page, 'opcion-racing-2');
-  await expect(page.locator('#opcion-racing-2')).toContainText('Racing Motorcycle');
   // The help box opens the site search.
   const searchHelp = main.getByRole('button', { name: 'Buscar en Tony', exact: true });
   await searchHelp.click();
@@ -200,17 +161,17 @@ test('Producto ordena 13 secciones de tarjetas con foto, sin precios ni botones 
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog', { name: '¿QUÉ BUSCAS EN ESPECÍFICO?' })).toBeHidden();
   await expect(searchHelp).toBeFocused();
+  await page.goto('/producto#opcion-racing-2');
+  await expectScope(page, '/colecciones/racing-motorcycle', /racing motorcycle/i);
 });
 
 test('los enlaces antiguos de líneas y los círculos de Inicio llegan a su sección de Producto', async ({ page }) => {
   // LineExplorer anchors (/producto#baloncesto…) keep working and become the section's address.
   await page.goto('/producto#baloncesto');
-  await expect(page).toHaveURL(/\/producto#categoria-bkb$/);
-  await expectLanded(page, 'categoria-bkb');
+  await expectScope(page, '/producto/bkb', 'Baloncesto');
   // The legacy Racing address remains usable in bookmarks.
   await page.goto('/producto#racing');
-  await expect(page).toHaveURL(/\/producto#categoria-racing$/);
-  await expectLanded(page, 'categoria-racing');
+  await expectScope(page, '/producto/racing', 'Racing');
   // Inicio: "Escoge tu disciplina deportiva" as round picture buttons (13 lines + Ver todas).
   await page.goto('/');
   await expect(page.getByRole('tablist')).toHaveCount(0);
@@ -219,10 +180,9 @@ test('los enlaces antiguos de líneas y los círculos de Inicio llegan a su secc
   await expect(chips).toHaveText([...disciplineNames, 'Ver todas las disciplinas']);
   for (const [index, href] of [...disciplineHrefs, '/producto'].entries()) await expect(chips.nth(index)).toHaveAttribute('href', href);
   await chips.filter({ hasText: 'Empresarial' }).click();
-  await expect(page).toHaveURL(/\/producto#categoria-empresarial$/);
-  await expectLanded(page, 'categoria-empresarial');
+  await expectScope(page, '/producto/empresarial', 'Empresarial');
   await page.reload();
-  await expectLanded(page, 'categoria-empresarial');
+  await expectScope(page, '/producto/empresarial', 'Empresarial');
 });
 
 test('crear pedido se ofrece en el encabezado y en Inicio, no dentro de las secciones', async ({ page }) => {
@@ -244,13 +204,13 @@ test('la franja de contacto y el menú textual permiten abrir los destinos ofici
   await page.goto('/');
   const strip=page.locator('.tony-contact-line');
   await expect(strip).toContainText('Si no te lo tenemos te lo hacemos');
-  await expect(strip.getByRole('link')).toHaveAttribute('href','mailto:info@tonysportselsalvador.com');
+  await expect(strip.getByRole('link',{name:'info@tonysportselsalvador.com'})).toHaveAttribute('href','mailto:info@tonysportselsalvador.com');
   await expect(page.getByRole('navigation',{name:'Accesos rápidos'})).toHaveCount(0);
   const open=page.getByRole('button',{name:'Abrir menú'});
   await open.click();
   const menu=page.getByRole('dialog',{name:'Menú de Tony Sportswear'});
   await menu.getByText('App Tony',{exact:true}).click();
-  await expect(menu.getByRole('link',{name:/^iOS/})).toHaveAttribute('href',/^https:\/\/apps\.apple\.com\//);
+  await expect(menu.getByRole('link',{name:'Descargá la App Tony'})).toHaveAttribute('href','/app-tony');
   await menu.getByText('Productos',{exact:true}).click();
   await expect(menu.getByRole('link',{name:'Ver todos los productos',exact:true})).toHaveAttribute('href','/producto');
   await expectNoAxeViolations(page,'menú textual de productos','#tony-mobile-menu');
@@ -260,7 +220,7 @@ test('la franja de contacto y el menú textual permiten abrir los destinos ofici
   await open.click();
   await menu.getByText('Productos',{exact:true}).click();
   await menu.getByRole('link',{name:'Logos 3D Alto Relieve',exact:true}).click();
-  await expectLanded(page,'categoria-logos-3d');
+  await expectScope(page, '/producto/logos-3d', 'Logos 3D');
   await expect(menu).toBeHidden();
   await page.setViewportSize({width:1099,height:1000});
   await expect(page.locator('.tony-subbar-search').getByRole('button',{name:SEARCH_LABEL,exact:true})).toBeVisible();
@@ -289,28 +249,22 @@ test('la búsqueda del encabezado parte de accesos y disciplinas, se recupera si
   // The discipline comes before the implements family of the same name.
   const results = dialog.locator('.tony-search-results > a');
   await expect(results.first()).toHaveAccessibleName('Baloncesto');
-  await expect(results.first()).toHaveAttribute('href', '/producto#categoria-bkb');
-  await expect(results.nth(1)).toHaveAttribute('href', '/implementos#baloncesto');
+  await expect(results.first()).toHaveAttribute('href', '/producto/bkb');
+  await expect(results.nth(1)).toHaveAttribute('href', '/implementos/baloncesto');
   await page.keyboard.press('ArrowDown');
   await expect(results.first()).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page).toHaveURL(/\/producto#categoria-bkb$/);
+  await expectScope(page, '/producto/bkb', 'Baloncesto');
   await expect(dialog).toBeHidden();
-  await expectLanded(page, 'categoria-bkb');
-  // Same-page fragments move the page and the address, and Back returns to the previous section.
-  await page.getByRole('list', {name:'Disciplinas',exact:true}).getByRole('link',{name:'Fútbol',exact:true}).click();
-  await expect(page).toHaveURL(/\/producto#categoria-futbol$/);
-  await expectLanded(page, 'categoria-futbol');
   await page.goBack();
-  await expect(page).toHaveURL(/\/producto#categoria-bkb$/);
-  await expectLanded(page, 'categoria-bkb');
+  await expect(page).toHaveURL(/\/tiendas$/);
 });
 
 test('Implementos agrupa 46 productos en 8 familias con foto que abren la tienda oficial', async ({ page }) => {
-  await page.goto('/producto#categoria-implementos');
+  await page.goto('/producto');
   await page.locator('#opcion-implementos-4').click();
-  await expect(page).toHaveURL(/\/implementos#guantes$/);
-  await expectLanded(page, 'guantes');
+  await expectScope(page, '/implementos/guantes', 'Guantes de portero');
+  await page.goto('/implementos');
   const main = page.locator('main');
   const families = main.locator('section.im-sec');
   expect(await families.evaluateAll(list => list.map(section => section.id))).toEqual(implementFamilies.map(([id]) => id));
@@ -330,12 +284,12 @@ test('Implementos agrupa 46 productos en 8 familias con foto que abren la tienda
   }
   await expectImagesServed(page, families);
   await expect(main).not.toContainText('$');
-  // The family chips jump within the page.
+  // The family links open only the matching products.
   const chips = page.getByRole('navigation', { name: 'Familias de implementos', exact: true });
   await expect(chips.getByRole('link')).toHaveText(implementFamilies.map(([, name]) => name));
   await chips.getByRole('link', { name: 'Mallas', exact: true }).click();
-  await expect(page).toHaveURL(/\/implementos#mallas$/);
-  await expectLanded(page, 'mallas');
+  await expectScope(page, '/implementos/mallas', 'Mallas');
+  await expect(main.locator('.pd-card')).toHaveCount(2);
 });
 
 test('el directorio de tiendas busca sin tildes, combina filtros e incluye Lourdes en la zona Centro', async ({ page }) => {
@@ -441,18 +395,15 @@ test('todas las secciones y sus estados móviles caben a 320 y 390 píxeles', as
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 900 });
     for (const route of sectionRoutes) {
-      // The product pages open on a section (it lands once the page is interactive); then their own links jump within the page.
-      const landing = mobileLandings[route];
-      await page.goto(landing ? `${route}#${landing}` : route);
+      await page.goto(route);
       await expect(page.locator('main h1')).toBeVisible();
-      if (landing) await expectLanded(page, landing);
       if (route === '/producto') {
         await page.getByRole('list', { name: 'Disciplinas', exact: true }).getByRole('link', { name: 'Camisas y polos', exact: true }).click();
-        await expectLanded(page, 'categoria-camisas-polos');
+        await expectScope(page, '/producto/camisas-polos', 'Camisas y polos');
       }
       if (route === '/implementos') {
         await page.getByRole('navigation', { name: 'Familias de implementos', exact: true }).getByRole('link', { name: 'Accesorios', exact: true }).click();
-        await expectLanded(page, 'accesorios');
+        await expectScope(page, '/implementos/accesorios', 'Accesorios');
       }
       if (route === '/calidad') await page.getByRole('group', { name: 'Explorar técnicas de personalización' }).getByRole('button', { name: /Bordado/ }).click();
       if (route === '/tiendas') await page.getByRole('searchbox', { name: 'Encuentra tu tienda', exact: true }).fill('Santa Ana');
@@ -468,9 +419,8 @@ test('todas las secciones y sus estados móviles caben a 320 y 390 píxeles', as
     const nav = menu.getByRole('navigation', { name: 'Navegación principal' });
     await nav.getByText('Productos',{exact:true}).click();
     await nav.getByRole('link', { name: 'Logos 3D Alto Relieve', exact: true }).click();
-    await expect(page).toHaveURL(/\/producto#categoria-logos-3d$/);
+    await expectScope(page, '/producto/logos-3d', 'Logos 3D');
     await expect(menu).toBeHidden();
-    await expectLanded(page, 'categoria-logos-3d');
     await expectFits(page, `Producto abierto desde el menú en ${width}px`);
   }
 });

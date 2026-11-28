@@ -1,10 +1,14 @@
-import HashFocus from '@/components/product/HashFocus';
-import {LEGACY_PRODUCT_HASHES} from '@/lib/product-menu';
+import CategoryAliases from '@/components/product/CategoryAliases';
+import {LEGACY_PRODUCT_HASHES, PRODUCT_MENU} from '@/lib/product-menu';
+import {disciplineHref} from '@/lib/disciplines';
 
-const PREFIXES=['categoria-','opcion-'];
-const IDS=['directorio-producto'];
+const paths:Record<string,string> = {};
+for (const section of PRODUCT_MENU) {
+  paths['categoria-'+section.id] = disciplineHref(section.id);
+  for (const card of section.cards) paths[card.id] = card.href;
+}
+for (const [alias,id] of Object.entries(LEGACY_PRODUCT_HASHES)) paths[alias] = paths[id];
 
-/** /producto#categoria-<id> and #opcion-<id> land on their section or card and light it up briefly. */
-export default function ProductDirectorySync(){
-  return <HashFocus prefixes={PREFIXES} ids={IDS} aliases={LEGACY_PRODUCT_HASHES}/>;
+export default function ProductDirectorySync() {
+  return <CategoryAliases paths={paths}/>;
 }

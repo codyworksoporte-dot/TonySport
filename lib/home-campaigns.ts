@@ -13,6 +13,6 @@ function campaign(id: string, title: string, href: string, strip = false): Campa
 export const homeCampaigns = [
   campaign('black-friday', 'Black Friday, 30% de descuento. ' + BLACK_FRIDAY.dates, '/promociones#black-friday', true),
   campaign('portero', 'Uniforme de portero y gafete de regalo desde 12 uniformes de la línea Slim Fit participante', 'https://www.tonysportselsalvador.com/producto/26184/', true),
-  campaign('premios', 'Canjeá tus puntos de la App Tony por premios', '/colecciones?categoria=premios-app', true),
+  campaign('premios', 'Canjeá tus puntos de la App Tony por premios', '/colecciones/premios-app', true),
   campaign('personalizados', 'Personalizá el uniforme de tu equipo', '/configurador'),
 ];

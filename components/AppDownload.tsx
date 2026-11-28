@@ -27,7 +27,7 @@ export function AppDownloadPanel({headingId, compact = false}: {headingId?: stri
     <ul className="app-dl-perks">
       {PERKS.map(perk => <li key={perk.title}><span className="app-dl-perk-icon"><Icon name={perk.icon}/></span><div><b>{perk.title}</b><p>{perk.text}</p></div></li>)}
     </ul>
-    <Link className="app-dl-prizes" href="/colecciones?categoria=premios-app">Ver los premios de la app <Icon name="arrow"/></Link>
+    <Link className="app-dl-prizes" href="/colecciones/premios-app">Ver los premios de la app <Icon name="arrow"/></Link>
   </div>;
 }
 

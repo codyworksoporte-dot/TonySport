@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import {Suspense} from 'react';
 import Icon from '@/components/Icon';
 import { SHOP_CATEGORIES, SHOP_LATEST, SHOP_PRODUCTS } from '@/lib/shop';
 import Storefront from './Storefront';
@@ -16,6 +17,6 @@ export default function Tienda() {
       <Link className="tc-back" href="/"><Icon name="left"/>Inicio</Link>
       <h1>Tienda en línea</h1>
     </header>
-    <Storefront products={SHOP_PRODUCTS} categories={SHOP_CATEGORIES} latest={SHOP_LATEST}/>
+    <Suspense fallback={<p role="status">Cargando productos…</p>}><Storefront products={SHOP_PRODUCTS} categories={SHOP_CATEGORIES} latest={SHOP_LATEST}/></Suspense>
   </div></main>;
 }

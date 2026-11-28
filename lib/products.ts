@@ -30,5 +30,4 @@ export const PRODUCT_CATEGORIES:ProductCategory[]=(official.menu.children as Sou
   const [id,label,shortLabel,line,description]=presentation[index];
   return {id,label,shortLabel,line,description,sourceHref:category.href,children:category.children.map((child,childIndex)=>({id:`${id}-${childIndex+1}`,label:childLabel(child.label),sourceLabel:child.label,sourceHref:child.href}))};
 });
-export const productHref=(category:ProductCategory)=>`/producto#categoria-${category.id}`;
 export const productInquiry=(label:string)=>`https://wa.me/50370155571?text=${encodeURIComponent(`Hola, Tony. Quisiera información sobre ${label}. Necesito confirmar diseños, tallas, cantidades y opciones disponibles.`)}`;

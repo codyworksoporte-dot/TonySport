@@ -12,7 +12,7 @@
 //
 // RESPONSE (JSON)
 //   {"reply": "Texto corto para el usuario.", "actions": [{"label": "Ver tiendas", "href": "/tiendas"}]}
-//   `actions` is optional (at most 4 are shown). An href may be a site path ("/tiendas", "/producto#categoria-futbol"),
+//   `actions` is optional (at most 4 are shown). An href may be a site path ("/tiendas", "/producto/futbol"),
 //   an https link, a tel: or a mailto: link; anything else is dropped. wa.me links show as the WhatsApp button.
 //
 // If the request fails, takes longer than REMOTE_TIMEOUT_MS or returns something else, the local engine

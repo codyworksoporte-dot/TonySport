@@ -1,6 +1,7 @@
 import type {CSSProperties} from 'react';
-import {PRODUCT_CATEGORIES,productInquiry,type ProductCategory} from '@/lib/products';
-import {sourceCollectionHref} from '@/lib/collections';
+import {PRODUCT_CATEGORIES,type ProductCategory} from '@/lib/products';
+import {albumHref,collectionHref,sourceSlug} from '@/lib/collection-path';
+import {businessLineIds,businessLines} from '@/lib/business-lines';
 import {DISCIPLINES,type Discipline} from '@/lib/disciplines';
 import {IMPLEMENT_FAMILIES,IMPLEMENTS_PAGE} from '@/lib/implements';
 
@@ -8,7 +9,7 @@ type Asset = `/assets/${string}`;
 const cover = (id:number):Asset => `/assets/colecciones/${id}.webp`;
 
 export type MenuCard = {
-  /** DOM id, `opcion-<category>-<n>`: the header, the search and hash links point here. */
+  /** Stable identifier used by bookmarks from the previous product directory. */
   id:string;
   name:string;
   image:Asset;
@@ -70,7 +71,7 @@ const CHILD_NAME:Record<string,string> = {
 };
 
 // Lines with no options in the official menu still get picture cards of their own products.
-// They link to the line's collection (from the category's official address) or to WhatsApp.
+// Each opens the corresponding album or the line’s collection.
 const OWN_CARDS:Record<string,string[]> = {
   ciclismo:['Línea Ciclismo'],
   voleibol:['Uniformes de voleibol'],
@@ -98,25 +99,35 @@ export function imageFocus(image:string):CSSProperties|undefined{
   return focus?{'--fz':String(focus.zoom),'--fx':`${focus.x}%`,'--fy':`${focus.y}%`} as CSSProperties:undefined;
 }
 
-function linkFor(source:string,inquiryLabel:string){
-  const collection=sourceCollectionHref(source);
-  return collection?{href:collection,whatsapp:false}:{href:productInquiry(inquiryLabel),whatsapp:true};
-}
+// These menu addresses predate the price change on Tony’s official store.
+const currentReplicaSlug:Record<string,string>={
+  'replicas-bordadas-de-8-99':'replicas-bordadas-de-8-49',
+  'replicas-bordadas-de-futbol-de-9-49':'replicas-bordadas-de-futbol-de-10-99',
+};
+const individualAlbums:Record<string,number[]>={moldes:[36787,36785,36783],hoddies:[34694,36026]};
 
-function cardsOf(category:ProductCategory):MenuCard[]{
+export function productCards(category:ProductCategory):MenuCard[]{
   if(category.id==='implementos')return IMPLEMENT_FAMILIES.map((family,index)=>({
-    id:`opcion-implementos-${index+1}`,name:family.name,image:family.cover,href:`${IMPLEMENTS_PAGE}#${family.id}`,whatsapp:false,
+    id:`opcion-implementos-${index+1}`,name:family.name,image:family.cover,href:`${IMPLEMENTS_PAGE}/${family.id}`,whatsapp:false,
   }));
-  if(category.children.length)return category.children.map((child,index)=>{
-    return {
-      id:`opcion-${child.id}`,
-      name:CHILD_NAME[child.id]??child.label,
-      image:optionImage(category.id,index),
-      ...linkFor(child.sourceHref,child.label),
-    };
-  });
+  if(category.children.length){
+    const cards=category.children.map((child,index)=>{
+      const slug=sourceSlug(child.sourceHref);
+      return {
+        id:`opcion-${child.id}`,
+        name:CHILD_NAME[child.id]??child.label,
+        image:optionImage(category.id,index),
+        href:collectionHref(currentReplicaSlug[slug]??slug),whatsapp:false,
+      };
+    });
+    if(category.id==='empresarial')for(const slug of businessLineIds){
+      cards.push({id:'opcion-empresarial-'+slug,name:'Línea '+businessLines[slug].name,image:`/assets/empresarial/${slug}/portada.webp`,href:'/empresarial/'+slug,whatsapp:false});
+    }
+    return cards;
+  }
   return (OWN_CARDS[category.id]??[]).map((name,index)=>({
-    id:`opcion-${category.id}-${index+1}`,name,image:optionImage(category.id,index),...linkFor(category.sourceHref,name),
+    id:`opcion-${category.id}-${index+1}`,name,image:optionImage(category.id,index),whatsapp:false,
+    href:individualAlbums[category.id] ? albumHref(individualAlbums[category.id][index]) : collectionHref(sourceSlug(category.sourceHref)),
   }));
 }
 
@@ -136,12 +147,12 @@ export const PRODUCT_MENU:MenuSection[]=DISCIPLINES.flatMap((discipline:Discipli
   const category=byId.get(discipline.id);
   if(!category)return [];
   return [{
-    id:category.id,name:discipline.name,image:discipline.image,...withFeatured(category.id,cardsOf(category)),
+    id:category.id,name:discipline.name,image:discipline.image,...withFeatured(category.id,productCards(category)),
     ...(category.id==='implementos'?{more:{href:IMPLEMENTS_PAGE,label:'Ver todos',cta:'Ver todos los implementos'}}:{}),
   }];
 });
 
-/** Old LineExplorer anchors (/producto#futbol…) now land on the matching section. */
+/** Earlier versions also shared short hashes such as /producto#futbol. */
 export const LEGACY_PRODUCT_HASHES:Record<string,string> = {
   futbol:'categoria-futbol',baloncesto:'categoria-bkb',voleibol:'categoria-voleibol',running:'categoria-runners',
   ciclismo:'categoria-ciclismo',racing:'categoria-racing',empresarial:'categoria-empresarial',casual:'categoria-camisas-polos',

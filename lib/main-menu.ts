@@ -1,4 +1,6 @@
 import {PRODUCT_CATEGORIES} from './products';
+import {productCards} from './product-menu';
+import {disciplineHref} from './disciplines';
 import {CREATE_ORDER_HREF} from './nav';
 import {HELP_WHATSAPP, ORDER_LOOKUP_URL} from './site-links';
 
@@ -15,7 +17,7 @@ export const MAIN_MENU: MenuDestination[] = [
   {label: 'Inicio', href: '/'},
   {label: 'Creá tu pedido', href: CREATE_ORDER_HREF},
   {label: 'App Tony', href: '/app-tony', overview: 'Descargá la App Tony', children: [
-    {label: 'Premios de la app', href: '/colecciones?categoria=premios-app'},
+    {label: 'Premios de la app', href: '/colecciones/premios-app'},
   ]},
   {label: 'Tienda en línea', href: '/tienda', overview: 'Ver toda la tienda', children: [
     {label: 'Camisas oficiales de equipos nacionales', href: '/tienda?categoria=camisas-oficiales-de-equipos-nacionales'},
@@ -25,19 +27,21 @@ export const MAIN_MENU: MenuDestination[] = [
   ]},
   {label: 'Productos', href: '/producto', overview: 'Ver todos los productos', children: PRODUCT_CATEGORIES.map(category => ({
     label: category.label,
-    href: category.id === 'implementos' ? '/implementos' : `/producto#categoria-${category.id}`,
+    href: disciplineHref(category.id),
     overview: `Ver ${category.shortLabel.toLocaleLowerCase('es')}`,
-    children: category.children.map(child => ({label: child.label, href: `/producto#opcion-${child.id}`})),
+    children: productCards(category).map(card=>({
+      label:category.children.find(child=>'opcion-'+child.id===card.id)?.label ?? card.name, href:card.href,
+    })),
   }))},
   {label: 'Promociones', href: '/promociones', overview: 'Ver todas las promociones', children: [
     {label: 'Black Friday', href: '/promociones#black-friday'},
-    {label: 'Álbum de promociones', href: '/colecciones?categoria=promo-inicio-de-ano'},
+    {label: 'Álbum de promociones', href: '/colecciones/promo-inicio-de-ano'},
   ]},
   {label: 'Patrocinio', href: '/patrocinio'},
   {label: 'Nuestras tiendas', href: '/tiendas'},
   {label: 'Nuestra calidad', href: '/calidad', overview: 'Conocé nuestra calidad', children: [
-    {label: 'Líneas de tela', href: '/colecciones?categoria=lineas-de-tela'},
-    {label: 'Costuras', href: '/colecciones?categoria=costuras'},
+    {label: 'Líneas de tela', href: '/colecciones/lineas-de-tela'},
+    {label: 'Costuras', href: '/colecciones/costuras'},
   ]},
   {label: 'Servicio a domicilio', href: '/entregas'},
   {label: 'Contacto', href: '/contacto'},

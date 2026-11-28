@@ -1,28 +1,25 @@
 'use client';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState, type ReactNode} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import {COLLECTIONS, COLLECTION_PRODUCTS, type CollectionProduct} from '@/lib/collections';
+import {collectionHref} from '@/lib/collection-path';
 import {siteAsset} from '@/lib/asset-path';
 import './collection-gallery.css';
 
 type Photo = {src: string; preview: string; label: string};
 const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 const pageSize = 20;
-export default function CollectionGallery() {
+export default function CollectionGallery({intro}: {intro:ReactNode}) {
   const router = useRouter();
   const params = useSearchParams();
-  const [category, setCategory] = useState(() => COLLECTIONS.some(c => c.slug === params.get('categoria')) ? params.get('categoria')! : ''), [query, setQuery] = useState(''), [page, setPage] = useState(1);
+  const category = params.get('categoria') || '';
+  const [query, setQuery] = useState(''), [page, setPage] = useState(1);
   const [selected, setSelected] = useState<CollectionProduct | null>(null), [photos, setPhotos] = useState<Photo[]>([]), [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(false), [error, setError] = useState(''), [imageError, setImageError] = useState(false), [attempt, setAttempt] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null), trigger = useRef<HTMLElement | null>(null), resultsTitle = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
-    const slug=params.get('categoria')||'';
-    if (slug === 'rse-tony') {
-      router.replace('/rse');
-      return;
-    }
-    setCategory(COLLECTIONS.some(c => c.slug === slug) ? slug : ''); setPage(1);
-  }, [params, router]);
+    if (category) router.replace(category === 'rse-tony' ? '/rse' : collectionHref(category));
+  }, [category, router]);
   useEffect(() => {
     if (!selected) return;
     dialog.current?.showModal(); setPhotos([]); setLoading(true); setError(''); setIndex(0);
@@ -37,16 +34,16 @@ export default function CollectionGallery() {
   useEffect(() => setImageError(false), [index, selected]);
   function close() {dialog.current?.close(); setSelected(null); requestAnimationFrame(() => trigger.current?.focus());}
   function filter(value: string) {
-    setCategory(value); setPage(1);
-    const url = new URL(location.href); if (value) url.searchParams.set('categoria', value); else url.searchParams.delete('categoria');
-    history.replaceState(null, '', url.pathname + url.search); // Keep category links shareable, including the Pages base path.
+    if (value) router.push(collectionHref(value));
+    else setPage(1);
   }
   const words = normalize(query).trim().split(/\s+/).filter(Boolean);
   const results = COLLECTION_PRODUCTS.filter(p => (!category || p.categories.includes(category)) && words.every(w => normalize(`${p.name} ${p.categories.join(' ')}`).includes(w)));
   const totalPages = Math.max(1, Math.ceil(results.length / pageSize));
   const visible = results.slice((page-1)*pageSize, page*pageSize), photo = photos[index];
   function turnPage(value: number) {setPage(value); resultsTitle.current?.focus(); resultsTitle.current?.scrollIntoView({block: 'start'});}
-  return <section className="collection-gallery section-wrap" aria-label="Colecciones oficiales">
+  if (category) return null;
+  return <>{intro}<section className="collection-gallery section-wrap" aria-label="Colecciones oficiales">
     <div className="collection-filters"><label>Buscar una colección<input type="search" value={query} onChange={e => {setQuery(e.target.value); setPage(1);}} placeholder="Anime, Mundial, polos…"/></label>
       <label>Línea de producto<select value={category} onChange={e => filter(e.target.value)}><option value="">Todas las colecciones</option>{COLLECTIONS.map(c => <option key={c.id} value={c.slug}>{c.name} ({c.count})</option>)}</select></label></div>
     <div className="collection-shortcuts" aria-label="Colecciones destacadas">{COLLECTIONS.filter(c => [209,206].includes(c.id)).map(c => <button type="button" key={c.id} aria-pressed={category === c.slug} onClick={() => filter(c.slug)}>{c.name}</button>)}{(category || query) && <button type="button" onClick={() => {filter(''); setQuery('');}}>Ver todas</button>}</div>
@@ -67,5 +64,5 @@ export default function CollectionGallery() {
       {!loading && !error && !photos.length && <p>Este producto no tiene imágenes publicadas en el catálogo original.</p>}
       <div className="collection-dialog-actions"><a className="button primary" href={`https://wa.me/50370155571?text=${encodeURIComponent(`Hola, Tony. Quisiera consultar ${selected.name}${photo ? `, imagen ${index+1}` : ''}. ${selected.href}${photo ? `\nReferencia: ${photo.src}` : ''}`)}`} target="_blank" rel="noopener noreferrer">Consultar por WhatsApp ↗</a><a href={selected.href} target="_blank" rel="noopener noreferrer">Ver en la web oficial ↗</a></div>
     </dialog>}
-  </section>;
+  </section></>;
 }

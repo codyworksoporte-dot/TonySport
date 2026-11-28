@@ -157,6 +157,7 @@
   /* A fresh conversation: the welcome tile fills the sheet above the chips instead of leaving it empty. */
   .ta-log:has(>.ta-msg--welcome:only-child),.ta-msg--welcome:only-child,.ta-msg--welcome:only-child .ta-welcome{flex:1 0 auto}
   .ta-msg--welcome:only-child .ta-welcome{min-height:240px;padding:22px 20px 24px}
+  .ta-welcome>img{object-position:84% 8%}
   .ta-msg--welcome:only-child .ta-welcome-text{font-size:31px}
 }
 /* Short phones (iPhone SE): the welcome keeps its natural height so the chips fit under it. */

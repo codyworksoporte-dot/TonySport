@@ -87,7 +87,7 @@ export default function Header() {
         <div className="tony-contact-links">
           <a href={`mailto:${TONY_EMAIL}`}><Icon name="mail" size={18}/>{TONY_EMAIL}</a>
           <div className="tony-strip-social">
-            {(['facebook','instagram'] as const).map(channel => <a key={channel} href={TONY_CHANNELS[channel].url}
+            {(['facebook','instagram','tiktok'] as const).map(channel => <a key={channel} href={TONY_CHANNELS[channel].url}
               aria-label={`${TONY_CHANNELS[channel].name} de Tony (se abre en otra pestaña)`} target="_blank" rel="noopener noreferrer">
               <SocialGlyph channel={channel} size={20}/>
             </a>)}

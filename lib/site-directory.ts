@@ -4,6 +4,8 @@ import {DISCIPLINES, DISCIPLINES_TITLE, disciplineHref} from './disciplines';
 import {IMPLEMENT_FAMILIES, IMPLEMENTS_PAGE, implementsOf} from './implements';
 import {CREATE_ORDER_HREF, NAV} from './nav';
 import {PRODUCT_CATEGORIES} from './products';
+import {PRODUCT_MENU} from './product-menu';
+import {collectionHref} from './collection-path';
 import {PROMOTIONS, PROMOTIONS_PAGE} from './promotions';
 
 /** One destination the site search can offer. `external` ones open in a new tab; `image` adds a thumbnail. */
@@ -33,15 +35,16 @@ const disciplines: DirectoryEntry[] = DISCIPLINES.map(discipline => {
 const implementsEntries: DirectoryEntry[] = [
   {href: IMPLEMENTS_PAGE, label: 'Implementos deportivos', group: 'IMPLEMENTOS DEPORTIVOS', terms: 'implementos balones guantes accesorios equipo deportivo', image: NAV.implementos.image},
   ...IMPLEMENT_FAMILIES.map(family => ({
-    href: `${IMPLEMENTS_PAGE}#${family.id}`, label: family.name, group: 'IMPLEMENTOS DEPORTIVOS', image: family.cover,
+    href: `${IMPLEMENTS_PAGE}/${family.id}`, label: family.name, group: 'IMPLEMENTOS DEPORTIVOS', image: family.cover,
     terms: `implementos ${implementsOf(family.id).map(item => item.name).join(' ')}`,
   })),
 ];
 
 // Each confection option keeps its official album, or its place on the product page.
-const options: DirectoryEntry[] = PRODUCT_CATEGORIES.flatMap(category => category.children.map(child => {
-  const collection = categories.find(item => child.sourceHref.split('/').filter(Boolean).at(-1) === item.slug);
-  return {href: collection ? `/colecciones?categoria=${encodeURIComponent(collection.slug)}` : `/producto#opcion-${child.id}`, label: child.label, group: 'OPCIONES DE CONFECCIÓN', terms: `${category.label} ${category.shortLabel}`};
+const options: DirectoryEntry[] = PRODUCT_MENU.flatMap(section => section.cards.map(card => {
+  const category = PRODUCT_CATEGORIES.find(item=>item.id===section.id)!;
+  const child = category.children.find(item=>'opcion-'+item.id===card.id);
+  return {href:card.href, label:child?.label ?? card.name, image:card.image, group:'OPCIONES DE CONFECCIÓN', terms:category.label+' '+section.name+' '+card.name};
 }));
 
 // Album names come from the official site as typed there: some carry an old price ("Replicas Sublimadas $8.99")
@@ -57,7 +60,7 @@ function albumName(name: string) {
 
 const collections: DirectoryEntry[] = [
   {href: '/colecciones', label: 'Todas las colecciones y uniformes', group: 'COLECCIONES', terms: 'colecciones mundial anime camisetas ropa prendas modelos'},
-  ...categories.map(category => ({href: `/colecciones?categoria=${encodeURIComponent(category.slug)}`, label: albumName(category.name), group: 'COLECCIONES', terms: `uniformes imagenes ${category.slug}`})),
+  ...categories.map(category => ({href: collectionHref(category.slug), label: albumName(category.name), group: 'COLECCIONES', terms: `uniformes imagenes ${category.slug}`})),
 ];
 
 const storeEntries: DirectoryEntry[] = [

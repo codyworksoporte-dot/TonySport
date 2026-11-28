@@ -61,31 +61,33 @@ test('storage failure shows an error and never a false cart success', async ({pa
 });
 
 test('mobile navigation keeps close and search reachable, releases scroll and uses a full-screen transition', async ({page}) => {
-  await page.addInitScript(() => sessionStorage.setItem('tony:intro:wordmark:v1','seen'));
+  await page.addInitScript(() => {
+    sessionStorage.setItem('tony:intro:wordmark:v1','seen');
+    sessionStorage.setItem('tony:inicio:carteles:v2','[]');
+  });
   await page.goto('/');
   await expect(page.locator('.brand-intro[open]')).toHaveCount(0);
   const menu=page.getByRole('dialog',{name:'Menú de Tony Sportswear'});
   await page.getByRole('button',{name:'Abrir menú'}).tap();
   const nav=menu.getByRole('navigation',{name:'Navegación principal'});
   await nav.getByText('Productos',{exact:true}).tap();
-  await nav.getByText('Confección de uniformes de fútbol',{exact:true}).tap();
-  await nav.getByRole('link',{name:'Ver fútbol',exact:true}).tap();
-  await expect(page).toHaveURL(/\/producto#categoria-futbol$/);
+  await nav.getByRole('link',{name:'Confección de uniformes de fútbol',exact:true}).tap();
+  await expect(page).toHaveURL(/\/producto\/futbol$/);
   await expect(menu).not.toBeVisible();
   await expect(page.locator('.route-transition')).toHaveAttribute('data-phase','idle');
   await expect(page.locator('.route-transition')).toHaveAttribute('data-art','mobile');
   await expect(page.locator('.rt-panel')).toHaveCount(0);
-  await expect(page.locator('#categoria-futbol')).toBeInViewport();
+  await expect(page.getByRole('heading',{name:'Fútbol',exact:true,level:1})).toBeInViewport();
   await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.documentElement).overflow)).not.toBe('hidden');
   await page.getByRole('button',{name:'Abrir menú'}).tap();
   await nav.getByText('Productos',{exact:true}).tap();
-  await expect(nav.getByRole('link',{name:'Ver todos los productos',exact:true})).toHaveAttribute('aria-current','page');
+  await expect(nav.getByRole('link',{name:'Confección de uniformes de fútbol',exact:true})).toHaveAttribute('aria-current','page');
   await menu.getByRole('button',{name:'¿Qué buscas en específico?',exact:true}).tap();
   await expect(page.locator('#site-search')).toBeFocused();
   await page.locator('#site-search').fill('tiendas');
   await page.locator('.tony-search-results').getByRole('link',{name:'Tiendas',exact:true}).tap();
   await expect(page).toHaveURL(/\/tiendas$/);
-  await page.goBack(); await expect(page).toHaveURL(/\/producto#categoria-futbol$/);
+  await page.goBack(); await expect(page).toHaveURL(/\/producto\/futbol$/);
   await page.getByRole('button',{name:'Abrir menú'}).tap();
   const body=menu.locator('.tony-mobile-body');
   await body.evaluate(el=>{el.scrollTop=el.scrollHeight;});

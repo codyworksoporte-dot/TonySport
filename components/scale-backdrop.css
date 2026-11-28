@@ -1,0 +1,35 @@
+body {
+  position: relative;
+  isolation: isolate;
+  background-image: linear-gradient(100deg, #09150db8, #111d1575 55%, #08140db0), url('/assets/escamas-tony-base.webp');
+  background-size: auto, var(--scale-tile) var(--scale-tile);
+}
+.scale-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.scale-spot {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 340px;
+  height: 340px;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 240ms ease-out;
+  mask-image: radial-gradient(closest-side, #000, #000d 28%, #0006 60%, transparent);
+}
+@media (any-hover: hover) and (any-pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .scale-spot[data-lit] { opacity: .92; }
+  .scale-seams {
+    width: calc(100% + var(--scale-tile));
+    height: calc(100% + var(--scale-tile));
+    background: url('/assets/escamas-tony-uniones.svg') 0 0 / var(--scale-tile) var(--scale-tile) repeat;
+  }
+}
+@media (prefers-reduced-motion: reduce), (forced-colors: active) {
+  .scale-backdrop { visibility: hidden; }
+}

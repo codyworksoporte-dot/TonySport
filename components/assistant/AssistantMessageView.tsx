@@ -7,7 +7,7 @@ import type {AssistantAction, AssistantActionKind, AssistantAsset, AssistantCard
 import AssistantAvatar from './AssistantAvatar';
 
 const NEW_TAB = <span className="tc-sr"> (se abre en otra pestaña)</span>;
-const WELCOME_IMAGE: AssistantAsset = '/assets/secciones/nosotros/portada.webp';
+const WELCOME_IMAGE: AssistantAsset = '/assets/asistente/asesora-virtual.webp';
 const DEFAULT_ICON: Record<AssistantActionKind, IconName> = {
   link: 'arrow', external: 'diagonal', whatsapp: 'whatsapp-solid', tel: 'phone', mail: 'chat', search: 'search',
 };
@@ -56,7 +56,7 @@ function Place({place}: {place: AssistantPlace}) {
 function Welcome({text}: {text: string}) {
   const [, lead = text, question = ''] = /^(.*?[.!])\s+(¿[^?]+\?)$/.exec(text) ?? [];
   return <div className="ta-welcome">
-    <img src={siteAsset(WELCOME_IMAGE)} alt="" width={600} height={600} decoding="async"/>
+    <img src={siteAsset(WELCOME_IMAGE)} alt="Asesora deportiva virtual de Tony" width={810} height={540} decoding="async"/>
     <AssistantAvatar size={52}/>
     <p className="ta-welcome-text"><span className="tc-sr">Asistente: </span>{lead}{question && <> <em>{question}</em></>}</p>
   </div>;

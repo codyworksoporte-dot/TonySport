@@ -208,7 +208,7 @@ function implementsReply(read: Understanding, ask: Ask, priced = false): Assista
     : `Mira algunos modelos de ${noun}. Pregúntale a Tony por la disponibilidad.`;
   return reply('implementos', text, {
     cards: items.slice(0, 3).map(item => ({title: item.name, image: item.image, href: item.href, external: true})),
-    actions: [{...ACTIONS.implementos, label: `Ver ${noun}`, href: `${IMPLEMENTS_PAGE}#${family.id}`}, ask(`¿Qué ${noun} tienen disponibles?`)],
+    actions: [{...ACTIONS.implementos, label: `Ver ${noun}`, href: `${IMPLEMENTS_PAGE}/${family.id}`}, ask(`¿Qué ${noun} tienen disponibles?`)],
     chips: IMPLEMENT_FAMILIES.filter(item => item.id !== family.id).slice(0, 3).map(item => FAMILY_QUESTION[item.id] ?? item.name),
   });
 }

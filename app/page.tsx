@@ -3,6 +3,7 @@ import Icon from '@/components/Icon';
 import BlackFridayCover from '@/components/BlackFridayCover';
 import { CampaignDialog, CampaignCarousel } from '@/components/home/HomeAdvertising';
 import HomeDisciplines from '@/components/home/HomeDisciplines';
+import BusinessLines from '@/components/business/BusinessLines';
 import { homeCampaigns } from '@/lib/home-campaigns';
 import { siteAsset } from '@/lib/asset-path';
 import '@/components/home/home.css';
@@ -25,7 +26,7 @@ export default function Home() {
         </picture>
         <div className="order-hero-copy">
           <h1 className="tc-display" id="order-title">Crear mi <em>pedido</em></h1>
-          <p>Uniformes o camisas, con tu diseño.</p>
+          <p>Personalizá tus uniformes o camisas, creá tu pedido y pagá en línea. ¡Así de fácil!</p>
           <Link className="tc-btn tc-btn--lime" id="crear-mi-pedido" aria-label="Empezar mi pedido" href="/configurador">Empezar mi pedido <Icon name="arrow"/></Link>
         </div>
       </section>
@@ -41,6 +42,7 @@ export default function Home() {
       </CampaignCarousel>
 
       <HomeDisciplines/>
+      <BusinessLines/>
 
       <section className="home-order-ways" aria-labelledby="ways-title">
         <h2 className="tc-display" id="ways-title">Tres formas de <em>hacer tu pedido</em></h2>

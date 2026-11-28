@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import WarmImages from '@/components/media/WarmImages';
+import DisciplineRail from './DisciplineRail';
 import { leadTilePhotos } from '@/components/product/discipline-photos';
 import { siteAsset } from '@/lib/asset-path';
 import { fitted } from '@/lib/responsive-image';
@@ -14,16 +15,14 @@ export default function HomeDisciplines() {
   return <section className="tc-sec home-sec" aria-labelledby="home-disciplinas">
     <div className="tc-sec-h home-sec-h">
       <h2 id="home-disciplinas">{DISCIPLINES_TITLE}</h2>
-      <Link href="/producto">Ver todas<span className="tc-sr"> las disciplinas</span><Icon name="arrow" size={18}/></Link>
+      <Link className="all-disciplines" href="/producto">Ver todas<span className="tc-sr"> las disciplinas</span><Icon name="arrow" size={20}/></Link>
     </div>
     <WarmImages watch="home-disciplinas" images={PRODUCT_LEAD_PHOTOS}/>
-    {/* Two rows in motion: the top one drifts right, the bottom one left. Each track repeats its row
-        (copies are aria-hidden and out of the tab order) and shifts by exactly one copy, so the loop is seamless. */}
     {/* data-ahead: the marquees clip their chips, so PicturesAhead readies them all as the section comes near. */}
     <div className="home-chips-rows" data-ahead="">
       {[DISCIPLINES.slice(0, 7), DISCIPLINES.slice(7)].map((row, rowIndex) => {
         const chips = [...row.map(line => ({key: line.id, line})), ...(rowIndex === 1 ? [{key: 'all', line: null}] : [])];
-        return <div key={rowIndex} className="home-marquee" data-dir={rowIndex === 0 ? 'right' : 'left'}>
+        return <DisciplineRail key={rowIndex} count={chips.length} direction={rowIndex === 0 ? 'right' : 'left'}>
           <ul className="home-marquee-track" role="list">
             {MARQUEE_COPIES.flatMap(copy => chips.map(({key, line}) => {
               const copyProps = copy ? {tabIndex: -1} : {};
@@ -41,7 +40,7 @@ export default function HomeDisciplines() {
               </li>;
             }))}
           </ul>
-        </div>;
+        </DisciplineRail>;
       })}
     </div>
   </section>;

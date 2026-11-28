@@ -46,6 +46,7 @@ const normalize = (text: string) => text.normalize('NFD').replace(ACCENTS, '').t
 test.beforeEach(async ({page}) => {
   await page.addInitScript(() => {
     try { sessionStorage.setItem('tony:intro:wordmark:v1', 'seen'); } catch { /* Storage blocked: nothing to skip. */ }
+    try { sessionStorage.setItem('tony:inicio:carteles:v2', '[]'); } catch { /* Idem. */ }
     try { localStorage.setItem('tony-assistant-hint-v1', '1'); } catch { /* Idem. */ }
   });
 });
@@ -356,7 +357,7 @@ test.describe('asistente Tony', () => {
     await input.fill('quiero un balón');
     await input.press('Enter');
     const answer = log.locator('.ta-msg--bot').last();
-    await expect(answer.getByRole('link', {name: 'Ver balones de fútbol', exact: true})).toHaveAttribute('href', '/implementos#balones');
+    await expect(answer.getByRole('link', {name: 'Ver balones de fútbol', exact: true})).toHaveAttribute('href', '/implementos/balones');
     // The handoff carries the visitor's own question to the person on WhatsApp.
     const handoff = answer.getByRole('link', {name: /^WhatsApp 7015 5571/});
     await expectNewTab(handoff, WHATSAPP_ANY);

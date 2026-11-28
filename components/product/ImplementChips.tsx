@@ -1,4 +1,5 @@
 'use client';
+import Link from 'next/link';
 import {useEffect,useRef,useState} from 'react';
 import {siteAsset} from '@/lib/asset-path';
 import type {ImplementFamily} from '@/lib/implements';
@@ -7,7 +8,7 @@ const calm=()=>matchMedia('(prefers-reduced-motion: reduce)').matches||document.
 
 /**
  * The family chips of /implementos: a row that sticks under the site header, marks the family on screen
- * and jumps to it (the jump itself is HashFocus's job, so it also works before this hydrates).
+ * and opens that family’s own product list.
  */
 export default function ImplementChips({families}:{families:ImplementFamily[]}){
   const [active,setActive]=useState(families[0]?.id??'');
@@ -83,10 +84,10 @@ export default function ImplementChips({families}:{families:ImplementFamily[]}){
 
   return <nav ref={nav} className="im-chips" aria-label="Familias de implementos" data-hash-offset="">
     <div ref={row} className="im-chips-row">
-      {families.map(family=><a key={family.id} href={`#${family.id}`} data-family={family.id} className="im-chip" aria-current={active===family.id?'location':undefined}>
+      {families.map(family=><Link key={family.id} href={'/implementos/'+family.id} data-family={family.id} className="im-chip" aria-current={active===family.id?'location':undefined}>
         <img src={siteAsset(family.cover)} alt="" width={40} height={40} decoding="async"/>
         <span>{family.name}</span>
-      </a>)}
+      </Link>)}
     </div>
   </nav>;
 }

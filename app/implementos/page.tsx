@@ -1,7 +1,7 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
-import HashFocus from '@/components/product/HashFocus';
+import CategoryAliases from '@/components/product/CategoryAliases';
 import ImplementChips from '@/components/product/ImplementChips';
 import PictureCard from '@/components/product/PictureCard';
 import {IMPLEMENT_FAMILIES,implementsOf} from '@/lib/implements';
@@ -16,7 +16,7 @@ export const metadata:Metadata={
   description:'Balones de fútbol, fútbol sala y baloncesto, guantes de portero, espinilleras, béisbol, mallas y accesorios que vende Tony Sportswear.',
 };
 
-const FAMILY_IDS=IMPLEMENT_FAMILIES.map(family=>family.id);
+const familyPaths=Object.fromEntries(IMPLEMENT_FAMILIES.map(family=>[family.id,'/implementos/'+family.id]));
 /** Chips (40 px) and section avatars (64 px) show the family cover small: its 240 px copy is plenty, even on 3x screens. */
 const SMALL_COVER=240;
 const CHIP_FAMILIES=IMPLEMENT_FAMILIES.map(family=>({...family,cover:fitted(family.cover,SMALL_COVER)}));
@@ -25,10 +25,10 @@ const LEAD_CARDS=2;
 
 export default function Implementos(){
   return <main id="contenido" className="tc-page im-page">
-    <HashFocus ids={FAMILY_IDS}/>
+    <CategoryAliases paths={familyPaths}/>
     <div className="tc-wrap">
       <header className="tc-head pd-head">
-        <Link className="tc-back" href="/producto#categoria-implementos"><Icon name="left"/>Disciplinas</Link>
+        <Link className="tc-back" href="/producto"><Icon name="left"/>Disciplinas</Link>
         <h1>Implementos deportivos</h1>
         <p>Toca un producto para verlo en la tienda oficial de Tony.</p>
       </header>

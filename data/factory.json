@@ -1,0 +1,81 @@
+[
+  {
+    "id": "camisas-reflectivas",
+    "name": "Camisas reflectivas",
+    "price": 999,
+    "category": "Ropa reflectiva",
+    "variants": [
+      {
+        "label": "Manga corta",
+        "price": 999
+      },
+      {
+        "label": "Manga larga",
+        "price": 1199
+      }
+    ],
+    "detail": "Incluye un logo a color en DTF."
+  },
+  {
+    "id": "mandil-basico-a-un-color",
+    "name": "Mandil básico a un color",
+    "price": 499,
+    "category": "Delantales",
+    "detail": "Incluye un logo."
+  },
+  {
+    "id": "camisas-de-vestir",
+    "name": "Camisas de vestir",
+    "price": 1699,
+    "category": "Camisas de vestir",
+    "variants": [
+      {
+        "label": "Manga corta",
+        "price": 1699
+      },
+      {
+        "label": "Manga larga",
+        "price": 1899
+      }
+    ],
+    "detail": "Incluye un logo bordado."
+  },
+  {
+    "id": "camisas-full-sublimadas-con-linea-reflectiva",
+    "name": "Camisas full sublimadas con línea reflectiva",
+    "price": 1199,
+    "category": "Ropa reflectiva",
+    "detail": "Manga corta."
+  },
+  {
+    "id": "polos-lisos-a-un-color-con-linea-reflectiva",
+    "name": "Polos lisos a un color con línea reflectiva",
+    "price": 1049,
+    "category": "Ropa reflectiva",
+    "detail": "Manga corta."
+  },
+  {
+    "id": "polos-full-sublimados",
+    "name": "Polos full sublimados",
+    "price": 1099,
+    "category": "Polos",
+    "detail": "Manga corta."
+  },
+  {
+    "id": "camisas-columbia",
+    "name": "Camisas Columbia",
+    "price": 2099,
+    "category": "Camisas Columbia",
+    "variants": [
+      {
+        "label": "Manga corta",
+        "price": 2099
+      },
+      {
+        "label": "Manga larga",
+        "price": 2399
+      }
+    ],
+    "detail": "Incluye un logo bordado."
+  }
+]

@@ -26,7 +26,16 @@ function MenuItem({item, path, onDismiss, depth = 0}: {
     <span>{label}</span>{item.external && <Icon name="diagonal" size={15}/>}
   </NavAnchor>;
 
-  if (!item.children?.length) return <li>{link(item.label)}</li>;
+  if (!item.children?.length || (depth === 1 && item.children.length === 1)) return <li>{link(item.label)}</li>;
+  if (depth === 1) return <li className="tony-category">
+    {link(item.label)}
+    <details name="tony-product-options">
+      <summary role="button" aria-label={'Opciones de '+item.label}><Icon name="down" size={17}/></summary>
+      <ul className="tony-menu-sublist">{item.children.map(child =>
+        <MenuItem key={child.href} item={child} path={path} depth={depth+1} onDismiss={onDismiss}/>
+      )}</ul>
+    </details>
+  </li>;
   return <li>
     <details name={`tony-menu-level-${depth}`}>
       <summary>{item.label}<Icon name="down" size={17}/></summary>

@@ -1,0 +1,189 @@
+[
+  {
+    "id": "polo-pique",
+    "name": "Polo piqué",
+    "price": 1199,
+    "category": "Polos"
+  },
+  {
+    "id": "jeans-lisos-de-14-onzas",
+    "name": "Jeans lisos de 14 onzas",
+    "price": 1299,
+    "category": "Pantalones"
+  },
+  {
+    "id": "jeans-stretch-de-14-onzas",
+    "name": "Jeans stretch de 14 onzas",
+    "price": 1799,
+    "category": "Pantalones"
+  },
+  {
+    "id": "camisa-reflectiva-3m-dry-fit-de-manga-corta",
+    "name": "Camisa reflectiva 3M dry-fit de manga corta",
+    "price": 1099,
+    "category": "Ropa reflectiva"
+  },
+  {
+    "id": "zapato-de-cubo",
+    "name": "Zapato de cubo",
+    "price": 3599,
+    "category": "Calzado"
+  },
+  {
+    "id": "camisa-de-vestir-para-dama-de-manga-larga",
+    "name": "Camisa de vestir para dama de manga larga",
+    "price": 1299,
+    "category": "Camisas de vestir"
+  },
+  {
+    "id": "camisas-columbia-de-manga-larga",
+    "name": "Camisas Columbia de manga larga",
+    "price": 2799,
+    "category": "Camisas Columbia",
+    "detail": "Disponible en negro, blanco y azul."
+  },
+  {
+    "id": "capa-con-lineas-reflectivas",
+    "name": "Capa con líneas reflectivas",
+    "price": 2799,
+    "category": "Ropa reflectiva"
+  },
+  {
+    "id": "uniforme-de-enfermeria-unisex",
+    "name": "Uniforme de enfermería unisex",
+    "price": 3399,
+    "category": "Uniformes de salud"
+  },
+  {
+    "id": "camisa-de-vestir-para-hombre-de-manga-corta",
+    "name": "Camisa de vestir para hombre de manga corta",
+    "price": 2199,
+    "category": "Camisas de vestir"
+  },
+  {
+    "id": "polo-fit-azul-con-contraste",
+    "name": "Polo fit azul con contraste",
+    "price": 1399,
+    "category": "Polos"
+  },
+  {
+    "id": "camisa-de-vestir-para-dama-de-manga-corta",
+    "name": "Camisa de vestir para dama de manga corta",
+    "price": 2099,
+    "category": "Camisas de vestir"
+  },
+  {
+    "id": "camisa-columbia-celeste-de-manga-larga",
+    "name": "Camisa Columbia celeste de manga larga",
+    "price": 3399,
+    "category": "Camisas Columbia"
+  },
+  {
+    "id": "polo-para-dama-de-manga-corta",
+    "name": "Polo para dama de manga corta",
+    "price": 1199,
+    "category": "Polos"
+  },
+  {
+    "id": "polo-fit-verde",
+    "name": "Polo fit verde",
+    "price": 1299,
+    "category": "Polos"
+  },
+  {
+    "id": "polo-dry-fit-blanco",
+    "name": "Polo dry-fit blanco",
+    "price": 1099,
+    "category": "Polos"
+  },
+  {
+    "id": "chaleco-reflectante",
+    "name": "Chaleco reflectante",
+    "price": 799,
+    "category": "Ropa reflectiva"
+  },
+  {
+    "id": "camisa-premium-de-manga-corta",
+    "name": "Camisa premium de manga corta",
+    "price": 1999,
+    "category": "Camisas de vestir"
+  },
+  {
+    "id": "camisa-premium-de-manga-larga",
+    "name": "Camisa premium de manga larga",
+    "price": 2099,
+    "category": "Camisas de vestir"
+  },
+  {
+    "id": "camisa-gris-de-manga-larga-con-cuello-redondo",
+    "name": "Camisa gris de manga larga con cuello redondo",
+    "price": 899,
+    "category": "Camisetas"
+  },
+  {
+    "id": "camisa-reflectiva-3m-dry-fit-de-manga-larga",
+    "name": "Camisa reflectiva 3M dry-fit de manga larga",
+    "price": 1199,
+    "category": "Ropa reflectiva"
+  },
+  {
+    "id": "camisa-columbia-de-manga-corta",
+    "name": "Camisa Columbia de manga corta",
+    "price": 2999,
+    "category": "Camisas Columbia"
+  },
+  {
+    "id": "polo-dry-fit-azul",
+    "name": "Polo dry-fit azul",
+    "price": 1199,
+    "category": "Polos"
+  },
+  {
+    "id": "polo-dry-fit-para-dama",
+    "name": "Polo dry-fit para dama",
+    "price": 1199,
+    "category": "Polos"
+  },
+  {
+    "id": "delantal-de-jeans",
+    "name": "Delantal de jeans",
+    "price": 699,
+    "category": "Delantales"
+  },
+  {
+    "id": "pantalon-azul",
+    "name": "Pantalón azul",
+    "price": 1899,
+    "category": "Pantalones"
+  },
+  {
+    "id": "pantalon-cargo-de-peso-ligero",
+    "name": "Pantalón cargo de peso ligero",
+    "price": 2399,
+    "category": "Pantalones"
+  },
+  {
+    "id": "polo-fit-negro-para-dama",
+    "name": "Polo fit negro para dama",
+    "price": 1199,
+    "category": "Polos"
+  },
+  {
+    "id": "pantalon-jeans-industrial-reflectivo",
+    "name": "Pantalón jeans industrial reflectivo",
+    "price": 2499,
+    "category": "Ropa reflectiva"
+  },
+  {
+    "id": "pantalon-tactico-de-peso-ligero",
+    "name": "Pantalón táctico de peso ligero",
+    "price": 3699,
+    "category": "Pantalones"
+  },
+  {
+    "id": "polo-de-manga-larga-con-linea-reflectiva",
+    "name": "Polo de manga larga con línea reflectiva",
+    "price": 1799,
+    "category": "Ropa reflectiva"
+  }
+]

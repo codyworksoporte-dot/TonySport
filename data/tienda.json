@@ -16,7 +16,8 @@
       "categories": [
         "replicas-bordadas-de-futbol-de-10-99"
       ],
-      "cover": null
+      "cover": "/assets/tienda/replicas-bordadas-futbol.webp",
+      "imageCount": 26
     },
     {
       "id": 38248,
@@ -25,7 +26,8 @@
       "categories": [
         "replicas-bordadas-de-8-49"
       ],
-      "cover": null
+      "cover": "/assets/tienda/replicas-bordadas.webp",
+      "imageCount": 64
     },
     {
       "id": 38223,

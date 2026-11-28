@@ -32,7 +32,7 @@ function PromoCard({promo, index, now = false}: {promo: Promotion; index: number
   </>;
   const className = `tp-promo-card tc-rise${now ? ' tp-promo-card--now' : ''}`;
   return promo.album
-    ? <Link className={className} style={rise(index + 2)} href={`/colecciones?categoria=${promo.album}`}>{body}</Link>
+    ? <Link className={className} style={rise(index + 2)} href={`/colecciones/${promo.album}`}>{body}</Link>
     : <a className={className} style={rise(index + 2)} href={promo.official} target="_blank" rel="noopener noreferrer">{body}<span className="tc-sr">{NEW_TAB}</span></a>;
 }
 

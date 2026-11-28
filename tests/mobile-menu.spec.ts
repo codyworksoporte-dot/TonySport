@@ -34,8 +34,14 @@ for (const viewport of [{width:320,height:568},{width:390,height:844},{width:768
     await expect(nav.getByRole('link',{name:/^(Android|iOS)/})).toHaveCount(0);
     await nav.getByText('Productos',{exact:true}).tap();
     await expect(nav.getByRole('link',{name:'Descargá la App Tony'})).toBeHidden();
-    await nav.getByText('Confección de uniformes de fútbol',{exact:true}).tap();
-    await expect(nav.getByRole('link',{name:'Uniformes Mundial Anime 2026',exact:true})).toHaveAttribute('href','/producto#opcion-futbol-1');
+    const football=nav.getByRole('link',{name:'Confección de uniformes de fútbol',exact:true});
+    const options=nav.getByRole('button',{name:'Opciones de Confección de uniformes de fútbol'});
+    await expect(football).toHaveAttribute('href','/producto/futbol');
+    const labelBox=(await football.boundingBox())!, toggleBox=(await options.boundingBox())!;
+    expect(labelBox.x+labelBox.width).toBeLessThanOrEqual(toggleBox.x+1);
+    expect(Math.min(toggleBox.width,toggleBox.height)).toBeGreaterThanOrEqual(44);
+    await options.tap();
+    await expect(nav.getByRole('link',{name:'Uniformes Mundial Anime 2026',exact:true})).toHaveAttribute('href','/colecciones/uniformes-mundial-anime-2026');
     await nav.getByText('Tienda en línea',{exact:true}).tap();
     await expect(nav.getByRole('link',{name:'Ver toda la tienda',exact:true})).toHaveAttribute('href','/tienda');
     await expect(nav.getByRole('link',{name:'Implementos deportivos',exact:true})).toHaveAttribute('href','/tienda?categoria=implementos');

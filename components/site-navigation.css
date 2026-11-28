@@ -86,7 +86,13 @@
   .tony-contact-line{flex-direction:column;justify-content:center;padding:9px 10px 0;text-align:center}
   .tony-contact-line::before{left:auto;right:-9%;width:27%}
   .tony-contact-line a{min-height:44px}
-  .tony-contact-links{gap:6px}
+  .tony-contact-links{max-width:100%;gap:4px;flex-wrap:wrap}
+  .tony-contact-links>a{gap:4px}
+}
+@media(max-width:360px){
+  .tony-contact-line{padding-inline:4px}
+  .tony-contact-links>a svg{display:none}
+  .tony-strip-social a{width:40px}
 }
 /* ---------- Phones and tablets (< 1100px) ---------- */
 @media(max-width:1099px){
@@ -151,6 +157,10 @@
 .tony-menu-list a,.tony-menu-list summary,.tony-menu-services a{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:46px;padding:7px 6px;color:inherit;text-decoration:none;line-height:1.25;cursor:pointer}
 .tony-menu-list>li>a,.tony-menu-list>li>details>summary{font:650 clamp(17px,2.1vw,21px)/1.25 var(--font-body),Arial,sans-serif}
 .tony-menu-list summary{list-style:none}
+.tony-category{position:relative}
+.tony-menu-sublist .tony-category>a{width:calc(100% - 48px);min-height:48px}
+.tony-menu-sublist .tony-category>details>summary{position:absolute;inset:0 0 auto auto;justify-content:center;width:48px;height:48px;border-left:1px solid var(--tc-line)}
+
 .tony-menu-list summary::-webkit-details-marker{display:none}
 .tony-menu-list summary svg{flex:none;color:var(--tc-lime)}
 .tony-menu-list details[open]>summary svg{transform:rotate(180deg)}

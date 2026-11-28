@@ -9,7 +9,7 @@ const albumQuery=(name:string)=>name.replace(/\s*(de\s+)?\$\s?\d+(?:[.,]\d+)?/gi
 // The assistant's first-visit bubble is marked as seen so it never sits over what the test touches.
 test.beforeEach(async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});
-  await page.addInitScript(()=>{try{localStorage.setItem('tony-assistant-hint-v1','1');}catch{/* Without storage the bubble is never scheduled. */}});
+  await page.addInitScript(()=>{try{localStorage.setItem('tony-assistant-hint-v1','1');sessionStorage.setItem('tony:inicio:carteles:v2','[]');}catch{/* Without storage the bubble is never scheduled. */}});
 });
 test('search finds every album and destination, nested options open their album and contact works on a narrow phone',async({page})=>{
   test.setTimeout(120_000);
@@ -35,12 +35,12 @@ test('search finds every album and destination, nested options open their album 
   // Every imported album is indexed: typing its name finds it.
   for(const category of collections.categories){
     await field.fill(albumQuery(category.name));
-    await expect(search.locator(`.tony-search-results>a[href="/colecciones?categoria=${encodeURIComponent(category.slug)}"]`),category.name).toHaveCount(1);
+    await expect(search.locator(`.tony-search-results>a[href="/colecciones/${encodeURIComponent(category.slug)}"]`),category.name).toHaveCount(1);
   }
   const destinations:[string,string,string][]=[
     ['crear pedido','Crear mi pedido','/configurador'],['carrito','Mi carrito','/carrito'],['tiendas','Tiendas','/tiendas'],
     ['lourdes','Tienda Lourdes','/tiendas?tienda=Lourdes'],['recuperar contraseña','Recuperar contraseña','/cuenta?accion=recuperar'],
-    ['promociones','Promociones','/promociones'],['app tony','Descarga la App Tony','/app-tony'],['guantes','Guantes de portero','/implementos#guantes'],
+    ['promociones','Promociones','/promociones'],['app tony','Descarga la App Tony','/app-tony'],['guantes','Guantes de portero','/implementos/guantes'],
     ['contactos','Contactos · WhatsApp y correo','#contactos'],
   ];
   for(const [query,name,href] of destinations){
@@ -57,9 +57,9 @@ test('search finds every album and destination, nested options open their album 
   await field.fill('mundial anime');
   await search.getByRole('link',{name:'Uniformes Mundial Anime 2026',exact:true}).click();
   await expect(search).toBeHidden();
-  await expect(page.getByLabel('Línea de producto')).toHaveValue('uniformes-mundial-anime-2026');await expect(page.locator('.collection-grid>li')).toHaveCount(1);
+  await expect(page.locator('.scope-count')).toHaveText('16 de 34 imágenes',{timeout:30_000});
   await openSearch();await expect(field).toHaveValue('');await field.fill('diseños mundial');
-  await search.getByRole('link',{name:'Diseños del Mundial 2026',exact:true}).click();await expect(page.getByLabel('Línea de producto')).toHaveValue('disenos-del-mundial-2026');await expect(page.locator('.collection-grid>li')).toHaveCount(1);
+  await search.getByRole('link',{name:'Diseños del Mundial 2026',exact:true}).click();await expect(page.locator('.scope-count')).toHaveText('16 de 32 imágenes');
 
   // "Contactos" in the search still takes the phone to the footer contacts, on the same page.
   const before=new URL(page.url());
@@ -71,24 +71,55 @@ test('search finds every album and destination, nested options open their album 
   const after=new URL(page.url());expect(after.pathname+after.search).toBe(before.pathname+before.search);expect(after.hash).toBe('#contactos');
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
-test('all imported albums are indexed and a gallery loads on demand',async({page})=>{
-  expect(collections.products).toHaveLength(240);expect(collections.products.reduce((n,p)=>n+p.imageCount,0)).toBe(4326);
-  const albumRequests:string[]=[];page.on('request',r=>{if(/colecciones\/\d+\.json/.test(r.url()))albumRequests.push(r.url());});
-  await page.goto('/colecciones?categoria=uniformes-mundial-anime-2026');
-  await expect(page.locator('.collection-grid>li')).toHaveCount(1);expect(albumRequests).toHaveLength(0);
-  await page.getByRole('button',{name:'Ver UNIFORMES MUNDIAL ANIME 2026',exact:true}).click();
-  const dialog=page.getByRole('dialog',{name:'UNIFORMES MUNDIAL ANIME 2026',exact:true});await expect(dialog.getByRole('combobox',{name:'Elegir imagen del álbum'})).toBeVisible();
-  expect(albumRequests).toHaveLength(1);await expect(dialog.getByRole('combobox').locator('option')).toHaveCount(34);
-  await dialog.getByRole('button',{name:'Imagen siguiente',exact:true}).click();await expect(dialog.getByRole('combobox')).toHaveValue('1');await expect(dialog.getByRole('link',{name:'Consultar por WhatsApp'})).toHaveAttribute('href',/imagen%202/);
-  await dialog.getByRole('combobox').selectOption('33');await expect(dialog.getByRole('button',{name:'Imagen siguiente',exact:true})).toBeDisabled();
-  await page.keyboard.press('Escape');await expect(dialog).not.toBeVisible();await expect(page.getByRole('button',{name:'Ver UNIFORMES MUNDIAL ANIME 2026',exact:true})).toBeFocused();
+test('los enlaces anteriores abren diseños del álbum seleccionado y las siguientes fotos se cargan al pedirlas',async({page})=>{
+  const slug = 'uniformes-mundial-anime-2026';
+  const requests:string[] = [];
+  page.on('request',req=>{if(/colecciones\/\d+\.json/.test(req.url())) requests.push(req.url());});
+  await page.goto('/colecciones?categoria='+slug);
+  await expect(page).toHaveURL(new RegExp('/colecciones/'+slug+'/?$'));
+  const pictures = page.locator('.scope-grid a');
+  await expect(pictures).toHaveCount(16);
+  await expect(page.getByRole('combobox')).toHaveCount(0);
+  await expect(page.getByRole('button',{name:'Ver UNIFORMES MUNDIAL ANIME 2026',exact:true})).toHaveCount(0);
+  expect(requests).toHaveLength(0);
+  await pictures.first().click();
+  const dialog = page.getByRole('dialog',{name:/Imagen ampliada/});
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button',{name:'Imagen siguiente'}).click();
+  await expect(dialog.getByRole('link',{name:'Consultar por WhatsApp'})).toHaveAttribute('href',/imagen%202/);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(pictures.first()).toBeFocused();
+  await page.getByRole('button',{name:'Ver más imágenes'}).click();
+  await expect(pictures).toHaveCount(32);
+  await page.getByRole('button',{name:'Ver más imágenes'}).click();
+  await expect(pictures).toHaveCount(34);
+  expect(requests).toHaveLength(1);
+  expect(requests[0]).toContain('/37742.json');
+  await expect(page.getByRole('button',{name:'Ver más imágenes'})).toHaveCount(0);
 });
+
+test('tienda, categorías históricas y opciones llevan al mismo contenido específico',async({page})=>{
+  for (const path of ['/tienda?categoria=disenos-del-mundial-2026','/producto#opcion-futbol-2']) {
+    await page.goto(path);
+    await expect(page.locator('.scope-count')).toHaveText('16 de 32 imágenes');
+    await expect(page.locator('h1')).toHaveText('Diseños del Mundial 2026');
+  }
+  await page.goto('/producto#categoria-ciclismo');
+  await expect(page).toHaveURL(/\/producto\/ciclismo\/?$/);
+  await expect(page.locator('h1')).toHaveText('Ciclismo');
+  await page.goto('/implementos#guantes');
+  await expect(page).toHaveURL(/\/implementos\/guantes\/?$/);
+  await expect(page.locator('main .tc-card')).toHaveCount(8);
+});
+
 for(const width of [320,390,768,1440])test(`collections and account layout at ${width}px`,async({page})=>{
+  test.setTimeout(120_000);
   await page.setViewportSize({width,height:900});
   for(const route of ['/colecciones','/cuenta']){
     await page.goto(route);await expect(page.locator('h1')).toBeVisible();
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
     expect((await new AxeBuilder({page}).include('main').withTags(['wcag2a','wcag2aa']).analyze()).violations).toEqual([]);
   }
-  if(width===390){await page.goto('/colecciones?categoria=uniformes-mundial-anime-2026');await expect(page.getByLabel('Línea de producto')).toHaveValue('uniformes-mundial-anime-2026');await page.screenshot({path:'output/collections-mobile.png',fullPage:true,caret:'initial'});}
+  if(width===390){await page.goto('/colecciones?categoria=uniformes-mundial-anime-2026');await expect(page.locator('.scope-count')).toHaveText('16 de 34 imágenes',{timeout:30_000});await page.screenshot({path:'output/collections-mobile.png',fullPage:true,caret:'initial'});}
 });

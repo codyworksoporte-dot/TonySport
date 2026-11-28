@@ -21,10 +21,23 @@ async function menuLink(page: Page, label: 'Tony News' | 'Promociones') {
   return link;
 }
 
-test('el fondo permanece verde y el pie cierra la página sin controles ni mascotas', async ({page}) => {
+test('las uniones de las escamas siguen el cursor y el pie cierra la página', async ({page}) => {
+  await page.emulateMedia({reducedMotion:'no-preference'});
   await ready(page, '/contacto');
-  await expect(page.locator('body')).toHaveCSS('background-image', 'none');
-  await expect(page.locator('.tony-peek, .tony-scratch-stage, .tony-scale-glow-layer, .replay-intro')).toHaveCount(0);
+  await expect(page.locator('body')).toHaveCSS('background-image', /escamas-tony-base/);
+  await expect(page.locator('main')).toHaveCSS('background-color','rgba(0, 0, 0, 0)');
+  await expect(page.locator('.scale-backdrop')).toHaveCSS('pointer-events','none');
+  const spot = page.locator('.scale-spot');
+  await expect(spot).toBeVisible();
+  await page.mouse.move(180,280);
+  await expect(spot).toHaveCSS('opacity','0.92');
+  await page.mouse.move(250,340);
+  await scrollInstant(page,250);
+  await expect.poll(() => spot.evaluate(light => {
+    const bounds = light.getBoundingClientRect();
+    return [Math.round(bounds.x + bounds.width / 2), Math.round(bounds.y + bounds.height / 2)];
+  })).toEqual([250,340]);
+  await expect(page.locator('.tony-peek, .tony-scratch-stage, .replay-intro')).toHaveCount(0);
   await expect(page.getByRole('button', {name:/Pausar efectos|Repetir animación/})).toHaveCount(0);
   expect(await page.locator('footer').last().evaluate(el=>Math.abs(document.documentElement.scrollHeight - (el.getBoundingClientRect().bottom + scrollY)))).toBeLessThanOrEqual(1);
 });
@@ -157,6 +170,8 @@ test('movimiento reducido conserva texto y navegación sin intro ni mascotas', a
   await expect(page.locator('.brand-intro')).toHaveCount(0);
   await expect(page.locator('main h1')).toBeVisible();
   await expect(page.locator('.tony-peek')).toBeHidden();
+  await expect(page.locator('body')).toHaveCSS('background-image', /escamas-tony-base/);
+  await expect(page.locator('.scale-backdrop')).toBeHidden();
   await expect(page.getByRole('button', { name: 'Efectos en pausa' })).toHaveCount(0);
   await page.goto('/contacto');
   await page.locator('.tony-header-inner .brand').click();

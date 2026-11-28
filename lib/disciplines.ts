@@ -20,5 +20,5 @@ export const DISCIPLINES: Discipline[] = [
   { id: 'logos-3d', name: 'Logos 3D', image: '/assets/productos/logos-3d/portada.webp', sport: false },
 ];
 
-export const disciplineHref = (id: string) => `/producto#categoria-${id}`;
+export const disciplineHref = (id: string) => id === 'implementos' ? '/implementos' : '/producto/' + id;
 export const DISCIPLINES_TITLE = 'Escoge tu disciplina deportiva';

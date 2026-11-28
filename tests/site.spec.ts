@@ -79,24 +79,45 @@ test('menú móvil, búsqueda, Escape, preguntas frecuentes y página no encontr
 });
 
 test('la portada prioriza el pedido y reúne tienda, promociones y descargas', async ({page}) => {
+  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v2', '[]'));
   await page.goto('/');
   const main = page.getByRole('main');
   await expect(main.getByRole('heading', {level: 1})).toHaveText('Crear mi pedido');
+  const hero = main.getByRole('region', {name: 'Crear mi pedido'});
+  await expect(hero.getByText('Personalizá tus uniformes o camisas, creá tu pedido y pagá en línea. ¡Así de fácil!', {exact:true})).toBeVisible();
   await expect(main.getByRole('link', {name: 'Empezar mi pedido'})).toHaveAttribute('href', '/configurador');
+  await expect(page.locator('.tony-contact-line').getByRole('link',{name:/TikTok de Tony/})).toHaveAttribute('href', 'https://www.tiktok.com/@tonysportswear');
   const ways = main.getByRole('region', {name: 'Tres formas de hacer tu pedido'});
+  const business = main.getByRole('region', {name: 'Una imagen profesional para tu empresa.'});
+  for (const name of ['Factory', 'Prestige']) {
+    await expect(business.getByRole('link', {name: new RegExp('Ver catálogo '+name)})).toHaveAttribute('href', '/empresarial/'+name.toLowerCase());
+  }
+  const businessBox = (await business.boundingBox())!, waysBox = (await ways.boundingBox())!;
+  expect(businessBox.y + businessBox.height).toBeLessThanOrEqual(waysBox.y+1);
   expect(await ways.getByRole('link').evaluateAll(links => links.map(link => link.getAttribute('href'))))
     .toEqual(['/configurador', '/tienda', '/promociones']);
   const disciplines = main.getByRole('region', {name: 'Escoge tu disciplina deportiva'});
-  for (const [id,name] of DISCIPLINES) await expect(disciplines.getByRole('link',{name,exact:true})).toHaveAttribute('href', '/producto#categoria-' + id);
+  for (const [id,name] of DISCIPLINES) await expect(disciplines.getByRole('link',{name,exact:true})).toHaveAttribute('href', id === 'implementos' ? '/implementos' : '/producto/' + id);
   await expect(main.getByRole('heading', {name: /Diseños para tu equipo|Implementos deportivos/})).toHaveCount(0);
-  await expect(main.getByRole('link', {name: 'Android'})).toHaveAttribute('href', /^https:\/\/play\.google\.com\//);
-  await expect(main.getByRole('link', {name: 'iOS', exact: true})).toHaveAttribute('href', /^https:\/\/apps\.apple\.com\//);
   const strip = main.getByRole('region', {name: 'Promociones destacadas'});
-  await expect(strip.getByRole('heading')).toContainText('Black Friday');
+  const friday = strip.getByRole('img', {name:/Black Friday, 30% de descuento/i});
+  await expect(friday).toBeVisible();
+  await expect(strip.getByRole('link', {name:/Black Friday/i})).toHaveAttribute('href', '/promociones#black-friday');
+  await strip.evaluate(element => element.scrollIntoView({block:'center'}));
+  await strip.hover();
   await strip.getByRole('button', {name: 'Promoción siguiente'}).click();
-  await expect(strip).toContainText('12 uniformes de la línea Slim Fit');
+  const goalkeeper = strip.getByRole('img', {name:/Uniforme de portero y gafete de regalo desde 12 uniformes/i});
+  await expect(goalkeeper).toBeVisible();
+  await expect.poll(() => goalkeeper.evaluate(element => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
   await strip.getByRole('button', {name: 'Promoción anterior'}).click();
-  await expect(strip.getByRole('heading')).toContainText('Black Friday');
+  await expect(friday).toBeVisible();
+  await expect.poll(() => friday.evaluate(element => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  const app = main.getByRole('link', {name:'Descargá la app',exact:true});
+  await expect(app).toHaveAttribute('href', '/app-tony');
+  await app.click();
+  await expect(main.getByRole('heading',{level:1,name:'App Tony'})).toBeVisible();
+  await expect(main.getByRole('link', {name:/Google Play para Android/})).toHaveAttribute('href', 'https://play.google.com/store/apps/details?id=com.tonysports.customer');
+  await expect(main.getByRole('link', {name:/App Store para iPhone/})).toHaveAttribute('href', 'https://apps.apple.com/us/app/tony/id1528399939');
 });
 
 test('una sesión anterior conserva únicamente sus anuncios pendientes vigentes', async ({page}) => {

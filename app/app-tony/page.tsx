@@ -35,7 +35,7 @@ export default function AppTonyPage() {
         </div>
       </div>
 
-      <Link className="tp-prize tc-rise" style={rise(3)} href="/colecciones?categoria=premios-app">
+      <Link className="tp-prize tc-rise" style={rise(3)} href="/colecciones/premios-app">
         <span className="tp-prize-media"><img src={siteAsset('/assets/colecciones/33527.webp')} alt="" width={440} height={440} loading="lazy" decoding="async"/></span>
         <span><span className="tp-kicker">Premios de la app</span><b>Mira lo que puedes canjear</b></span>
         <span className="tc-go"><Icon name="arrow"/></span>
