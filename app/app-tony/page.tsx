@@ -19,7 +19,7 @@ export default function AppTonyPage() {
     <div className="tc-wrap">
       <header className="tc-head tc-rise">
         <p className="tp-kicker"><Icon name="phone"/>Puntos · Premios · Pedidos</p>
-        <h1 className="tc-display">App Tony</h1>
+        <h1 className="tc-display">App <em className="tc-title-accent">Tony</em></h1>
       </header>
 
       <div className="tp-app-grid">

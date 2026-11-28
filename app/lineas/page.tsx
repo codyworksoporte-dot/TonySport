@@ -1,6 +1,7 @@
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
+import CategoryTitle from '@/components/product/CategoryTitle';
 import DisciplineGrid from '@/components/product/DisciplineGrid';
 import {DISCIPLINES_TITLE} from '@/lib/disciplines';
 import '@/components/product/product.css';
@@ -16,7 +17,7 @@ export default function Lineas(){
     <div className="tc-wrap">
       <header className="tc-head pd-head">
         <Link className="tc-back" href="/"><Icon name="left"/>Inicio</Link>
-        <h1>{DISCIPLINES_TITLE}</h1>
+        <h1><CategoryTitle title={DISCIPLINES_TITLE}/></h1>
         <p>Toca una disciplina y mira sus productos.</p>
       </header>
       <DisciplineGrid/>

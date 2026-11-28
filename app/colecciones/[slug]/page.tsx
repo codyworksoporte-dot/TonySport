@@ -29,5 +29,5 @@ export default async function Collection({params}: Props) {
   if (section && section.cards.length>1) return <LineOptions title={section.name} cards={section.cards}
     more={section.more && {href:section.more.href,label:section.more.cta}}/>;
   const albums = product ? [product] : categoryAlbums(slug);
-  return <ScopedDesigns title={title} albums={albums} back={{name:'Todas las colecciones', href:'/colecciones'}}/>;
+  return <ScopedDesigns title={title} albums={albums} individualAlbum={Boolean(product)} back={{name:'Todas las colecciones', href:'/colecciones'}}/>;
 }

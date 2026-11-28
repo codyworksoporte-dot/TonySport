@@ -18,7 +18,7 @@ export default function StoresPage() {
     <header className="tc-wrap tp-stores-head">
       <div className="tp-stores-title tc-rise" style={rise(1)}>
         <p className="tp-kicker"><Icon name="pin"/>Ubicaciones</p>
-        <h1 className="tp-stores-h1">Tiendas</h1>
+        <h1 className="tp-stores-h1"><em className="tc-title-accent">Tiendas</em></h1>
         <p className="tp-stores-count"><b>{stores.length}</b>tiendas en El Salvador</p>
       </div>
       <div className="tc-tile tp-stores-photo tc-rise" aria-hidden="true">

@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import CategoryAliases from '@/components/product/CategoryAliases';
+import CategoryTitle from '@/components/product/CategoryTitle';
 import ImplementChips from '@/components/product/ImplementChips';
 import PictureCard from '@/components/product/PictureCard';
 import {IMPLEMENT_FAMILIES,implementsOf} from '@/lib/implements';
@@ -29,7 +30,7 @@ export default function TodosLosImplementos(){
     <div className="tc-wrap">
       <header className="tc-head pd-head">
         <Link className="tc-back" href="/implementos"><Icon name="left"/>Familias de implementos</Link>
-        <h1>Todos los implementos</h1>
+        <h1>Todos los <em className="tc-title-accent">implementos</em></h1>
         <p>Toca un producto para verlo en la tienda oficial de Tony.</p>
       </header>
     </div>
@@ -41,7 +42,7 @@ export default function TodosLosImplementos(){
         <header className="tc-sec-h pd-sec-h">
           <div className="pd-sec-title">
             <img className="pd-sec-avatar im-avatar" src={siteAsset(fitted(family.cover,SMALL_COVER))} alt="" width={64} height={64} loading="lazy" decoding="async"/>
-            <h2 id={`titulo-${family.id}`}>{family.name}</h2>
+            <h2 id={`titulo-${family.id}`}><CategoryTitle title={family.name}/></h2>
           </div>
         </header>
         <ul className="tc-cards pd-cards" role="list">
@@ -52,7 +53,7 @@ export default function TodosLosImplementos(){
       </section>)}
 
       <aside className="im-more" aria-labelledby="im-more-title">
-        <h2 id="im-more-title" className="tc-display">¿Buscas otro implemento?</h2>
+        <h2 id="im-more-title" className="tc-display">¿Buscas <em className="tc-title-accent">otro implemento?</em></h2>
         <a className="tc-btn tc-btn--wa tc-btn--lg" href={whatsappLink('Hola, Tony. Busco un implemento deportivo.')} target="_blank" rel="noopener noreferrer"><Icon name="whatsapp-solid"/>Escríbenos al {TONY_WHATSAPP_NUMBER}<span className="tc-sr"> (WhatsApp, se abre en otra pestaña)</span></a>
       </aside>
     </div>

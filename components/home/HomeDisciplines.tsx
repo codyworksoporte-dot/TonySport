@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Icon from '@/components/Icon';
 import WarmImages from '@/components/media/WarmImages';
+import CategoryTitle from '@/components/product/CategoryTitle';
 import DisciplineRail from './DisciplineRail';
 import { leadTilePhotos } from '@/components/product/discipline-photos';
 import { siteAsset } from '@/lib/asset-path';
@@ -14,7 +15,7 @@ const PRODUCT_LEAD_PHOTOS = leadTilePhotos();
 export default function HomeDisciplines() {
   return <section className="tc-sec home-sec" aria-labelledby="home-disciplinas">
     <div className="tc-sec-h home-sec-h">
-      <h2 id="home-disciplinas">{DISCIPLINES_TITLE}</h2>
+      <h2 id="home-disciplinas"><CategoryTitle title={DISCIPLINES_TITLE}/></h2>
       <Link className="all-disciplines" href="/producto">Ver todas<span className="tc-sr"> las disciplinas</span><Icon name="arrow" size={20}/></Link>
     </div>
     <WarmImages watch="home-disciplinas" images={PRODUCT_LEAD_PHOTOS}/>

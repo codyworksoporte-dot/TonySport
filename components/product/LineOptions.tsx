@@ -2,6 +2,7 @@ import Link from 'next/link';
 import {Fragment, type CSSProperties, type ReactNode} from 'react';
 import Icon from '@/components/Icon';
 import type {MenuCard} from '@/lib/product-menu';
+import CategoryTitle from './CategoryTitle';
 import PictureCard from './PictureCard';
 import './product.css';
 
@@ -23,10 +24,10 @@ export default function LineOptions({title, cards, children, navLabel, more}: Pr
   }
   return <main id="contenido" className="tc-page"><div className="tc-wrap">
     {children}
-    <header className="tc-head"><Link className="tc-back" href="/producto"><Icon name="left"/>Todas las disciplinas</Link><h1>{title}</h1></header>
+    <header className="tc-head"><Link className="tc-back" href="/producto"><Icon name="left"/>Todas las disciplinas</Link><h1><CategoryTitle title={title}/></h1></header>
     <nav aria-label={navLabel ?? 'Opciones de '+title}>
       {Array.from(groups, ([name,items],groupIndex) => <Fragment key={name}>
-        {name && <h2 className="pd-option-heading">{name}</h2>}
+        {name && <h2 className="pd-option-heading"><CategoryTitle title={name}/></h2>}
         <ul className="tc-cards pd-cards pd-line-options" role="list" aria-label={name || undefined}
           style={{'--pd-options-width':(items.length*360 + (items.length-1)*16)+'px'} as CSSProperties}>
           {items.map((card,index)=><li key={card.id}>

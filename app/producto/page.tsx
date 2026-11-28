@@ -2,6 +2,7 @@ import type {CSSProperties} from 'react';
 import type {Metadata} from 'next';
 import Link from 'next/link';
 import Icon from '@/components/Icon';
+import CategoryTitle from '@/components/product/CategoryTitle';
 import DisciplineGrid from '@/components/product/DisciplineGrid';
 import PictureCard from '@/components/product/PictureCard';
 import SearchButton from '@/components/product/SearchButton';
@@ -29,7 +30,7 @@ export default function Producto(){
     <div className="tc-wrap">
       <header className="tc-head pd-head">
         <Link className="tc-back" href="/"><Icon name="left"/>Inicio</Link>
-        <h1>{DISCIPLINES_TITLE}</h1>
+        <h1><CategoryTitle title={DISCIPLINES_TITLE}/></h1>
         <p>Toca una disciplina y mira sus productos.</p>
       </header>
 
@@ -42,7 +43,7 @@ export default function Producto(){
         <header className="tc-sec-h pd-sec-h">
           <div className="pd-sec-title">
             <img className="pd-sec-avatar" src={siteAsset(fitted(section.image,240))} alt="" width={64} height={64} loading="lazy" decoding="async"/>
-            <h2 id={`titulo-${section.id}`}>{section.name}</h2>
+            <h2 id={`titulo-${section.id}`}><CategoryTitle title={section.name}/></h2>
           </div>
           {section.more&&<Link href={section.more.href}>{section.more.label}<Icon name="arrow"/></Link>}
         </header>
@@ -61,7 +62,7 @@ export default function Producto(){
       </div>
 
       <aside className="pd-help" aria-labelledby="pd-help-title">
-        <h2 id="pd-help-title" className="tc-display">¿Buscas algo en específico?</h2>
+        <h2 id="pd-help-title" className="tc-display">¿Buscas algo <em className="tc-title-accent">en específico?</em></h2>
         <div className="pd-help-actions">
           <SearchButton className="tc-pill pd-help-search"><Icon name="search"/><span>Buscar en Tony</span></SearchButton>
           <a className="tc-btn tc-btn--wa tc-btn--lg pd-help-wa" href={whatsappLink('Hola, Tony. Busco un producto y quisiera ayuda.')} target="_blank" rel="noopener noreferrer"><Icon name="whatsapp-solid"/>{TONY_WHATSAPP_NUMBER}<span className="tc-sr"> · escribir por WhatsApp (se abre en otra pestaña)</span></a>

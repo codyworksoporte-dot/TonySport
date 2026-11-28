@@ -25,7 +25,7 @@ export function LineCover({line, heading = false}: {line: BusinessLine; heading?
 export default function BusinessLines() {
   return <section className="business-home" aria-labelledby="business-heading">
     <p className="business-eyebrow">Tony Empresarial</p>
-    <h2 id="business-heading">Una imagen profesional para tu empresa.</h2>
+    <h2 id="business-heading" className="tc-display">Una imagen profesional <em className="tc-title-accent">para tu empresa.</em></h2>
     <div className="business-covers">{businessLineIds.map(line =>
       <Link key={line} className={`business-cover business-${line}`} href={`/empresarial/${line}`}>
         <LineCover line={line}/>

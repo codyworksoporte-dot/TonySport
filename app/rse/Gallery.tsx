@@ -26,7 +26,7 @@ export default function Gallery(){
     setPosition(previous => Math.max(0, Math.min(photos.length - 1, previous + delta)));
   }
   return <section id="galeria" aria-labelledby="rse-gallery-title" className="rse-gallery">
-    <header><h2 id="rse-gallery-title">Galería de la comunidad</h2><span aria-live="polite">{photos.length} fotos</span></header>
+    <header><h2 id="rse-gallery-title">Galería <em className="tc-title-accent">de la comunidad</em></h2><span aria-live="polite">{photos.length} fotos</span></header>
     <div className="rse-filters" role="group" aria-label="Filtrar por actividad">
       {(['Todas', ...RSE_CATEGORIES] as const).map(item =>
         <button key={item} type="button" aria-pressed={category === item} onClick={() => filter(item)}>{item}</button>)}

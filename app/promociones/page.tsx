@@ -43,14 +43,14 @@ export default function PromocionesPage() {
       <BlackFridayCover promotionPage/>
 
       {CURRENT_PROMOTIONS.length > 0 && <section className="tc-sec" aria-labelledby="tp-promo-now">
-        <div className="tc-sec-h"><h2 id="tp-promo-now">Vigentes</h2></div>
+        <div className="tc-sec-h"><h2 id="tp-promo-now"><em className="tc-title-accent">Vigentes</em></h2></div>
         <ul className="tp-promo-grid">
           {CURRENT_PROMOTIONS.map((promo, index) => <li id={promo.id} key={promo.id}><PromoCard promo={promo} index={index} now/></li>)}
         </ul>
       </section>}
 
       <section className="tc-sec" aria-labelledby="tp-promo-recent">
-        <div className="tc-sec-h"><div><h2 id="tp-promo-recent">Campañas recientes</h2><p className="tp-sec-note">Así fueron nuestras últimas promociones.</p></div></div>
+        <div className="tc-sec-h"><div><h2 id="tp-promo-recent">Campañas <em className="tc-title-accent">recientes</em></h2><p className="tp-sec-note">Así fueron nuestras últimas promociones.</p></div></div>
         <ul className="tp-promo-grid">
           {recent.map((promo, index) => <li id={promo.id} key={promo.id}><PromoCard promo={promo} index={index}/></li>)}
           <li>

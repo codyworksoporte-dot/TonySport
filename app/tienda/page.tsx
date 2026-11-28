@@ -15,7 +15,7 @@ export default function Tienda() {
   return <main id="contenido" className="tc-page shop-page"><div className="tc-wrap">
     <header className="tc-head shop-heading">
       <Link className="tc-back" href="/"><Icon name="left"/>Inicio</Link>
-      <h1>Tienda en línea</h1>
+      <h1>Tienda <em className="tc-title-accent">en línea</em></h1>
     </header>
     <Suspense fallback={<p role="status">Cargando productos…</p>}><Storefront products={SHOP_PRODUCTS} categories={SHOP_CATEGORIES} latest={SHOP_LATEST}/></Suspense>
   </div></main>;

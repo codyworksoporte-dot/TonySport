@@ -1,6 +1,6 @@
 'use client';
 
-import {useEffect, useRef, type ReactNode} from 'react';
+import {useEffect, useRef, type CSSProperties, type ReactNode} from 'react';
 
 type Drag = {id: number; startX: number; startY: number; lastX: number; time: number; moved: boolean};
 
@@ -25,12 +25,13 @@ export default function DisciplineRail({direction, count, children}: {
     let keyboard = false;
     let drag: Drag | null = null;
     let blockClick = false;
+    let nativeGesture = false;
+    let fingersDown = false;
+    let settleTimer = 0;
 
     function place(next: number) {
       if (!period) return;
-      position = reduced.matches
-        ? Math.max(0, Math.min(next, el.scrollWidth - el.clientWidth))
-        : period + ((next % period) + period) % period;
+      position = period + ((next % period) + period) % period;
       el.scrollLeft = position;
     }
     function tick(now: number) {
@@ -43,18 +44,46 @@ export default function DisciplineRail({direction, count, children}: {
     function resume() {
       cancelAnimationFrame(frame);
       lastFrame = 0;
-      if (visible && !document.hidden && !reduced.matches && !keyboard && !drag && period) {
+      if (visible && !document.hidden && !reduced.matches && !keyboard && !drag && !nativeGesture && period) {
         frame = requestAnimationFrame(tick);
       }
     }
     function measure() {
       const previous = period;
-      period = list.children[0]?.getBoundingClientRect().width * count;
-      place(previous ? position / previous * period : el.scrollLeft);
+      period = list.children[count].getBoundingClientRect().left - list.children[0].getBoundingClientRect().left;
+      if (!nativeGesture) place(previous ? position / previous * period : el.scrollLeft);
       resume();
     }
+    // The browser owns a finger gesture, including diagonal axis selection, pinch
+    // zoom, fling and tap cancellation. Never write scrollLeft during its momentum.
+    function startTouch() {
+      clearTimeout(settleTimer);
+      fingersDown = nativeGesture = true;
+      keyboard = blockClick = false;
+      resume();
+    }
+    function settleTouch() {
+      if (!nativeGesture || fingersDown) return;
+      clearTimeout(settleTimer);
+      nativeGesture = false;
+      place(el.scrollLeft);
+      speed = restingSpeed;
+      resume();
+    }
+    function waitForSettle() {
+      if (!nativeGesture || fingersDown) return;
+      clearTimeout(settleTimer);
+      // Also handles taps and engines that don't dispatch scrollend.
+      settleTimer = window.setTimeout(settleTouch, 180);
+    }
+    function endTouch(event: TouchEvent) {
+      if (Array.from(event.touches).some(touch => touch.target instanceof Node && el.contains(touch.target))) return;
+      fingersDown = false;
+      waitForSettle();
+    }
     function down(event: PointerEvent) {
-      if (!event.isPrimary || event.button !== 0) return;
+      if (event.pointerType === 'touch' || !event.isPrimary || event.button !== 0) return;
+      settleTouch();
       blockClick = false;
       keyboard = false;
       drag = {id: event.pointerId, startX: event.clientX, startY: event.clientY, lastX: event.clientX, time: event.timeStamp, moved: false};
@@ -127,6 +156,11 @@ export default function DisciplineRail({direction, count, children}: {
     const size = new ResizeObserver(measure);
     observer.observe(el);
     size.observe(list);
+    el.addEventListener('touchstart', startTouch, {...options, passive:true});
+    el.addEventListener('touchend', endTouch, {...options, passive:true});
+    el.addEventListener('touchcancel', endTouch, {...options, passive:true});
+    el.addEventListener('scroll', waitForSettle, {...options, passive:true});
+    el.addEventListener('scrollend', settleTouch, options);
     el.addEventListener('pointerdown', down, options);
     window.addEventListener('pointermove', move, options);
     window.addEventListener('pointerup', end, options);
@@ -145,10 +179,11 @@ export default function DisciplineRail({direction, count, children}: {
       observer.disconnect();
       size.disconnect();
       cancelAnimationFrame(frame);
+      clearTimeout(settleTimer);
       delete el.dataset.interactive;
       delete el.dataset.dragging;
     };
   }, [count, direction]);
 
-  return <div ref={rail} className="home-marquee">{children}</div>;
+  return <div ref={rail} className="home-marquee" style={{'--rail-count':count} as CSSProperties}>{children}</div>;
 }

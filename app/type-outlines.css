@@ -27,6 +27,19 @@
   -webkit-text-stroke-color: transparent;
 }
 
+/* Use the same two inks as “Tres formas de hacer tu pedido”. */
+:is(h1, h2):has(> .tc-title-accent) {
+  -webkit-text-stroke: calc(var(--type-edge-width) * var(--type-edge-scale)) #5eb230;
+  paint-order: stroke fill;
+}
+
+:is(h1, h2) > em.tc-title-accent {
+  color: #bcff3f;
+  font-style: italic;
+  font-weight: inherit;
+  -webkit-text-stroke: 0;
+}
+
 @supports (-webkit-text-stroke-color: rgb(from currentColor 94 178 48 / calc(alpha * min(r, g, b)))) {
   /* The lowest RGB channel distinguishes white and ivory from the saturated lime,
      gold and orange accents. Re-evaluate on inline text so a mixed-color heading

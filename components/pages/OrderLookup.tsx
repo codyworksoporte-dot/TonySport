@@ -19,7 +19,7 @@ export default function OrderLookup() {
         </div>
         <div className="tp-lookup-copy">
           <p className="tp-kicker"><Icon name="package"/>Tu pedido</p>
-          <h1 id="tp-lookup-title" className="tc-display">Consulta tu pedido</h1>
+          <h1 id="tp-lookup-title" className="tc-display">Consulta <em className="tc-title-accent">tu pedido</em></h1>
           <p className="tp-lookup-lead">Ten a mano tu número de orden.</p>
           <a className="tc-btn tc-btn--lime tp-btn-xl" href={ORDER_LOOKUP_URL} target="_blank" rel="noopener noreferrer">
             <Icon name="search"/>Consultar mi pedido<Icon name="diagonal"/><span className="tc-sr"> (se abre en otra pestaña)</span>

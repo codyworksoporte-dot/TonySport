@@ -20,7 +20,7 @@ export default function ContactoPage() {
   return <main id="contenido" className="tp tc-page tp-contact">
     <div className="tc-wrap">
       <header className="tc-head tc-rise">
-        <h1 className="tc-display">Contáctanos</h1>
+        <h1 className="tc-display"><em className="tc-title-accent">Contáctanos</em></h1>
         <p>Escríbenos. Te atendemos por WhatsApp.</p>
       </header>
 
