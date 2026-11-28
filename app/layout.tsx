@@ -15,6 +15,7 @@ import '@/components/buttons.css';
 import '@/components/section-images.css';
 import '@/components/mobile-refinements.css';
 import './tony-c.css';
+import './type-outlines.css';
 import '@/components/scale-backdrop.css';
 const display=localFont({src:[{path:'../node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-700-normal.woff2',weight:'700',style:'normal'},{path:'../node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-700-italic.woff2',weight:'700',style:'italic'}],variable:'--font-display',display:'swap'});
 const archivo=localFont({src:[{path:'../node_modules/@fontsource/archivo/files/archivo-latin-400-normal.woff2',weight:'400'},{path:'../node_modules/@fontsource/archivo/files/archivo-latin-600-normal.woff2',weight:'600'},{path:'../node_modules/@fontsource/archivo/files/archivo-latin-700-normal.woff2',weight:'700'}],variable:'--font-body',display:'swap'});

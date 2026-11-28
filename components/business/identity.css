@@ -1,0 +1,31 @@
+.business-factory {
+  --business-name-ink: #ff433d;
+  --business-accent: #ff8275;
+  --business-surface: #201012;
+  --business-line: #a13e40;
+}
+.business-prestige {
+  --business-name-ink: #edba49;
+  --business-accent: #f3cb74;
+  --business-surface: #18140e;
+  --business-line: #92733e;
+  --business-serif: Georgia, 'Times New Roman', serif;
+  --font-display: var(--business-serif);
+  --font-body: var(--business-serif);
+  font-family: var(--business-serif);
+}
+.pd-card:is(.business-factory,.business-prestige) {
+  background: var(--business-surface);
+  border: 1px solid var(--business-line);
+}
+.pd-card:is(.business-factory,.business-prestige) .tc-card-name,
+.pd-card:is(.business-factory,.business-prestige) .tc-card-name svg {
+  color: var(--business-name-ink);
+}
+.pd-card.business-prestige .tc-card-name {
+  text-transform: none;
+  font-style: italic;
+}
+.pd-card:is(.business-factory,.business-prestige) .tc-card-media img {
+  object-position: 78% 12%;
+}

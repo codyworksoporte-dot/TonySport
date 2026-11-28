@@ -1,3 +1,4 @@
+import {orderAlbum} from './album-design';
 import {BRANDS, COLLARS, FABRICS, GENDERS, isCatalogCode, MAX_QUANTITY, MIN_QUANTITY, MOLDS, pricingErrors, SIZES, SLEEVES, SOCK_COLORS} from './pricing';
 import type {Buyer, Delivery, Payment, PedidoDraft, PedidoErrors, PedidoGoalkeeper, PedidoLayer, PedidoPlayer, PedidoStep, Product, SockColor} from './types';
 
@@ -146,7 +147,9 @@ export function validateStep(order: PedidoDraft, step: PedidoStep | number, cont
     });
     order.goalkeepers.forEach((keeper, index) => {if (!keeper.color.trim()) errors[`goalkeepers.${index}.color`] = 'Escoge el color del portero.'; else if (keeper.color.length > 60) errors[`goalkeepers.${index}.color`] = 'Usa hasta 60 caracteres para el color del portero.';});
   }
-  if (through >= 5) {
+  const album = orderAlbum(order);
+  if (album && (order.design.front || order.design.back || order.design.finalFront || order.design.finalBack || order.design.layers.length)) errors.design = 'Elige el diseño del álbum o las vistas del editor.';
+  if (through >= 5 && !album) {
     if (order.design.source === 'catalog' && !isCatalogCode(order.design.catalogCode)) errors['design.catalogCode'] = 'Selecciona un diseño del catálogo Tony.';
     if (!isPedidoImage(order.design.front)) errors['design.front'] = 'Agrega el diseño frontal.';
     if (!isPedidoImage(order.design.back)) errors['design.back'] = 'Completa el diseño dorsal.';
@@ -156,7 +159,7 @@ export function validateStep(order: PedidoDraft, step: PedidoStep | number, cont
     });
   }
   if (through >= 6) {
-    if (!isPedidoImage(order.design.finalFront) || !isPedidoImage(order.design.finalBack)) errors['design.final'] = 'Prepara el diseño final frontal y dorsal.';
+    if (!album && (!isPedidoImage(order.design.finalFront) || !isPedidoImage(order.design.finalBack))) errors['design.final'] = 'Prepara el diseño final frontal y dorsal.';
     if (!order.design.approved) errors['design.approved'] = 'Revisa y aprueba el diseño final antes de continuar.';
   }
   if (through >= 8) Object.assign(errors, validateDelivery(context.delivery));

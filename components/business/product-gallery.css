@@ -95,6 +95,13 @@
 .bp-terms { padding-bottom: 14px; }
 .bp-card-copy .bp-enquiry { margin-top: auto; }
 .bp-enquiry svg { flex: none; color: var(--bp-accent); }
+.business-prestige .bp-heading h2 { color: var(--business-name-ink); font-weight: 400; }
+.business-prestige :is(.bp-card h3, .bp-dialog h2, .bp-enquiry) { color: #f2d599; }
+.business-prestige .bp-card h3 { font-weight: 600; line-height: 1.2; }
+.business-prestige .bp-enquiry { background: #1c1812; }
+.business-prestige .bp-card { background: linear-gradient(140deg,#272018,#13120f 72%); }
+.business-prestige .bp-dialog { background: #181510; }
+.business-prestige :is(.bp-detail,.bp-variants dt) { color: #e3cfab; }
 .bp-enquiry:hover, .bp-close:hover { border-color: var(--bp-accent); }
 .bp-gallery :is(button, a):focus-visible { outline: 3px solid var(--bp-accent); outline-offset: 3px; }
 

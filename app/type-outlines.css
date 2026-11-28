@@ -1,0 +1,55 @@
+/* Paint the edge behind the white ink so even small lettering keeps its counters open. */
+:root {
+  --type-edge-width: clamp(.55px, .045em, 1px);
+  --type-edge-strength: .76;
+  --type-edge-scale: 1;
+}
+
+:where(h1, h2, .tc-display) {
+  --type-edge-width: clamp(2.7px, .095em, 5px);
+  --type-edge-strength: 1;
+}
+
+:where(h3, h4, .tc-tile-label b, .tc-card-name, .home-chip-name) {
+  --type-edge-width: clamp(1.2px, .07em, 2.6px);
+  --type-edge-strength: 1;
+}
+
+/* Common white type gets a static edge on older browsers without relative colors. */
+:where(#home-disciplinas, #business-heading, .tc-head h1, .order-hero h1, .order-hero p,
+       .home-order-ways h2, .way-copy h3, .home-app h2, .tc-tile-label b,
+       .tc-card-name, .home-chip-name, .tony-mobile-top h2) {
+  -webkit-text-stroke: calc(var(--type-edge-width) * var(--type-edge-scale)) #5eb230;
+  paint-order: stroke fill;
+}
+
+:where(.order-hero h1 em, .home-order-ways h2 em, .home-app h2 em) {
+  -webkit-text-stroke-color: transparent;
+}
+
+@supports (-webkit-text-stroke-color: rgb(from currentColor 94 178 48 / calc(alpha * min(r, g, b)))) {
+  /* The lowest RGB channel distinguishes white and ivory from the saturated lime,
+     gold and orange accents. Re-evaluate on inline text so a mixed-color heading
+     and link hover states keep the accent's own treatment. */
+  :where(h1, h2, h3, h4, h5, h6, p, li, dt, dd, th, td, figcaption,
+         a, button, label, legend, summary, blockquote, small, strong, b,
+         .tc-card-name, .home-chip-name, .pedido-field-label, .pedido-price-value, .pedido-topline > span),
+  :where(h1, h2, h3, h4, h5, h6, p, li, th, td, button, a, label, summary, figcaption, blockquote)
+    :where(span, em, i, small, strong, b) {
+    -webkit-text-stroke-width: calc(var(--type-edge-width) * var(--type-edge-scale));
+    -webkit-text-stroke-color: rgb(from currentColor 94 178 48 /
+      calc(alpha * var(--type-edge-strength) * clamp(0, (min(r, g, b) - 216) / 16, 1)));
+    paint-order: stroke fill;
+  }
+
+  /* The collection artwork has its own red and gold type treatments. */
+  :where(.business-cover, .business-cover *) {
+    --type-edge-strength: 0;
+  }
+}
+
+@media print, (forced-colors: active) {
+  :root {
+    --type-edge-scale: 0;
+  }
+}

@@ -1,4 +1,5 @@
 import prices from '../../data/pedido/prices.json';
+import {orderAlbum} from './album-design';
 import type {DeliveryKind, PedidoDraft, PedidoErrors, PedidoPricing, Product, SockColor} from './types';
 
 export const PRICES = prices;
@@ -91,7 +92,7 @@ export function calculatePedido(order: PedidoDraft, deliveryKind: DeliveryKind =
   const baseCents = fieldQuantity * unitCents;
   const garmentExtrasCents = fieldQuantity * garmentUnitExtras;
   const sizeExtrasCents = order.players.reduce((sum, player) => sum + sizeFee(player.size), 0);
-  const creationDesignCents = order.design.source === 'catalog' && isCatalogCode(order.design.catalogCode) ? 0 : prices.design.creationCents;
+  const creationDesignCents = order.design.source === 'catalog' && (isCatalogCode(order.design.catalogCode) || orderAlbum(order)) ? 0 : prices.design.creationCents;
   const crestDesignCount = unique('Escudo');
   const brandDesignCount = unique('Marca');
   const sponsorCount = order.design.layers.filter(layer => layer.type === 'Sponsor').length;

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Icon from '@/components/Icon';
 import {siteAsset} from '@/lib/asset-path';
 import {businessLineIds, businessLines, type BusinessLine} from '@/lib/business-lines';
+import './identity.css';
 import './business-lines.css';
 
 export function LineCover({line, heading = false}: {line: BusinessLine; heading?: boolean}) {
@@ -10,7 +11,7 @@ export function LineCover({line, heading = false}: {line: BusinessLine; heading?
   return <>
     <picture className="business-art">
       <source media="(max-width: 640px)" srcSet={siteAsset(`/assets/empresarial/${line}/portada-640.webp`)}/>
-      <img src={siteAsset(`/assets/empresarial/${line}/portada.webp`)} width="1200" height="800" alt="" loading={heading ? 'eager' : 'lazy'} decoding="async"/>
+      <img src={siteAsset(`/assets/empresarial/${line}/portada.webp`)} width="1400" height="933" alt="" loading={heading ? 'eager' : 'lazy'} decoding="async"/>
     </picture>
     <div className="business-cover-copy">
       <span className="business-label">{label}</span>

@@ -123,6 +123,8 @@ function pedido_panel_send(array $record): bool {
     $url=pedido_https(pedido_env('TONY_PANEL_URL'));$token=pedido_env('TONY_PANEL_TOKEN');if(!$token)pedido_fail('not_configured','El envío del pedido aún no está configurado.',503);
     // The server's validated total and payment status replace every client assertion.
     $payload=['id'=>$record['id'],'version'=>279,'order'=>$record['order'],'buyer'=>$record['buyer'],'delivery'=>$record['delivery'],'payment'=>$record['payment'],'signature'=>$record['signature'],'termsAccepted'=>true,'termsVersion'=>$record['termsVersion'],'designs'=>['front'=>$record['order']['design']['finalFront'],'back'=>$record['order']['design']['finalBack']],'quote'=>$record['quote']];
+    $album=pedido_album($record['order']);
+    if($album)$payload['designs']=['albumReference'=>$album];
     $result=pedido_http($url,'POST',['Content-Type: application/json','X-Tony-Token: '.$token,'Idempotency-Key: '.$record['id']],json_encode($payload,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),30,1048576);
     if(($result['ok']??null)!==true&&($result['success']??null)!==true)pedido_fail('panel_not_acknowledged','El pedido está guardado y pendiente de confirmación de recepción.',502);
     if(isset($result['id'])&&$result['id']!==$record['id'])pedido_fail('panel_reference_mismatch','El pedido está guardado y pendiente de confirmación de recepción.',502);

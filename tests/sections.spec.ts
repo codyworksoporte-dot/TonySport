@@ -123,7 +123,7 @@ test('Producto ordena 13 secciones de tarjetas con foto, sin precios ni botones 
   await expect(sections.locator('h2')).toHaveText(disciplineNames);
   await expect(page.getByRole('region', { name: 'Logos 3D', exact: true })).toHaveAttribute('id', 'categoria-logos-3d');
   // Every card leads directly to a collection or equipment family.
-  await expect(main.locator('.pd-card')).toHaveCount(43);
+  await expect(main.locator('.pd-card')).toHaveCount(46);
   const summary = await sections.evaluateAll(list => list.map(section => ({
     line: section.id.replace('categoria-', ''),
     cards: Array.from(section.querySelectorAll('.pd-card')).map(card => ({
@@ -134,7 +134,7 @@ test('Producto ordena 13 secciones de tarjetas con foto, sin precios ni botones 
   for (const { line, cards } of summary) {
     expect(cards.length, line).toBeGreaterThan(0);
     for (const card of cards) {
-      expect(card.id).toMatch(new RegExp(`^opcion-${line}-(?:\\d+|factory|prestige)$`));
+      expect(card.id).toMatch(new RegExp(`^opcion-${line}-(?:\\d+|replicas-\\d+|factory|prestige)$`));
       expect(card.name, card.id).toBeTruthy();
       expect(card.pictures, card.id).toBe(1);
       expect(card.href, card.id).toMatch(/^\/(colecciones|implementos|empresarial)\/[\w-]+$/);
@@ -265,8 +265,10 @@ test('Implementos agrupa 46 productos en 8 familias con foto que abren la tienda
   await page.locator('#opcion-implementos-4').click();
   await expectScope(page, '/implementos/guantes', 'Guantes de portero');
   await page.goto('/implementos');
+  await page.getByRole('link',{name:'Ver todos los implementos',exact:true}).click();
   const main = page.locator('main');
   const families = main.locator('section.im-sec');
+  await expect(families).toHaveCount(implementFamilies.length, {timeout:30_000});
   expect(await families.evaluateAll(list => list.map(section => section.id))).toEqual(implementFamilies.map(([id]) => id));
   await expect(families.locator('h2')).toHaveText(implementFamilies.map(([, name]) => name));
   const products = families.getByRole('link');

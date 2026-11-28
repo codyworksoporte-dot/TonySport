@@ -1,9 +1,6 @@
 .home-sec .home-sec-h { align-items: center; gap: 15px; }
 .home-sec .home-sec-h h2 {
   color: #fff;
-  -webkit-text-stroke: 1.8px #56852e;
-  paint-order: stroke fill;
-  text-shadow: 0 2px #274623;
   text-wrap: balance;
 }
 .home-sec-h .all-disciplines {

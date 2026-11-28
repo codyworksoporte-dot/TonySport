@@ -42,6 +42,19 @@ function pedido_data_image($value, string $field, bool $required = true, string 
     pedido_image_bytes($bytes, $mime ?: $m[1], $max); return $value;
 }
 function pedido_catalog($value): bool { return is_string($value) && preg_match('/^TONY-\d{3}$/D', $value) && (int)substr($value, 5) >= pedido_prices()['design']['catalogMin'] && (int)substr($value, 5) <= pedido_prices()['design']['catalogMax']; }
+/** Current album references have one original photograph, independent of editor artwork. */
+function pedido_album(array $order): ?array {
+    if (($order['design']['source'] ?? '') !== 'catalog' || ($order['design']['catalogCode'] ?? null) !== '') return null;
+    if (!preg_match('~^Diseño elegido · ([^\r\n]{1,180}) \(álbum ([1-9]\d{0,8}), imagen ([1-9]\d{0,5})\)\n(https://www\.tonysportselsalvador\.com/wp-content/uploads/[^\s?#]+)(?:\n\n|$)~u', $order['notes'] ?? '', $match)) return null;
+    [, $name, $id, $number, $image] = $match;
+    static $albums = null;
+    if ($albums === null) $albums = json_decode((string)file_get_contents(__DIR__.'/album-fingerprints.json'), true, 32, JSON_THROW_ON_ERROR);
+    $digests = base64_decode($albums[$id] ?? '', true);
+    $expected = $digests === false ? '' : substr($digests, ((int)$number - 1) * 32, 32);
+    $actual = hash('sha256', implode("\n", [$id, $number, $name, $image]), true);
+    if (!is_string($expected) || !hash_equals($expected, $actual)) pedido_fail('invalid_album', 'La imagen seleccionada no coincide con el catálogo de Tony.');
+    return ['albumId'=>(int)$id, 'number'=>(int)$number, 'name'=>$name, 'image'=>$image];
+}
 function pedido_order($value, bool $complete = false): array {
     if (!is_array($value)) pedido_fail('invalid_order', 'No pudimos leer el pedido.'); $p = pedido_prices(); $o = $value;
     pedido_keys($o,['version','id','product','gender','quantity','teamName','notes','shortsNumber','config','players','goalkeepers','socks','design'],'pedido');
@@ -74,9 +87,11 @@ function pedido_order($value, bool $complete = false): array {
     pedido_keys($d,['source','catalogCode','front','back','layers','approved','finalFront','finalBack'],'diseño');
     pedido_choice($d['source'] ?? null, ['catalog', 'own'], 'origen del diseño');
     if (!is_string($d['catalogCode'] ?? null) || ($d['catalogCode'] !== '' && !pedido_catalog($d['catalogCode']))) pedido_fail('invalid_catalog', 'Selecciona un diseño Tony válido.');
-    if ($complete && $d['source'] === 'catalog' && !pedido_catalog($d['catalogCode'])) pedido_fail('missing_catalog', 'Selecciona tu diseño Tony.');
+    $album = pedido_album($o);
+    if ($complete && $d['source'] === 'catalog' && !$album && !pedido_catalog($d['catalogCode'])) pedido_fail('missing_catalog', 'Selecciona tu diseño Tony.');
+    if ($album && (!empty($d['layers']) || !empty($d['front']) || !empty($d['back']) || !empty($d['finalFront']) || !empty($d['finalBack']))) pedido_fail('mixed_design', 'Elige el diseño de álbum o las vistas del editor.');
     pedido_bool($d['approved'] ?? null, 'aprobación de diseño');
-    foreach (['front', 'back', 'finalFront', 'finalBack'] as $key) pedido_data_image($d[$key] ?? null, $key, $complete && in_array($key, ['finalFront', 'finalBack'], true));
+    foreach (['front', 'back', 'finalFront', 'finalBack'] as $key) pedido_data_image($d[$key] ?? null, $key, $complete && !$album && in_array($key, ['finalFront', 'finalBack'], true));
     if ($complete && !$d['approved']) pedido_fail('design_not_approved', 'Aprueba ambas vistas del diseño antes de continuar.');
     $layerIds=[];$designKeys=[];
     foreach (pedido_array($d['layers'] ?? null, 'elementos del diseño', 40) as $layer) {
@@ -128,7 +143,7 @@ function pedido_quote(array $o, string $deliveryKind = ''): array {
     $sizeFee = function ($rows) use ($p) { $sum = 0; foreach ($rows as $r) $sum += $p['sizeExtras'][$r['size']] ?? 0; return $sum; };
     $unique = function ($type) use ($o) { $keys=[]; foreach ($o['design']['layers'] as $l) if ($l['type'] === $type) $keys[] = ($l['designKey'] ?? '') ?: (($l['data'] ?? '') ?: ($l['name'] ?: $l['id'])); return count(array_unique($keys)); };
     $q = ['currency'=>'USD','fieldQuantity'=>$field,'baseCents'=>$field*$unit,'garmentExtrasCents'=>$field*$extra,'sizeExtrasCents'=>$sizeFee($o['players'])];
-    $q['creationDesignCents'] = $o['design']['source'] === 'catalog' && pedido_catalog($o['design']['catalogCode']) ? 0 : $p['design']['creationCents'];
+    $q['creationDesignCents'] = $o['design']['source'] === 'catalog' && (pedido_catalog($o['design']['catalogCode']) || pedido_album($o)) ? 0 : $p['design']['creationCents'];
     $q['crestDesignCount']=$unique('Escudo'); $q['brandDesignCount']=$unique('Marca'); $q['sponsorCount']=count(array_filter($o['design']['layers'], function($l){return $l['type']==='Sponsor';}));
     $q['crestDesignCents']=$q['crestDesignCount']*$p['design']['crestCents']; $q['brandDesignCents']=$q['brandDesignCount']*$p['design']['brandCents']; $q['sponsorCents']=$q['sponsorCount']*$p['design']['sponsorCents'];
     $q['designServicesCents']=$q['creationDesignCents']+$q['crestDesignCents']+$q['brandDesignCents']+$q['sponsorCents'];

@@ -4,6 +4,8 @@ La interfaz Next.js puede seguir en GitHub Pages. Los archivos de `backend/pedid
 
 ## Estado y requisitos
 
+Los pedidos creados desde un álbum conservan el nombre del álbum, el número de imagen y el enlace original en las indicaciones del pedido. Para aceptarlos, despliega la versión del API que incluye `album-fingerprints.json`. El Panel Tony recibe esa identificación en `designs.albumReference`. Los pedidos que pasan por el editor siguen enviando las imágenes frontal y dorsal. Si cambian los álbumes o las fotografías, ejecuta `node scripts/prepare-order-albums.mjs` y distribuye el índice actualizado junto con el API. Sin un API de pedidos configurado, la interfaz ofrece cotizar el diseño por WhatsApp desde el resumen.
+
 - PHP con cURL, PDO SQLite, fileinfo, mbstring y GD. El código y las pruebas son compatibles con PHP 7.4; para producción debe usarse una versión PHP con soporte de seguridad vigente.
 - Hosting HTTPS y un directorio privado escribible **fuera de DocumentRoot**. `TONY_PRIVATE_DIR` contiene `pedido.sqlite`; el código rechaza almacenamiento dentro del directorio web. El directorio debe existir y pertenecer al usuario del proceso PHP, con permisos restringidos. Se utilizan consultas parametrizadas, transacciones SQLite y una restricción única para los identificadores de transacciones de pago.
 - Variables de entorno del hosting a partir de `.env.example`. `backend/pedido-api/config.example.php` es una plantilla segura que solo lee `getenv`, bloqueada por `.htaccess`; no contiene claves ni es necesaria para arrancar. PHP no carga archivos `.env` automáticamente. No subir `.env` al directorio público ni poner secretos en `NEXT_PUBLIC_*`.

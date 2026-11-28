@@ -1,13 +1,10 @@
 .scoped-designs .tc-head h1 {max-width:28ch;text-wrap:balance}
-.scope-options {display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 32px}
-.scope-options a {display:inline-flex;align-items:center;min-height:46px;gap:8px;padding:4px 13px 4px 4px;border:1px solid var(--tc-line-strong);border-radius:9px;color:var(--tc-ink);background:var(--tc-tile);font:650 .92rem var(--font-body);text-decoration:none}
-.scope-options img {width:40px;height:40px;object-fit:cover;border-radius:6px}
 .scope-count {color:var(--tc-mute);margin:16px 0;font:600 .9rem var(--font-body)}
 .scope-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,205px),1fr));gap:clamp(8px,1.2vw,18px);padding:0;margin:0;list-style:none}
 .scope-grid a {position:relative;display:block;overflow:hidden;border:1px solid var(--tc-line);border-radius:12px;background:#0a150f;color:#fff}
 .scope-grid img {display:block;width:100%;height:auto;aspect-ratio:1;object-fit:contain;color:var(--tc-ink)}
 .scope-zoom {position:absolute;bottom:8px;right:8px;border-radius:50%;display:grid;place-items:center;width:28px;height:28px;background:#101c11df;color:var(--tc-lime)}
-.scope-grid a:hover,.scope-options a:hover {border-color:var(--tc-lime)}
+.scope-grid a:hover {border-color:var(--tc-lime)}
 .scope-more {display:flex;width:fit-content;margin:24px auto 0}
 .scope-viewer {padding:0;width:min(640px,calc(100vw - 20px));max-height:92dvh;margin:auto;overflow-y:auto;background:#0e1e15;color:#f3f8ed;border:1px solid #5c754f;border-radius:14px}
 .scope-viewer::backdrop {background:#031008d9}
@@ -18,5 +15,6 @@
 .scope-viewer img {width:100%;height:min(59dvh,660px);display:block;object-fit:contain;background:#050d08}
 .scope-viewer footer {justify-content:center;flex-wrap:wrap;border-top:1px solid var(--tc-line)}
 .scope-viewer footer a {display:flex;align-items:center;gap:6px;min-height:44px;color:var(--tc-lime);font:650 .9rem var(--font-body)}
+.scope-viewer footer .scope-pick-design {width:100%;justify-content:center;background:var(--tc-lime);color:#10200d;border-radius:8px;text-decoration:none}
 .scope-empty p {margin:20px 0}
-@media(max-width:570px){.scope-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.scope-options{margin:15px 0;gap:5px}.scope-options a{font-size:.8rem}.scope-viewer header{position:static}}
+@media(max-width:570px){.scope-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.scope-viewer header{position:static}}

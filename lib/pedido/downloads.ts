@@ -1,4 +1,5 @@
 import {siteAsset} from '../asset-path';
+import {orderAlbum, readAlbumNotes} from './album-design';
 import {isPedidoImage} from './order';
 import {calculatePedido, money, PRODUCTS} from './pricing';
 import type {Buyer, Delivery, PedidoDraft, PedidoPricing} from './types';
@@ -214,8 +215,10 @@ export async function downloadPedidoDocument(kind: 'production' | 'payment', dat
   const {draft,buyer,delivery,signature,receipt,termsVersion}=data;
   const prices=calculatePedido(draft,delivery.kind);
   if (![receipt.totalCents,receipt.depositCents,receipt.balanceCents].every(Number.isSafeInteger) || receipt.totalCents!==prices.totalCents || receipt.depositCents!==prices.depositCents || receipt.balanceCents!==prices.balanceCents) throw new Error('Los importes del pedido cambiaron. Verifica el pedido antes de descargar.');
-  if (!draft.design.finalFront || !draft.design.finalBack || !signature) throw new Error('Falta el diseño final o la firma para preparar el documento.');
-  const [front,back,signed]=await Promise.all([loadImage(draft.design.finalFront),loadImage(draft.design.finalBack),loadImage(signature)]);
+  const ref = orderAlbum(draft);
+  const customer = ref ? readAlbumNotes(draft.notes).customer : draft.notes;
+  if ((!ref && (!draft.design.finalFront || !draft.design.finalBack)) || !signature) throw new Error('Falta el diseño final o la firma para preparar el documento.');
+  const [front,back,signed]=await Promise.all([draft.design.finalFront ? loadImage(draft.design.finalFront) : null,draft.design.finalBack ? loadImage(draft.design.finalBack) : null,loadImage(signature)]);
   if (document.fonts) await document.fonts.ready;
   const output=new DocumentPages(kind==='production'?'ORDEN DE PRODUCCIÓN':'ORDEN DE PAGO',receipt.id);
   const orderStatus: Record<string,string> = {confirmed:'Pedido confirmado',transfer_review:'Transferencia pendiente de revisión',received:'Pedido recibido'};
@@ -240,7 +243,7 @@ export async function downloadPedidoDocument(kind: 'production' | 'payment', dat
   output.detail('Marca deportiva',draft.config.brand==='Tony'?'Tony Sportswear':'Propia');
   output.detail('Acabado de marca',draft.config.brand3d?'3D alto relieve':'Sublimada');
   output.detail('Acabado de escudo',draft.config.crest3d?'3D alto relieve':'Sublimado');
-  output.detail('Diseño base',draft.design.source==='catalog'?draft.design.catalogCode:'Diseño propio');
+  output.detail('Diseño base',ref ? ref.name + ' · Imagen ' + ref.number : draft.design.source==='catalog' ? draft.design.catalogCode : 'Diseño propio');
   output.detail('Número en calzoneta',draft.product==='uniform'?(draft.shortsNumber?'Sí, incluido':'Sin número'):'No aplica a solo camisa');
   const socks=Object.entries(draft.socks).filter(([,quantity])=>quantity>0).map(([color,quantity])=>`${color}: ${quantity}`).join(' / ');
   output.detail('Medias',socks||'Sin medias');
@@ -248,14 +251,22 @@ export async function downloadPedidoDocument(kind: 'production' | 'payment', dat
   addPrices(output,prices,receipt);
   // Both records retain the roster, so the buyer can match quantities and payment to the same order.
   addRoster(output,draft);
-  if(draft.notes.trim()){output.section('Indicaciones del equipo');output.paragraph(draft.notes);}
-  output.next(); output.section('Diseño final aprobado');
-  const boxY=output.y,boxWidth=(WIDTH-MARGIN*2-30)/2,boxHeight=710;
-  output.ctx.fillStyle='#F1F5F2'; output.ctx.fillRect(MARGIN,boxY,boxWidth,boxHeight); output.ctx.fillRect(MARGIN+boxWidth+30,boxY,boxWidth,boxHeight);
-  placeImage(output.ctx,front,MARGIN+12,boxY+12,boxWidth-24,boxHeight-24);
-  placeImage(output.ctx,back,MARGIN+boxWidth+42,boxY+12,boxWidth-24,boxHeight-24);
-  output.y+=boxHeight+38; output.ctx.font='bold 21px Arial'; output.ctx.fillStyle=GREEN;
-  output.ctx.fillText('FRONTAL',MARGIN,output.y); output.ctx.fillText('DORSAL',MARGIN+boxWidth+30,output.y);output.y+=45;
+  if (ref) {
+    output.section('Diseño elegido del catálogo');
+    output.detail('Álbum', ref.name);
+    output.detail('Referencia', `Álbum ${ref.albumId} · Imagen ${ref.number}`);
+    output.paragraph(ref.image);
+  }
+  if(customer.trim()){output.section('Indicaciones del equipo');output.paragraph(customer);}
+  if(front && back){
+    output.next(); output.section('Diseño final aprobado');
+    const boxY=output.y,boxWidth=(WIDTH-MARGIN*2-30)/2,boxHeight=710;
+    output.ctx.fillStyle='#F1F5F2'; output.ctx.fillRect(MARGIN,boxY,boxWidth,boxHeight); output.ctx.fillRect(MARGIN+boxWidth+30,boxY,boxWidth,boxHeight);
+    placeImage(output.ctx,front,MARGIN+12,boxY+12,boxWidth-24,boxHeight-24);
+    placeImage(output.ctx,back,MARGIN+boxWidth+42,boxY+12,boxWidth-24,boxHeight-24);
+    output.y+=boxHeight+38; output.ctx.font='bold 21px Arial'; output.ctx.fillStyle=GREEN;
+    output.ctx.fillText('FRONTAL',MARGIN,output.y); output.ctx.fillText('DORSAL',MARGIN+boxWidth+30,output.y);output.y+=45;
+  }
   output.section('Aceptación y firma');
   output.paragraph(`Términos aceptados: ${termsVersion}`,{size:22});
   output.ensure(240); output.ctx.fillStyle='#F5F8F5';output.ctx.fillRect(MARGIN,output.y,620,165);

@@ -120,6 +120,38 @@ test('la portada prioriza el pedido y reúne tienda, promociones y descargas', a
   await expect(main.getByRole('link', {name:/App Store para iPhone/})).toHaveAttribute('href', 'https://apps.apple.com/us/app/tony/id1528399939');
 });
 
+test('el contorno de las letras blancas respeta el tamaño y los acentos de la portada', async ({page}) => {
+  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v2', '[]'));
+  await page.goto('/');
+  for (const width of [390, 1280]) {
+    await page.setViewportSize({width,height:850});
+    const strokes = await page.evaluate(() => {
+      const ctx = document.createElement('canvas').getContext('2d')!;
+      function stroke(selector: string) {
+        const style = getComputedStyle(document.querySelector(selector)!);
+        ctx.clearRect(0,0,1,1);
+        ctx.fillStyle = style.webkitTextStrokeColor;
+        ctx.fillRect(0,0,1,1);
+        return {width:parseFloat(style.webkitTextStrokeWidth), rgba:Array.from(ctx.getImageData(0,0,1,1).data)};
+      }
+      return {
+        discipline:stroke('#home-disciplinas'), business:stroke('#business-heading'), text:stroke('.order-hero p'),
+        accent:stroke('.order-hero h1 em'), button:stroke('.order-hero .tc-btn'),
+      };
+    });
+    for (const heading of [strokes.discipline, strokes.business]) {
+      const [red, green, blue, alpha] = heading.rgba;
+      expect(heading.width).toBeGreaterThanOrEqual(2.5);
+      expect(green).toBeGreaterThan(Math.max(red,blue));
+      expect(alpha).toBe(255);
+    }
+    expect(strokes.text.width).toBeLessThanOrEqual(1);
+    expect(strokes.text.rgba[3]).toBeGreaterThan(0);
+    expect(strokes.accent.rgba[3]).toBe(0);
+    expect(strokes.button.rgba[3]).toBe(0);
+  }
+});
+
 test('una sesión anterior conserva únicamente sus anuncios pendientes vigentes', async ({page}) => {
   await page.addInitScript(() => {
     const key = 'tony:inicio:carteles:v2';

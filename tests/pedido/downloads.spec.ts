@@ -6,10 +6,10 @@ import {calculatePedido} from '../../lib/pedido/pricing';
 import {completePedido} from './pricing.fixtures';
 
 function browserBundle() {
-  const modules = ['lib/asset-path.ts','lib/pedido/pricing.ts','lib/pedido/order.ts','lib/pedido/downloads.ts'];
+  const modules = ['lib/asset-path.ts','lib/pedido/album-design.ts','lib/pedido/pricing.ts','lib/pedido/order.ts','lib/pedido/downloads.ts'];
   const functions = modules.map(file => `${JSON.stringify(file)}:function(module,exports,require){${ts.transpileModule(fs.readFileSync(path.resolve(file),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020,esModuleInterop:true}}).outputText}}`).join(',');
   const table = fs.readFileSync(path.resolve('data/pedido/prices.json'),'utf8');
-  return `(() => {const process={env:{TONY_ASSET_BASE:''}};const modules={${functions}};const cache={};const paths={'../asset-path':'lib/asset-path.ts','./order':'lib/pedido/order.ts','./pricing':'lib/pedido/pricing.ts'};function require(name){if(name==='../../data/pedido/prices.json')return ${table};name=paths[name]||name;if(cache[name])return cache[name].exports;const m={exports:{}};cache[name]=m;modules[name](m,m.exports,require);return m.exports;}window.tonyDownload=require('lib/pedido/downloads.ts');})();`;
+  return `(() => {const process={env:{TONY_ASSET_BASE:''}};const modules={${functions}};const cache={};const paths={'./album-design':'lib/pedido/album-design.ts','../asset-path':'lib/asset-path.ts','./order':'lib/pedido/order.ts','./pricing':'lib/pedido/pricing.ts'};function require(name){if(name==='../../data/pedido/album-categories.json')return [];if(name==='../../data/pedido/prices.json')return ${table};name=paths[name]||name;if(cache[name])return cache[name].exports;const m={exports:{}};cache[name]=m;modules[name](m,m.exports,require);return m.exports;}window.tonyDownload=require('lib/pedido/downloads.ts');})();`;
 }
 
 test('documentos PDF multipágina y PNG se descargan con datos sintéticos', async ({page}, testInfo) => {
@@ -67,4 +67,20 @@ test('documentos PDF multipágina y PNG se descargan con datos sintéticos', asy
     catch(error){return (error as Error).message;}
   },{...paymentData,receipt:{...paymentData.receipt,totalCents:1}});
   expect(rejection).toContain('Los importes del pedido cambiaron');
+  const album = completePedido();
+  album.notes = 'Diseño elegido · DISEÑOS DEL MUNDIAL 2026 (álbum 37167, imagen 1)\nhttps://www.tonysportselsalvador.com/wp-content/uploads/1-17.jpg';
+  album.design = {...album.design,catalogCode:'',front:null,back:null,finalFront:null,finalBack:null};
+  for (const kind of ['production','payment']) {
+    const finished=page.waitForEvent('download');
+    await page.evaluate(async ({kind,data}) => {
+      const win=window as unknown as {tonyDownload:{downloadPedidoDocument:(kind:string,data:unknown)=>Promise<void>}; pdfText:string[]};
+      win.pdfText=[];
+      await win.tonyDownload.downloadPedidoDocument(kind,data);
+    }, {kind,data:{...paymentData,draft:album,receipt:{...paymentData.receipt,id:'TEST-ALBUM',...calculatePedido(album,'home')}}});
+    expect(fs.readFileSync(await (await finished).path()).subarray(0,8).toString()).toBe('%PDF-1.4');
+    const text=await page.evaluate(()=>(window as unknown as {pdfText:string[]}).pdfText);
+    expect(text.join(' ')).toContain('Álbum 37167 · Imagen 1');
+    expect(text.join('')).toContain('https://www.tonysportselsalvador.com/wp-content/uploads/1-17.jpg');
+    expect(text).not.toContain('DISEÑO FINAL APROBADO');
+  }
 });

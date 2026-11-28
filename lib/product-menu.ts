@@ -12,6 +12,7 @@ export type MenuCard = {
   /** Stable identifier used by bookmarks from the previous product directory. */
   id:string;
   name:string;
+  group?:string;
   image:Asset;
   href:string;
   /** true when the card opens WhatsApp (a new tab) instead of a page of this site. */
@@ -120,8 +121,17 @@ export function productCards(category:ProductCategory):MenuCard[]{
         href:collectionHref(currentReplicaSlug[slug]??slug),whatsapp:false,
       };
     });
-    if(category.id==='empresarial')for(const slug of businessLineIds){
-      cards.push({id:'opcion-empresarial-'+slug,name:'Línea '+businessLines[slug].name,image:`/assets/empresarial/${slug}/portada.webp`,href:'/empresarial/'+slug,whatsapp:false});
+    if(category.id==='futbol'){
+      const replicas=PRODUCT_CATEGORIES.find(item=>item.id==='replicas')!;
+      const families=productCards(replicas).map(card=>({...card,group:'Réplicas',id:card.id.replace('opcion-', 'opcion-futbol-')}));
+      return [...cards.map(card=>({...card,group:'Uniformes de fútbol'})), ...families];
+    }
+    if(category.id==='empresarial'){
+      const lines=businessLineIds.map((slug):MenuCard=>({
+        id:'opcion-empresarial-'+slug,name:'Línea '+businessLines[slug].name,image:`/assets/empresarial/${slug}/portada.webp`,href:'/empresarial/'+slug,whatsapp:false,
+      }));
+      const polos=cards.find(card=>card.id==='opcion-empresarial-2')!;
+      return [...lines, polos, ...cards.filter(card=>card!==polos)];
     }
     return cards;
   }
@@ -137,7 +147,7 @@ const byId=new Map(PRODUCT_CATEGORIES.map(category=>[category.id,category]));
 const FEATURED:Record<string,string> = {futbol:'opcion-futbol-1','camisas-polos':'opcion-camisas-polos-3'};
 
 function withFeatured(id:string,cards:MenuCard[]){
-  const index=cards.findIndex(card=>card.id===FEATURED[id]);
+  const index=cards.length===7 ? cards.findIndex(card=>card.id===FEATURED[id]) : -1;
   if(index<0)return {cards};
   return {cards:[cards[index],...cards.slice(0,index),...cards.slice(index+1)],featured:true};
 }
@@ -148,7 +158,7 @@ export const PRODUCT_MENU:MenuSection[]=DISCIPLINES.flatMap((discipline:Discipli
   if(!category)return [];
   return [{
     id:category.id,name:discipline.name,image:discipline.image,...withFeatured(category.id,productCards(category)),
-    ...(category.id==='implementos'?{more:{href:IMPLEMENTS_PAGE,label:'Ver todos',cta:'Ver todos los implementos'}}:{}),
+    ...(category.id==='implementos'?{more:{href:IMPLEMENTS_PAGE+'/todos',label:'Ver todos',cta:'Ver todos los implementos'}}:{}),
   }];
 });
 

@@ -1,4 +1,4 @@
-export type Album = {id: number; name: string; href: string; imageCount: number; cover: string | null};
+export type Album = {id: number; name: string; href: string; imageCount: number; cover: string | null; categories?: string[]};
 export type Photo = {src: string; preview: string; label: string};
 export type Design = {photo: Photo; albumId: number; number: number};
 export const DESIGN_BATCH = 16;

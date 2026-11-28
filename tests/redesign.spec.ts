@@ -271,15 +271,9 @@ const PAGES: [route: string, h1: string, check: PageCheck][] = [
     await expectNewTab(main.getByRole('link', {name: /App Store/}), APP_STORE);
   }],
   ['/implementos', 'Implementos deportivos', async main => {
-    const sections = main.locator('section[id]');
-    await expect(sections).toHaveCount(IMPLEMENT_FAMILIES.length);
-    expect(await sections.evaluateAll(list => list.map(section => section.id))).toEqual(IMPLEMENT_FAMILIES);
-    const cards = sections.getByRole('link');
-    await expect(cards).toHaveCount(46);
-    for (const card of await cards.evaluateAll(links => links.map(link => ({href: link.getAttribute('href'), target: link.getAttribute('target')})))) {
-      expect(card.href).toMatch(/^https:\/\/www\.tonysportselsalvador\.com\/producto\/[\w-]+\/$/);
-      expect(card.target).toBe('_blank');
-    }
+    const families=main.getByRole('navigation',{name:'Familias de implementos'});
+    for (const id of IMPLEMENT_FAMILIES) await expect(families.locator('a[href="/implementos/'+id+'"]')).toHaveCount(1);
+    await expect(main.locator('section[id]')).toHaveCount(0);
   }],
   ['/producto', DISCIPLINES_TITLE, async main => {
     await expect(main.getByRole('list', {name: 'Disciplinas', exact: true}).getByRole('link')).toHaveCount(DISCIPLINES.length);

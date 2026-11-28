@@ -1,10 +1,12 @@
 'use client';
 
 import {useRef, useState} from 'react';
+import Link from 'next/link';
 import Icon from '@/components/Icon';
 import {siteAsset} from '@/lib/asset-path';
 import {designBatch, type Album, type Design, type Photo} from '@/lib/design-photos';
 import {whatsappLink} from '@/lib/site-links';
+import {albumOrderHref, canOrderAlbum} from '@/lib/pedido/album-design';
 
 export default function DesignGrid({title, albums, first}: {title: string; albums: Album[]; first: Design[]}) {
   const [items, setItems] = useState(first);
@@ -68,7 +70,8 @@ export default function DesignGrid({title, albums, first}: {title: string; album
         <div className="scope-controls"><button type="button" aria-label="Imagen anterior" disabled={active===0} onClick={() => step(-1)}><Icon name="left"/></button>
           <span aria-live="polite">{(active ?? 0) + 1} / {items.length}</span>
           <button type="button" aria-label="Imagen siguiente" disabled={active === items.length - 1} onClick={() => step(1)}><Icon name="right"/></button></div>
-        <footer><a href={whatsappLink('Hola, Tony. Quisiera consultar ' + currentAlbum.name + ', imagen ' + selected.number + '. ' + selected.photo.src)} target="_blank" rel="noopener noreferrer">Consultar por WhatsApp <Icon name="whatsapp" size={17}/></a>
+        <footer>{canOrderAlbum(currentAlbum.categories) && <Link className="scope-pick-design" href={albumOrderHref(currentAlbum.id, selected.number)}>Crear pedido con este diseño <Icon name="arrow" size={17}/></Link>}
+          <a href={whatsappLink('Hola, Tony. Quisiera consultar ' + currentAlbum.name + ', imagen ' + selected.number + '. ' + selected.photo.src)} target="_blank" rel="noopener noreferrer">Consultar por WhatsApp <Icon name="whatsapp" size={17}/></a>
           <a href={currentAlbum.href} target="_blank" rel="noopener noreferrer">Ver producto <Icon name="diagonal" size={16}/></a>
           <a href={selected.photo.src} target="_blank" rel="noopener noreferrer">Ver original <Icon name="diagonal" size={16}/></a></footer>
       </div>}

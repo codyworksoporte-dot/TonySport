@@ -3,6 +3,8 @@ import Icon from '@/components/Icon';
 import LeadImage from '@/components/media/LeadImage';
 import {responsive} from '@/lib/responsive-image';
 import {imageFocus} from '@/lib/product-menu';
+import {businessLineIds} from '@/lib/business-lines';
+import '@/components/business/identity.css';
 
 type Props = {
   id?:string;
@@ -27,7 +29,10 @@ export default function PictureCard({id,name,image,href,kind,label,priority=fals
     <span className="tc-card-media">{priority?<LeadImage {...photo} fetchPriority={priority}/>:<img {...photo} loading="lazy"/>}</span>
     <span className="tc-card-name"><span>{name.replace(/N\.º /g,'N.º ')}</span><Icon name={kind==='page'?'arrow':kind==='whatsapp'?'whatsapp':'diagonal'}/></span>
   </>;
-  if(kind==='page')return <Link id={id} href={href} className="tc-card pd-card">{body}</Link>;
+  if(kind==='page'){
+    const line = businessLineIds.find(line => href === '/empresarial/' + line);
+    return <Link id={id} href={href} className={`tc-card pd-card${line ? ' business-' + line : ''}`}>{body}</Link>;
+  }
   return <a id={id} href={href} className="tc-card pd-card" target="_blank" rel="noopener noreferrer" aria-label={label}>
     {body}{kind==='whatsapp'&&<span className="tc-sr"> · consultar por WhatsApp (se abre en otra pestaña)</span>}
   </a>;

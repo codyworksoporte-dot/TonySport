@@ -1,3 +1,4 @@
+import {orderAlbum} from './album-design';
 import {calculatePedido, money, PRICES} from './pricing';
 import type {Buyer, Delivery, Payment, PedidoDraft, PedidoPlayer} from './types';
 
@@ -60,6 +61,7 @@ function advise({step, draft, delivery, payment, buyer, signature, terms, verifi
         : {key: 'socks', target: 'socks', text: `¿Agregamos medias? ${money(PRICES.socks.pairCents)} el par.`};
     }
     case 6: {
+      if (orderAlbum(draft)) return {key: 'design:album', text: 'Tu diseño del álbum está seleccionado. Revisá la imagen y tocá Continuar.'};
       const d = draft.design;
       if (!d.front) return {key: 'design:base', text: 'Escoge un diseño del catálogo o toca Subir frontal.'};
       if (!d.back) return {key: 'design:back', text: 'Falta el dorsal. Toca Generar mockup con IA.'};
@@ -67,6 +69,7 @@ function advise({step, draft, delivery, payment, buyer, signature, terms, verifi
       return {key: 'design:review', text: '¡Va quedando muy bien! Agrega patrocinadores o toca Continuar.'};
     }
     case 7: {
+      if (orderAlbum(draft)) return {key: 'final:album:' + draft.design.approved, text: draft.design.approved ? 'Diseño aprobado. Tocá Continuar.' : 'Si este es el diseño que querés, marcá la aprobación para continuar.'};
       const d = draft.design;
       if (!d.finalFront || !d.finalBack) return {key: 'final:prepare', text: 'Toca Preparar mockup profesional con IA.'};
       if (!d.approved) return {key: 'final:review', text: 'Revisa frente y dorsal. Si todo está bien, marca la aprobación.'};

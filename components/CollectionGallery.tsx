@@ -1,6 +1,8 @@
 'use client';
 import {useEffect, useRef, useState, type ReactNode} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
+import Link from 'next/link';
+import {albumOrderHref, canOrderAlbum} from '@/lib/pedido/album-design';
 import {COLLECTIONS, COLLECTION_PRODUCTS, type CollectionProduct} from '@/lib/collections';
 import {collectionHref} from '@/lib/collection-path';
 import {siteAsset} from '@/lib/asset-path';
@@ -60,6 +62,7 @@ export default function CollectionGallery({intro}: {intro:ReactNode}) {
       {loading && <p role="status">Cargando álbum…</p>}{error && <p role="alert">{error} <button type="button" onClick={() => setAttempt(n => n+1)}>Reintentar</button></p>}
       {photo && <><div className="collection-image">{!imageError ? <img key={photo.src} src={photo.preview} alt={`${selected.name}. Imagen ${index+1} de ${photos.length}.`} referrerPolicy="no-referrer" decoding="async" onError={() => setImageError(true)}/> : <p>Esta imagen no está disponible ahora. Puedes verla en el catálogo original.</p>}</div>
         <div className="collection-pager"><button type="button" disabled={index === 0} aria-label="Imagen anterior" onClick={() => setIndex(i => i-1)}>←</button><label>Imagen <select aria-label="Elegir imagen del álbum" value={index} onChange={e => setIndex(Number(e.target.value))}>{photos.map((_, i) => <option value={i} key={i}>{i+1} de {photos.length}</option>)}</select></label><button type="button" aria-label="Imagen siguiente" disabled={index === photos.length-1} onClick={() => setIndex(i => i+1)}>→</button></div>
+        {canOrderAlbum(selected.categories) && <Link className="button primary" href={albumOrderHref(selected.id, index + 1)}>Crear pedido con este diseño ↗</Link>}
         <a className="text-link" href={photo.src} target="_blank" rel="noopener noreferrer">Ampliar imagen original ↗</a></>}
       {!loading && !error && !photos.length && <p>Este producto no tiene imágenes publicadas en el catálogo original.</p>}
       <div className="collection-dialog-actions"><a className="button primary" href={`https://wa.me/50370155571?text=${encodeURIComponent(`Hola, Tony. Quisiera consultar ${selected.name}${photo ? `, imagen ${index+1}` : ''}. ${selected.href}${photo ? `\nReferencia: ${photo.src}` : ''}`)}`} target="_blank" rel="noopener noreferrer">Consultar por WhatsApp ↗</a><a href={selected.href} target="_blank" rel="noopener noreferrer">Ver en la web oficial ↗</a></div>
