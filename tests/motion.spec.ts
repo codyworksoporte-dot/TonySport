@@ -3,7 +3,7 @@ import { test, expect, devices, type Page } from '@playwright/test';
 async function ready(page: Page, route = '/') {
   await page.addInitScript(() => {
     sessionStorage.setItem('tony:intro:wordmark:v1','seen');
-    sessionStorage.setItem('tony:inicio:carteles:v2','[]');
+    sessionStorage.setItem('tony:inicio:carteles:v3','[]');
   });
   await page.goto(route);
 }
@@ -87,17 +87,17 @@ test('al cambiar de apartado aparece el logo y la transición permite seguir nav
   const overlay = page.locator('.route-transition');
   await expect(overlay).toHaveCSS('pointer-events', 'none');
   await expect(overlay).toHaveAttribute('aria-hidden', 'true');
-  // Armed once the page settles: its layers wait invisible, ready for the first frame.
-  await expect(overlay).toHaveClass(/is-armed/, { timeout: 5000 });
+  await expect(overlay.locator('.brand-screen-art img')).toHaveAttribute('src', /\/tony-piel\.webp$/);
+  await expect(overlay).toBeHidden();
   const phases = () => page.evaluate(() => (window as unknown as { __phases: string[] }).__phases.join(' '));
   expect(await phases()).toBe('');
   const link = (await (await menuLink(page,'Tony News')).boundingBox())!;
   await page.mouse.click(link.x + link.width / 2, link.y + link.height / 2);
   await expect(overlay).toHaveAttribute('data-phase', 'cover');
   await expect(page.locator('html')).toHaveAttribute('data-route-cover', 'true');
-  // Only transforms and opacity move, so the compositor keeps every frame while the page renders.
+  // The desktop transition only fades the full artwork.
   const animated = await overlay.evaluate(element => [...new Set(element.getAnimations({ subtree: true }).flatMap(animation => (animation.effect as KeyframeEffect).getKeyframes().flatMap(frame => Object.keys(frame))))]);
-  expect(animated.filter(property => !['offset', 'computedOffset', 'easing', 'composite'].includes(property)).sort()).toEqual(['opacity', 'transform']);
+  expect(animated.filter(property => !['offset', 'computedOffset', 'easing', 'composite'].includes(property)).sort()).toEqual(['opacity']);
   await expect(page).toHaveURL(/\/tony-news$/);
   await expect.poll(phases, { timeout: 10000 }).toBe('cover wink reveal idle');
   await expect(page.locator('html')).not.toHaveAttribute('data-route-cover', /.*/);

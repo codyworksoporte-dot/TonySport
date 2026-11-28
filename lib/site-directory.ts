@@ -26,9 +26,12 @@ const sections: DirectoryEntry[] = [
 
 const disciplines: DirectoryEntry[] = DISCIPLINES.map(discipline => {
   const category = PRODUCT_CATEGORIES.find(item => item.id === discipline.id);
+  const optionNames = discipline.id === 'empresarial'
+    ? PRODUCT_MENU.find(section => section.id === discipline.id)?.cards.map(card => card.name)
+    : category?.children.map(child => child.label);
   return {
     href: disciplineHref(discipline.id), label: discipline.name, group: 'ESCOGE TU DISCIPLINA', image: discipline.image,
-    terms: `uniformes ${discipline.id} ${category ? `${category.label} ${category.shortLabel} ${category.children.map(child => child.label).join(' ')}` : ''}`,
+    terms: `uniformes ${discipline.id} ${category?.label ?? ''} ${category?.shortLabel ?? ''} ${optionNames?.join(' ') ?? ''}`,
   };
 });
 

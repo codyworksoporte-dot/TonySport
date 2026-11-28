@@ -10,18 +10,9 @@ async function review() {
       await page.clock.install();
       await page.clock.pauseAt(Date.now() + 250);
       await page.goto(process.env.TONY_PREVIEW_URL || 'http://127.0.0.1:3000/', { waitUntil: 'commit' });
-      const dialog = page.getByRole('dialog', { name: 'Entrada de Tony Sportswear' });
-      await dialog.locator('.intro-wordmark img').evaluate(img => img.decode());
-      const moments = width === 390 ? [810, 1250] : [1000, 1760];
-      for (const [index, time] of moments.entries()) {
-        await dialog.evaluate((node, currentTime) => {
-          for (const animation of node.getAnimations({ subtree: true })) {
-            animation.pause();
-            animation.currentTime = currentTime;
-          }
-        }, time);
-        await page.screenshot({ path: `output/brand-intro/${width}-${index === 0 ? 'impacto' : 'brillo'}.png` });
-      }
+      const dialog = page.locator('.brand-intro[open]');
+      await dialog.locator('.brand-screen-art img').evaluate(img => img.decode());
+      await page.screenshot({ path: `output/brand-intro/${width}-entrada.png` });
       await page.keyboard.press('Escape');
       await dialog.waitFor({ state: 'detached' });
       await page.close();

@@ -1,0 +1,22 @@
+.brand-screen-art {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+}
+.brand-screen-art img { display: block; height: auto; max-width: 100%; }
+.intro-wordmark-fallback {
+  display: grid;
+  text-align: center;
+  color: #b4ff35;
+  font: italic 700 clamp(50px, 14vw, 110px)/.85 var(--font-display), sans-serif;
+  text-transform: uppercase;
+}
+.intro-wordmark-fallback small {
+  margin-top: .45em;
+  font: 700 .22em var(--font-body), sans-serif;
+  letter-spacing: .19em;
+  color: #ffa259;
+}

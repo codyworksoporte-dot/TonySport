@@ -5,22 +5,37 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import Icon from '@/components/Icon';
 import type { Campaign } from '@/lib/home-campaigns';
 
-const SESSION = 'tony:inicio:carteles:v2';
+const SESSION = 'tony:inicio:carteles:v3';
+const PREVIOUS_SESSION = 'tony:inicio:carteles:v2';
+
+function savedIds(key: string): string[] | null {
+  try {
+    const saved: unknown = JSON.parse(sessionStorage.getItem(key) ?? 'null');
+    if (Array.isArray(saved) && saved.every(id => typeof id === 'string')) {
+      return [...new Set<string>(saved)];
+    }
+  } catch { /* Fall back to an in-memory queue when storage is unavailable. */ }
+  return null;
+}
 
 function readQueue(ads: Campaign[]) {
   const ids = ads.map(ad => ad.id);
-  try {
-    const saved: unknown = JSON.parse(sessionStorage.getItem(SESSION) ?? 'null');
-    if (Array.isArray(saved) && saved.every(id => typeof id === 'string')) {
-      return [...new Set<string>(saved)].filter(id => ids.includes(id));
-    }
-  } catch { /* The same sequence can run in memory. */ }
-  // The headline promotion opens the session. Shuffle the remaining campaigns once.
-  for (let end = ids.length - 1; end > 1; end--) {
-    const pick = 1 + Math.floor(Math.random() * end);
-    [ids[pick], ids[end]] = [ids[end], ids[pick]];
+  const saved = savedIds(SESSION);
+  if (saved) return saved.filter(id => ids.includes(id));
+
+  const opening = ids.slice(0, 3);
+  const remaining = ids.slice(3);
+  const previous = savedIds(PREVIOUS_SESSION);
+  if (previous) {
+    // The two new posters also reach open sessions, without replaying dismissed ads.
+    return [...opening.filter(id => id !== 'black-friday' || previous.includes(id)),
+      ...previous.filter(id => remaining.includes(id))];
   }
-  return ids;
+  for (let end = remaining.length - 1; end > 0; end--) {
+    const pick = Math.floor(Math.random() * (end + 1));
+    [remaining[pick], remaining[end]] = [remaining[end], remaining[pick]];
+  }
+  return [...opening, ...remaining];
 }
 
 export function CampaignDialog({ads}: {ads: Campaign[]}) {

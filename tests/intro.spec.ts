@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 
 test.beforeEach(async ({page}) => {
-  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v2', '[]'));
+  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v3', '[]'));
 });
 
 test('la primera pantalla se puede saltar con Escape incluso antes de hidratar',async({page})=>{
@@ -18,9 +18,11 @@ test('la primera pantalla se puede saltar con Escape incluso antes de hidratar',
     // The server content exists, but the boot curtain must own the first paint.
     const curtain=await page.evaluate(()=>{
       const style=getComputedStyle(document.documentElement,'::before');
-      return {content:style.content,position:style.position,visibility:style.visibility};
+      return {content:style.content,position:style.position,visibility:style.visibility,art:style.backgroundImage};
     });
-    expect(curtain).toEqual({content:'""',position:'fixed',visibility:'visible'});
+    expect(curtain).toMatchObject({content:'""',position:'fixed',visibility:'visible'});
+    expect(curtain.art).toContain('/assets/brand/transiciones/tony-piel.webp');
+    expect(curtain.art).toContain('/assets/brand/transiciones/cuero.webp');
     await expect(page.locator('.brand-intro[open]')).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect.poll(()=>page.evaluate(()=>getComputedStyle(document.documentElement,'::before').content)).toBe('none');
@@ -69,12 +71,12 @@ test('movimiento reducido y las páginas internas no muestran la intro',async({p
 
 test('la entrada mantiene el nombre aunque falle la imagen del logo',async({page})=>{
   await page.emulateMedia({reducedMotion:'no-preference'});
-  await page.route('**/assets/brand/tony-wordmark*.webp',route=>route.abort('failed'));
+  await page.route('**/assets/brand/transiciones/tony-piel.webp',route=>route.abort('failed'));
   await page.goto('/contacto');
   await page.locator('.tony-header .brand').click();
   const intro=page.locator('.brand-intro');
   await expect(intro).toBeVisible();
-  await expect(intro.locator('.intro-wordmark-fallback')).toContainText('TONY');
+  await expect(intro.locator('.intro-wordmark-fallback')).toContainText('Tony');
   await expect(intro.locator('.intro-wordmark-fallback')).toBeAttached();
   await page.getByRole('button',{name:'Saltar intro',exact:true}).click();
   await expect(intro).toBeHidden();
@@ -84,11 +86,11 @@ test('la entrada muestra el logo también cuando la imagen ya está en caché',a
   await page.emulateMedia({reducedMotion:'no-preference'});
   await page.goto('/',{waitUntil:'commit'});
   const intro=page.locator('.brand-intro');
-  const logo=intro.locator('.intro-wordmark img');
+  const logo=intro.locator('.brand-screen-art img');
   await expect.poll(() => logo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(0);
   await page.getByRole('button',{name:'Saltar intro',exact:true}).click();
   await expect(intro).toHaveCount(0);
-  // Simulate a fresh visit using an already cached transparent wordmark.
+  // Simulate a fresh visit using the already cached original artwork.
   await page.evaluate(() => sessionStorage.removeItem('tony:intro:wordmark:v1'));
   await page.reload({waitUntil:'commit'});
   await expect(intro).toBeVisible();

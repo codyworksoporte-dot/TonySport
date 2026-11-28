@@ -27,7 +27,7 @@ const implementFamilies = [
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v2', '[]'));
+  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v3', '[]'));
 });
 
 async function expectScope(page: Page, path: string, title: string | RegExp) {
@@ -123,7 +123,7 @@ test('Producto ordena 13 secciones de tarjetas con foto, sin precios ni botones 
   await expect(sections.locator('h2')).toHaveText(disciplineNames);
   await expect(page.getByRole('region', { name: 'Logos 3D', exact: true })).toHaveAttribute('id', 'categoria-logos-3d');
   // Every card leads directly to a collection or equipment family.
-  await expect(main.locator('.pd-card')).toHaveCount(46);
+  await expect(main.locator('.pd-card')).toHaveCount(44);
   const summary = await sections.evaluateAll(list => list.map(section => ({
     line: section.id.replace('categoria-', ''),
     cards: Array.from(section.querySelectorAll('.pd-card')).map(card => ({

@@ -6,7 +6,7 @@ import {HELP_WHATSAPP, ORDER_LOOKUP_URL, TONY_EMAIL} from '../lib/site-links';
 
 test.use({isMobile:true,hasTouch:true,reducedMotion:'reduce'});
 test.beforeEach(async ({page}) => {
-  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v2','[]'));
+  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v3','[]'));
 });
 
 const SEARCH='¿Qué buscas en específico?';

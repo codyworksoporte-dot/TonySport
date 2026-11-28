@@ -1,3 +1,5 @@
+import {brandScreenLeather, brandScreenLogo, brandScreenWidth} from '@/lib/brand-screen';
+
 /**
  * Runs synchronously in the document head, before the body can paint.
  * CSSOM changes leave the server markup intact for React hydration.
@@ -33,7 +35,7 @@ const bootstrap = `(() => {
   }
   function reduce() { if (preference.matches) state.release(true); }
   window.__tonyIntroBoot = state;
-  sheet.insertRule('html::before { content: ""; position: fixed; inset: 0; z-index: 2147483647; background: #080b09; pointer-events: auto; animation: tony-intro-boot-failsafe 1ms ' + deadline + 'ms forwards; }');
+  sheet.insertRule('html::before { content: ""; position: fixed; inset: 0; z-index: 2147483647; background: url("${brandScreenLogo}") center / ${brandScreenWidth} auto no-repeat, ${brandScreenLeather}; pointer-events: auto; animation: tony-intro-boot-failsafe 1ms ' + deadline + 'ms forwards; }');
   sheet.insertRule('@keyframes tony-intro-boot-failsafe { to { visibility: hidden; pointer-events: none; } }');
   sheet.insertRule('@media (prefers-reduced-motion: reduce) { html::before { display: none !important; } }');
   sheet.insertRule('body { overflow: hidden !important; }');

@@ -36,7 +36,6 @@ const images: Record<string, string[]> = {
   'replicas': ['sublimadas', 'bordadas', 'bordadas-futbol'],
   'bkb': ['full-sublimado', 'calzoneta-tela', 'sublimado-frontal'],
   'racing': ['car-show', 'motorcycle'],
-  'empresarial': ['reflectiva', 'polo-lisa'],
   'ciclismo': ['ruta'],
   'voleibol': ['uniforme'],
   'runners': ['running'],
@@ -67,8 +66,6 @@ const CHILD_NAME:Record<string,string> = {
   'bkb-1':'Centro y calzoneta full sublimada',
   'bkb-2':'Centro full sublimado y calzoneta de tela',
   'bkb-3':'Sublimado frontal y calzoneta de tela',
-  'empresarial-1':'Con cinta reflectiva',
-  'empresarial-2':'Camisas polo lisas',
 };
 
 // Lines with no options in the official menu still get picture cards of their own products.
@@ -108,6 +105,9 @@ const currentReplicaSlug:Record<string,string>={
 const individualAlbums:Record<string,number[]>={moldes:[36787,36785,36783],hoddies:[34694,36026]};
 
 export function productCards(category:ProductCategory):MenuCard[]{
+  if(category.id==='empresarial')return businessLineIds.map(slug=>({
+    id:'opcion-empresarial-'+slug,name:'Línea '+businessLines[slug].name,image:`/assets/empresarial/${slug}/portada.webp`,href:'/empresarial/'+slug,whatsapp:false,
+  }));
   if(category.id==='implementos')return IMPLEMENT_FAMILIES.map((family,index)=>({
     id:`opcion-implementos-${index+1}`,name:family.name,image:family.cover,href:`${IMPLEMENTS_PAGE}/${family.id}`,whatsapp:false,
   }));
@@ -125,13 +125,6 @@ export function productCards(category:ProductCategory):MenuCard[]{
       const replicas=PRODUCT_CATEGORIES.find(item=>item.id==='replicas')!;
       const families=productCards(replicas).map(card=>({...card,group:'Réplicas',id:card.id.replace('opcion-', 'opcion-futbol-')}));
       return [...cards.map(card=>({...card,group:'Uniformes de fútbol'})), ...families];
-    }
-    if(category.id==='empresarial'){
-      const lines=businessLineIds.map((slug):MenuCard=>({
-        id:'opcion-empresarial-'+slug,name:'Línea '+businessLines[slug].name,image:`/assets/empresarial/${slug}/portada.webp`,href:'/empresarial/'+slug,whatsapp:false,
-      }));
-      const polos=cards.find(card=>card.id==='opcion-empresarial-2')!;
-      return [...lines, polos, ...cards.filter(card=>card!==polos)];
     }
     return cards;
   }

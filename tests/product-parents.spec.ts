@@ -3,10 +3,7 @@ import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {MAIN_MENU} from '../lib/main-menu';
 
-const business = [
-  '/empresarial/factory','/empresarial/prestige',
-  '/colecciones/camisas-polo-lisas','/colecciones/linea-empresarial-con-cinta-reflectiva',
-];
+const business = ['/empresarial/factory','/empresarial/prestige'];
 const replicas = [
   {label:'Réplicas sublimadas', slug:'replicas-sublimadas-8-99', albums:[36997]},
   {label:'Réplicas bordadas', slug:'replicas-bordadas-de-8-49', albums:[38248]},
@@ -14,7 +11,7 @@ const replicas = [
 ];
 const parents = [
   ['producto/futbol',10], ['producto/replicas',3], ['producto/bkb',3], ['producto/camisas-polos',7],
-  ['colecciones/camisas-empresariales',4], ['colecciones/moldes-de-futbol',3], ['producto/racing',2], ['producto/empresarial',4], ['producto/moldes',3], ['producto/hoddies',2], ['implementos',8],
+  ['colecciones/camisas-empresariales',2], ['colecciones/moldes-de-futbol',3], ['producto/racing',2], ['producto/empresarial',2], ['producto/moldes',3], ['producto/hoddies',2], ['implementos',8],
 ] as const;
 
 test('cada categoría padre presenta únicamente sus apartados',async({request})=>{
@@ -46,6 +43,33 @@ for (const width of [320,1440]) test('cada categoría presenta únicamente sus p
   }
   const empresarial=MAIN_MENU.find(item=>item.href==='/producto')?.children?.find(item=>item.href==='/producto/empresarial');
   expect(empresarial?.children?.map(item=>item.href)).toEqual(business);
+});
+
+test('Empresarial ofrece sus dos líneas y los enlaces guardados a las prendas siguen abriendo sus fotos',async({page})=>{
+  test.setTimeout(120_000);
+  for (const [url,selector] of [
+    ['/producto','#categoria-empresarial .pd-card'],
+    ['/colecciones/camisas-empresariales','main nav .pd-card'],
+  ]) {
+    await page.goto(url);
+    const links=page.locator(selector);
+    await expect(links).toHaveText(['Línea Factory','Línea Prestige']);
+    expect(await links.evaluateAll(items=>items.map(link=>link.getAttribute('href')))).toEqual(business);
+  }
+  for (const name of ['Factory','Prestige']) {
+    await page.goto('/producto/empresarial');
+    await page.locator('main nav').getByRole('link',{name:'Línea '+name,exact:true}).click();
+    await expect(page).toHaveURL(new RegExp('/empresarial/'+name.toLowerCase()+'/?$'));
+    await expect(page.getByRole('heading',{name:'Catálogo '+name})).toBeVisible();
+  }
+  for (const [hash,slug] of [
+    ['opcion-empresarial-1','linea-empresarial-con-cinta-reflectiva'],
+    ['opcion-empresarial-2','camisas-polo-lisas'],
+  ]) {
+    await page.goto('/producto#'+hash);
+    await expect(page).toHaveURL(new RegExp('/colecciones/'+slug+'/?$'));
+    await expect(page.locator('.scope-grid a').first()).toBeVisible();
+  }
 });
 
 test('cada familia de réplicas de Fútbol abre sus fotos con un toque',async({page})=>{

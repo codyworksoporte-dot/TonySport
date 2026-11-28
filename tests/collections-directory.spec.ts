@@ -9,7 +9,7 @@ const albumQuery=(name:string)=>name.replace(/\s*(de\s+)?\$\s?\d+(?:[.,]\d+)?/gi
 // The assistant's first-visit bubble is marked as seen so it never sits over what the test touches.
 test.beforeEach(async({page})=>{
   await page.emulateMedia({reducedMotion:'reduce'});
-  await page.addInitScript(()=>{try{localStorage.setItem('tony-assistant-hint-v1','1');sessionStorage.setItem('tony:inicio:carteles:v2','[]');}catch{/* Without storage the bubble is never scheduled. */}});
+  await page.addInitScript(()=>{try{localStorage.setItem('tony-assistant-hint-v1','1');sessionStorage.setItem('tony:inicio:carteles:v3','[]');}catch{/* Without storage the bubble is never scheduled. */}});
 });
 test('search finds every album and destination, nested options open their album and contact works on a narrow phone',async({page})=>{
   test.setTimeout(120_000);

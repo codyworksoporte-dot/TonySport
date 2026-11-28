@@ -1,67 +1,32 @@
-/* Section change. Only opacity and transforms move, so the compositor runs every
-   frame even while the new page renders underneath. Once armed (after the page
-   settles) the textures are loaded and every layer is drawn once at 1%, so the
-   first change finds the GPU ready. */
-.route-transition{position:fixed;inset:0;z-index:1000;pointer-events:none;visibility:hidden;contain:strict;--rt-w:min(72vmin,500px)}
-.route-transition.is-armed,.route-transition:not([data-phase=idle]){visibility:visible}
-.rt-panel,.rt-ring,.rt-stage{position:absolute;opacity:0}
-/* A one-off warm-up after arming: drawn at 1% so the GPU has everything ready (RouteTransition.arm). */
-.route-transition.is-warming[data-phase=idle] :is(.rt-panel,.rt-ring,.rt-stage){opacity:.01}
+.route-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  visibility: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+.route-transition:not([data-phase=idle]) { visibility: visible; }
+.route-transition[data-phase=cover] { animation: rt-fade-in 120ms ease-out both; }
+.route-transition[data-phase=reveal] { animation: rt-fade-out var(--rt-reveal) ease-in both; }
 
-/* Light stays behind the wordmark. */
-.rt-panel{inset:0;background:#0a0d0b;will-change:opacity}
-.route-transition.is-armed .rt-panel{background:radial-gradient(ellipse at 50% 46%,#1c3925,#0a1b11 44%,#050d08 80%)}
-
-/* A ring of light spreading from the link that was clicked. */
-.rt-ring{left:calc(var(--from-x,50vw) - 160px);top:calc(var(--from-y,50vh) - 160px);width:320px;height:320px;border-radius:50%;border:2px solid #ff8a3d;background:radial-gradient(closest-side,transparent 72%,rgb(255 106 0 / .22));will-change:transform,opacity}
-
-/* Centre the wordmark over the incoming page. */
-.rt-stage{left:50%;top:47%;width:var(--rt-w);translate:-50% -50%;will-change:transform,opacity}
-.rt-emblem{position:relative;transform-origin:center}
-.rt-shadow{position:absolute;left:-8%;right:-8%;top:8%;bottom:-12%;border-radius:50%;background:radial-gradient(closest-side,rgb(0 0 0 / .64),rgb(0 0 0 / .3) 58%,transparent)}
-.rt-badge{position:relative;display:block;width:100%;height:auto;border-radius:6px}
-
-/* Cover: the scales fade in, the ring spreads, the logo slams in close . */
-.route-transition[data-phase=cover] .rt-panel{animation:rt-fade-in 260ms cubic-bezier(.33,1,.68,1) both}
-.route-transition[data-phase=cover] .rt-ring{animation:rt-ring 560ms cubic-bezier(.16,1,.3,1) both}
-.route-transition[data-phase=cover] .rt-stage{animation:rt-arrive 440ms linear 40ms both}
-/* Hold while the destination loads. */
-.route-transition[data-phase=cover] .rt-emblem{animation:rt-hold 1800ms var(--ease-in-out) 480ms infinite}
-/* Settle the logo as the destination appears. */
-.route-transition:is([data-phase=wink],[data-phase=reveal]) .rt-emblem{animation:rt-settle 460ms var(--ease-in-out) both}
-.route-transition[data-phase=wink] :is(.rt-panel,.rt-stage){opacity:1}
-/* Reveal: Tony passes the camera and the scales fade from the new section. */
-.route-transition[data-phase=reveal] .rt-panel{animation:rt-fade-out 340ms cubic-bezier(.65,0,.35,1) both}
-.route-transition[data-phase=reveal] .rt-stage{animation:rt-leave 320ms cubic-bezier(.5,0,.75,0) both}
-
-@keyframes rt-fade-in{from{opacity:0}to{opacity:1}}
-@keyframes rt-fade-out{from{opacity:1}to{opacity:0}}
-@keyframes rt-ring{from{opacity:.95;transform:scale(.12)}to{opacity:0;transform:scale(2.2)}}
-/* Falls toward the screen and lands with weight: past full size, back, settled. */
-@keyframes rt-arrive{0%{opacity:0;transform:translate3d(0,-3%,0) scale(1.34);animation-timing-function:cubic-bezier(.5,0,.9,.5)}30%{opacity:1}55%{transform:scale(.972);animation-timing-function:cubic-bezier(.2,.6,.4,1)}78%{transform:scale(1.01)}100%{opacity:1;transform:none}}
-@keyframes rt-hold{0%,100%{transform:none}50%{transform:translate3d(0,-1%,0) scale(1.012)}}
-@keyframes rt-settle{from{transform:scale(.98)}to{transform:none}}
-@keyframes rt-leave{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(0,-3%,0) scale(1.2)}}
-/* Mobile: an opaque full-viewport cover. Only the small emblem moves; the
-   surface has no texture, filter, mask or permanently promoted GPU layer. */
-.rt-mobile{position:absolute;inset:0;display:grid;place-items:center;padding:env(safe-area-inset-top) 24px env(safe-area-inset-bottom);background:#0b1710;color:#dbedbe;opacity:0}
-.rt-mobile-content{width:min(72vw,290px);display:flex;flex-direction:column;align-items:center}
-.rt-mobile-emblem{position:relative;width:100%;transform-origin:center}
-.rt-mobile-badge{display:block;width:100%;height:auto;border-radius:5px}
-.rt-mobile-label{margin-top:22px;font:500 12px/1.5 var(--font-body),sans-serif;letter-spacing:.1em;color:#c9d9bd}
-.rt-mobile-track{position:relative;display:block;width:96px;height:2px;margin-top:14px;background:#506644;overflow:hidden}
-.rt-mobile-progress{position:absolute;inset:0;background:#b9eb70;transform:scaleX(.12);transform-origin:0 50%}
-.route-transition[data-phase=cover] .rt-mobile{animation:rt-fade-in 120ms ease-out both}
-.route-transition[data-phase=cover] .rt-mobile-content{animation:rt-mobile-arrive var(--rt-mobile-arrive) cubic-bezier(.16,1,.3,1) both}
-.route-transition[data-phase=cover] .rt-mobile-progress{animation:rt-mobile-progress 1.1s ease-in-out infinite}
-.route-transition[data-phase=wink] .rt-mobile{opacity:1}
-.route-transition[data-art=mobile][data-phase=wink] .rt-mobile-emblem{animation:rt-settle var(--rt-mobile-wink) ease-in-out both}
-.route-transition:is([data-phase=wink],[data-phase=reveal]) .rt-mobile-progress{transform:scaleX(1);transition:transform 160ms ease-out}
-.route-transition[data-phase=reveal] .rt-mobile{animation:rt-fade-out var(--rt-mobile-reveal) ease-out both}
-.route-transition[data-phase=reveal] .rt-mobile-content{animation:rt-mobile-leave var(--rt-mobile-reveal) ease-in both}
-@keyframes rt-mobile-arrive{from{opacity:0;transform:scale(1.16)}to{opacity:1;transform:none}}
-@keyframes rt-mobile-leave{from{transform:none}to{transform:translateY(-6px) scale(1.035)}}
-@keyframes rt-mobile-progress{from{transform:translateX(-25%) scaleX(.3)}to{transform:translateX(100%) scaleX(.6)}}
-@media(max-height:440px){.rt-mobile-content{width:180px}.rt-mobile-label{margin-top:12px}}
-@media(prefers-reduced-motion:reduce){.route-transition{display:none}}
-html[data-tony-effects=off] .route-transition{display:none}
+.rt-mobile-status {
+  position: absolute;
+  inset-inline: 0;
+  bottom: max(8%, env(safe-area-inset-bottom));
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  color: #e4e8da;
+  font: 500 12px/1.5 var(--font-body), sans-serif;
+  letter-spacing: .1em;
+}
+.rt-mobile-track { width: 80px; height: 2px; background: #42463f; overflow: hidden; }
+.rt-mobile-track i { display: block; width: 100%; height: 100%; background: #b9eb70; transform-origin: left; }
+.route-transition[data-phase=cover] .rt-mobile-track i { animation: rt-progress 1.1s ease-in-out infinite; }
+@keyframes rt-progress { from { transform: translateX(-30%) scaleX(.4); } to { transform: translateX(100%) scaleX(.65); } }
+@keyframes rt-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rt-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@media (max-height: 440px) and (orientation: landscape) { .rt-mobile-status { display: none; } }
+@media (prefers-reduced-motion: reduce) { .route-transition { display: none; } }
+html[data-tony-effects=off] .route-transition { display: none; }

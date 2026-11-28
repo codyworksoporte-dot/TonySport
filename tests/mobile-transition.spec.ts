@@ -5,7 +5,7 @@ type Sample = {phase:string;covered:boolean;at:number};
 async function observe(page:Page) {
   await page.addInitScript(()=>{
     sessionStorage.setItem('tony:intro:wordmark:v1','seen');
-    sessionStorage.setItem('tony:inicio:carteles:v2','[]');
+    sessionStorage.setItem('tony:inicio:carteles:v3','[]');
     const samples:Sample[]=[];
     (window as unknown as {__transitions:Sample[]}).__transitions=samples;
     new MutationObserver(records=>records.forEach(record=>{
@@ -39,21 +39,21 @@ test('touch navigation shows Tony over the full viewport without delaying routin
   expect((await page.request.get('/tony-news')).ok()).toBe(true);
   await observe(page);
   const transition=page.locator('.route-transition');
-  await expect(transition.locator('.rt-panel,.rt-stage')).toHaveCount(0);
+  await expect(transition.locator('.brand-screen-art img')).toHaveAttribute('src', /\/tony-piel\.webp$/);
   await expect(page.locator('.tony-peek img')).toHaveCount(0);
   const release=await holdNews(page);
   await news(page);
   await expect(transition).toHaveAttribute('data-phase','cover');
   const surface=await transition.evaluate(el=>{
-    const mobile=el.querySelector<HTMLElement>('.rt-mobile')!;
+    const mobile=el.querySelector<HTMLElement>('.brand-screen-art')!;
     const box=(node:Element)=>{const {x,y,width,height}=node.getBoundingClientRect();return {x,y,width,height};};
     const animated=[...new Set(el.getAnimations({subtree:true}).flatMap(a=>(a.effect as KeyframeEffect).getKeyframes().flatMap(f=>Object.keys(f))))];
-    return {outer:box(el),inner:box(mobile),opacity:getComputedStyle(mobile).opacity,background:getComputedStyle(mobile).backgroundColor,
+    return {outer:box(el),inner:box(mobile),opacity:getComputedStyle(mobile).opacity,leather:getComputedStyle(mobile).backgroundImage.includes('/cuero.webp'),
       pointer:getComputedStyle(el).pointerEvents,covered:document.documentElement.dataset.routeCover,
       animated:animated.filter(p=>!['offset','computedOffset','easing','composite'].includes(p)).sort()};
   });
   const screen={x:0,y:0,width:390,height:844};
-  expect(surface).toEqual({outer:screen,inner:screen,opacity:'1',background:'rgb(11, 23, 16)',
+  expect(surface).toEqual({outer:screen,inner:screen,opacity:'1',leather:true,
     pointer:'none',covered:'true',animated:['opacity','transform']});
   // The section arrives now; Tony winks and lets it through as soon as it does.
   release();
@@ -101,16 +101,19 @@ test('rapid route changes restart one transition and clean up every animation',a
   await expect(page.locator('.route-transition')).toHaveAttribute('data-phase','idle');
   await expect.poll(()=>page.locator('.route-transition').evaluate(el=>el.getAnimations({subtree:true}).length)).toBe(0);
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBe(0);
-  await expect(page.locator('.rt-mobile')).toHaveCount(1);
+  await expect(page.locator('.route-transition .brand-screen-art img')).toHaveCount(1);
 });
 
 for(const viewport of [{width:320,height:568},{width:768,height:1024},{width:844,height:390}])test(`transition covers the viewport at ${viewport.width}x${viewport.height}`,async({page})=>{
   await page.setViewportSize(viewport);await observe(page);
   await page.route(NEWS,async route=>{await new Promise(resolve=>setTimeout(resolve,900));await route.continue();});
   await news(page);
-  await expect(page.locator('.rt-mobile')).toHaveCSS('opacity','1');
+  await expect(page.locator('.route-transition')).toHaveCSS('opacity','1');
   expect(await page.locator('.route-transition').boundingBox()).toEqual({x:0,y:0,...viewport});
-  const emblem=await page.locator('.rt-mobile-content').boundingBox();
+  const emblem=await page.locator('.route-transition .brand-screen-art img').boundingBox();
+  expect(emblem!.x).toBeGreaterThanOrEqual(0);
+  expect(emblem!.x+emblem!.width).toBeLessThanOrEqual(viewport.width);
+  expect(emblem!.width/emblem!.height).toBeCloseTo(1108/643, 2);
   expect(emblem!.y).toBeGreaterThanOrEqual(0);
   expect(emblem!.y+emblem!.height).toBeLessThanOrEqual(viewport.height);
   await expect(page).toHaveURL(/\/tony-news$/);

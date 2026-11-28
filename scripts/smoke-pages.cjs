@@ -4,7 +4,7 @@ const { chromium } = require('@playwright/test');
   const browser = await chromium.launch({channel:'msedge',headless:true});
   try {
   const page = await browser.newPage({viewport:{width:1280,height:900},reducedMotion:'reduce'});
-  await page.addInitScript(()=>sessionStorage.setItem('tony:inicio:carteles:v2','[]'));
+  await page.addInitScript(()=>sessionStorage.setItem('tony:inicio:carteles:v3','[]'));
   const base = 'http://127.0.0.1:4173/TonySport';
   const failures = [];
   page.on('pageerror', error => failures.push(`JS: ${error.message}`));

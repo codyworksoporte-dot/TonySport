@@ -1,67 +1,42 @@
-/* The artwork is transparent. Light, ground reflection and the brief impact share its baseline. */
-.brand-intro{
-  --landing:640ms; --glint:1370ms; --exit:2160ms; --sign-width:min(82vw,620px,107dvh);
-  position:fixed; inset:0; margin:0; padding:0; width:100%; height:100dvh; max-width:none; max-height:none;
-  border:0; overflow:hidden; isolation:isolate; color:#eff6e7; overscroll-behavior:contain;
-  background:radial-gradient(ellipse at 50% 54%,#183423 0%,#0c2116 27%,#05100b 61%,#030805);
+.brand-intro {
+  --exit-delay: 2160ms;
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  border: 0;
+  overflow: hidden;
+  color: #eff6e7;
+  background: #08090a;
+  overscroll-behavior: contain;
 }
-.brand-intro[open]{display:grid;place-items:center;animation:intro-exit 340ms ease-in var(--exit) both}
-.brand-intro::backdrop{background:transparent}
-.intro-sign{position:relative;width:var(--sign-width);aspect-ratio:1080/354;isolation:isolate}
-.intro-wordmark{position:relative;z-index:1;animation:intro-drop calc(var(--landing) + 190ms) both;transform-origin:center bottom}
-.intro-wordmark img,.intro-reflection img{display:block;width:100%;height:auto}
-.intro-wordmark img{animation:intro-glint 650ms ease-in-out var(--glint) both}
-.intro-wordmark:has(img)::after{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  mask:var(--intro-silhouette) center/contain no-repeat;
-  background:linear-gradient(111deg,transparent 39%,#c9ff874a 46%,#f4ffdede 50%,#baff743d 54%,transparent 61%) 125% 0 / 370% 100% no-repeat;
-  animation:intro-sweep 570ms cubic-bezier(.37,.02,.26,1) var(--glint) both;
+.brand-intro[open] { display: block; animation: intro-exit 340ms ease-in var(--exit-delay) both; }
+.brand-intro::backdrop { background: transparent; }
+.intro-skip {
+  position: absolute;
+  bottom: max(26px, env(safe-area-inset-bottom));
+  right: max(26px, env(safe-area-inset-right));
+  min-height: 44px;
+  padding: 8px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #101711;
+  border: 1px solid #58714a;
+  color: #eefadf;
+  border-radius: 999px;
+  font: 600 14px/1.2 var(--font-body), sans-serif;
+  cursor: pointer;
 }
-.intro-reflection{
-  position:absolute;top:calc(100% + 4px);width:100%;pointer-events:none;
-  mask-image:linear-gradient(#0009,transparent 85%);animation:intro-reflect 750ms ease-out var(--landing) both;
+.intro-skip:focus-visible { outline: 2px solid #b4ff35; outline-offset: 3px; }
+@keyframes intro-exit { to { opacity: 0; } }
+@media (max-width: 700px) {
+  .brand-intro { --exit-delay: 1630ms; }
+  .brand-intro[open] { animation-duration: 270ms; }
+  .intro-skip { right: 50%; translate: 50% 0; }
 }
-.intro-reflection img{transform:scaleY(-1);opacity:.48}
-.intro-sign:has(.intro-wordmark-fallback) .intro-reflection{display:none}
-.intro-floor{
-  position:absolute;left:50%;top:calc(50% + var(--sign-width) * .155);
-  width:min(156vw,1350px);height:min(108vw,850px);pointer-events:none;
-  transform:translate(-50%,-50%) perspective(530px) rotateX(70deg);
-}
-.intro-floor::before,.intro-floor i{position:absolute;inset:0}
-.intro-floor::before{
-  content:'';background:radial-gradient(ellipse,#bfff7766 1%,#56df3436 15%,transparent 56%);
-  animation:intro-light 1400ms ease-out var(--landing) both;
-}
-.intro-seams{
-  background:url('/assets/escamas-tony-brasa.webp') center / clamp(210px,36vw,460px);
-  mask-image:radial-gradient(ellipse,transparent 12%,#000 32%,transparent 64%);
-  animation:intro-seams 870ms ease-out var(--landing) both;
-}
-.intro-floor .intro-wave{inset:14% 4%;border:2px solid #b3ff72;border-radius:50%;box-shadow:0 0 16px #aaff3b;animation:intro-wave 840ms cubic-bezier(.16,.8,.34,1) var(--landing) both}
-.intro-wordmark-fallback{display:grid;text-align:center;color:#b4ff35;font:italic 700 clamp(50px,14vw,110px)/.85 var(--font-display),sans-serif}
-.intro-wordmark-fallback small{margin-top:.45em;font:700 .22em var(--font-body),sans-serif;letter-spacing:.19em;color:#ffa259}
-.intro-skip{
-  position:absolute;bottom:max(26px,env(safe-area-inset-bottom));right:max(26px,env(safe-area-inset-right));
-  min-height:44px;padding:8px 18px;display:flex;align-items:center;gap:12px;background:#112117;
-  border:1px solid #58714a;color:#eefadf;border-radius:999px;font:600 14px/1.2 var(--font-body),sans-serif;cursor:pointer;
-}
-.intro-skip:focus-visible{outline:2px solid #b4ff35;outline-offset:3px}
-@keyframes intro-drop{
-  0%{opacity:0;transform:translateY(-55dvh) scale(.92);animation-timing-function:cubic-bezier(.54,0,.84,.35)}
-  24%{opacity:1}77%{transform:translateY(0) scale(1.025,.945);animation-timing-function:ease-out}
-  88%{transform:translateY(-.8dvh) scale(.996,1.008)}100%{opacity:1;transform:none}
-}
-@keyframes intro-glint{0%,100%{filter:drop-shadow(0 0 4px #77ff2220)}48%{filter:brightness(1.22) drop-shadow(0 0 10px #a9ff42aa) drop-shadow(0 0 23px #58df3560)}}
-@keyframes intro-sweep{0%{opacity:0;background-position:125% 0}16%,78%{opacity:.9}100%{opacity:0;background-position:-25% 0}}
-@keyframes intro-light{0%{opacity:0;transform:scale(.25)}18%{opacity:1}100%{opacity:.3;transform:scale(1.2)}}
-@keyframes intro-reflect{from{opacity:0}to{opacity:.6}}
-@keyframes intro-seams{0%{opacity:0;transform:scale(.25)}22%{opacity:.84}100%{opacity:0;transform:scale(1.08)}}
-@keyframes intro-wave{0%{opacity:0;transform:scale(.08)}16%{opacity:.7}100%{opacity:0;transform:scale(1)}}
-@keyframes intro-exit{to{opacity:0}}
-@media(max-width:700px){
-  .brand-intro{--landing:445ms;--glint:975ms;--exit:1630ms}
-  .brand-intro[open]{animation-duration:270ms}
-  .intro-skip{right:50%;translate:50% 0}
-}
-@media(prefers-reduced-motion:reduce){.brand-intro{display:none!important}}
+@media (prefers-reduced-motion: reduce) { .brand-intro { display: none !important; } }

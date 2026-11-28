@@ -46,7 +46,7 @@ const normalize = (text: string) => text.normalize('NFD').replace(ACCENTS, '').t
 test.beforeEach(async ({page}) => {
   await page.addInitScript(() => {
     try { sessionStorage.setItem('tony:intro:wordmark:v1', 'seen'); } catch { /* Storage blocked: nothing to skip. */ }
-    try { sessionStorage.setItem('tony:inicio:carteles:v2', '[]'); } catch { /* Idem. */ }
+    try { sessionStorage.setItem('tony:inicio:carteles:v3', '[]'); } catch { /* Idem. */ }
     try { localStorage.setItem('tony-assistant-hint-v1', '1'); } catch { /* Idem. */ }
   });
 });

@@ -2,7 +2,7 @@ import {expect, test, type CDPSession, type Locator, type Page} from '@playwrigh
 
 async function openRail(page: Page) {
   await page.addInitScript(() => {
-    sessionStorage.setItem('tony:inicio:carteles:v2','[]');
+    sessionStorage.setItem('tony:inicio:carteles:v3','[]');
     sessionStorage.setItem('tony:intro:wordmark:v1','seen');
   });
   await page.goto('/');

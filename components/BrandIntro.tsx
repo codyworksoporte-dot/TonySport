@@ -1,25 +1,13 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import TonyWordmark from './TonyWordmark';
-import { siteAsset } from '@/lib/asset-path';
+import BrandScreenArt from './BrandScreenArt';
 import './brand-intro.css';
 
 const SESSION_KEY = 'tony:intro:wordmark:v1';
 type IntroBoot = { cancelled: boolean; release: (cancelled?: boolean) => void };
 const introBoot = () => (window as Window & { __tonyIntroBoot?: IntroBoot }).__tonyIntroBoot;
-
-function IntroLogo() {
-  const image = useRef<HTMLImageElement>(null);
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    if (image.current?.complete && !image.current.naturalWidth) setFailed(true);
-  }, []);
-  return failed
-    ? <strong className="intro-wordmark-fallback">TONY <small>SPORTWEAR</small></strong>
-    : <TonyWordmark ref={image} alt="Tony Sportwear" sizes="(max-width: 767px) 82vw, 620px" fetchPriority="high" onError={() => setFailed(true)}/>;
-}
 
 export default function BrandIntro() {
   const pathname = usePathname();
@@ -63,11 +51,7 @@ export default function BrandIntro() {
   }, [playing]);
 
   return playing && <dialog ref={dialog} className="brand-intro" aria-label="Entrada de Tony Sportwear" onCancel={() => setPlaying(false)}>
-    <div className="intro-floor" aria-hidden="true"><i className="intro-seams"/><i className="intro-wave"/></div>
-    <div className="intro-sign" style={{'--intro-silhouette':`url("${siteAsset('/assets/brand/tony-wordmark-640.webp')}")`} as CSSProperties}>
-      <div className="intro-wordmark"><IntroLogo/></div>
-      <div className="intro-reflection" aria-hidden="true"><TonyWordmark sizes="(max-width: 767px) 82vw, 620px"/></div>
-    </div>
+    <BrandScreenArt intro/>
     <button autoFocus className="intro-skip" type="button" onClick={() => setPlaying(false)}>Saltar intro <span aria-hidden="true">→</span></button>
   </dialog>;
 }

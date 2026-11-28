@@ -79,7 +79,7 @@ test('menú móvil, búsqueda, Escape, preguntas frecuentes y página no encontr
 });
 
 test('la portada prioriza el pedido y reúne tienda, promociones y descargas', async ({page}) => {
-  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v2', '[]'));
+  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v3', '[]'));
   await page.goto('/');
   const main = page.getByRole('main');
   await expect(main.getByRole('heading', {level: 1})).toHaveText('Crear mi pedido');
@@ -121,7 +121,7 @@ test('la portada prioriza el pedido y reúne tienda, promociones y descargas', a
 });
 
 test('el contorno de las letras blancas respeta el tamaño y los acentos de la portada', async ({page}) => {
-  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v2', '[]'));
+  await page.addInitScript(() => sessionStorage.setItem('tony:inicio:carteles:v3', '[]'));
   await page.goto('/');
   for (const width of [390, 1280]) {
     await page.setViewportSize({width,height:850});
@@ -152,7 +152,7 @@ test('el contorno de las letras blancas respeta el tamaño y los acentos de la p
   }
 });
 
-test('una sesión anterior conserva únicamente sus anuncios pendientes vigentes', async ({page}) => {
+test('una sesión anterior recibe los dos carteles nuevos y conserva sus anuncios pendientes vigentes', async ({page}) => {
   await page.addInitScript(() => {
     const key = 'tony:inicio:carteles:v2';
     if (!sessionStorage.getItem(key)) {
@@ -161,6 +161,10 @@ test('una sesión anterior conserva únicamente sus anuncios pendientes vigentes
   });
   await page.goto('/');
   const ad = page.getByRole('dialog', {name: 'Anuncios de Tony'});
+  await expect(ad.getByRole('link')).toHaveAccessibleName(/Creá tu pedido/);
+  await ad.getByRole('button', {name: 'Cerrar anuncio'}).click();
+  await expect(ad.getByRole('link')).toHaveAccessibleName(/14 tiendas a nivel nacional/);
+  await ad.getByRole('button', {name: 'Cerrar anuncio'}).click();
   await expect(ad.getByRole('link')).toHaveAccessibleName(/personalizá el uniforme/i);
   await ad.getByRole('button', {name: 'Cerrar anuncio'}).click();
   await page.reload();
